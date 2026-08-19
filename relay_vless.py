@@ -10,13 +10,8 @@ from datetime import datetime, timezone, timedelta
 from fastapi import WebSocket, WebSocketDisconnect
 
 # ── Shared state (used directly; main.py populates these) ──
-from shared import (
-    stats,
-    hourly_traffic,
-    connections,
-    error_logs,
-    RELAY_BUF,
-)
+# Variables are accessed directly from main module to prevent state desync
+RELAY_BUF_LOCAL = 256 * 1024
 
 logger = logging.getLogger("White-Panel")
 IRAN_TZ = timezone(timedelta(hours=3, minutes=30))
@@ -29,12 +24,6 @@ def _get_main():
     if _main is None:
         import main as _main
     return _main
-
-# ══════════════════════════════════════════════════════════════════════════════
-# VLESS Relay — بهینه‌شده برای حداکثر throughput
-# ══════════════════════════════════════════════════════════════════════════════
-
-RELAY_BUF_LOCAL = 256 * 1024
 
 def _ws_client_ip(ws: WebSocket) -> str:
     fwd = ws.headers.get("x-forwarded-for")
@@ -75,8 +64,8 @@ async def check_and_use(uid: str, n: int) -> bool:
         if not m.is_link_allowed(link):
             return False
         link["used_bytes"] += n
-        stats["total_bytes"] += n
-        hourly_traffic[m.now_ir().strftime("%H:00")] += n
+        m.stats["total_bytes"] += n
+        m.hourly_traffic[m.now_ir().strftime("%H:00")] += n
 
     # Sync traffic back to user (so subscription page shows real usage)
     user_id = link.get("user_id")
@@ -89,6 +78,7 @@ async def check_and_use(uid: str, n: int) -> bool:
     return True
 
 async def relay_ws_to_tcp(ws: WebSocket, writer: asyncio.StreamWriter, conn_id: str, uid: str):
+    m = _get_main()
     try:
         while True:
             msg = await ws.receive()
@@ -100,8 +90,9 @@ async def relay_ws_to_tcp(ws: WebSocket, writer: asyncio.StreamWriter, conn_id: 
             if not await check_and_use(uid, len(data)):
                 await ws.close(code=1008, reason="quota/disabled/unknown")
                 break
-            stats["total_requests"] += 1
-            connections[conn_id]["bytes"] += len(data)
+            m.stats["total_requests"] += 1
+            if conn_id in m.connections:
+                m.connections[conn_id]["bytes"] += len(data)
             writer.write(data)
             if writer.transport.get_write_buffer_size() > RELAY_BUF_LOCAL:
                 await writer.drain()
@@ -114,6 +105,7 @@ async def relay_ws_to_tcp(ws: WebSocket, writer: asyncio.StreamWriter, conn_id: 
             pass
 
 async def relay_tcp_to_ws(ws: WebSocket, reader: asyncio.StreamReader, conn_id: str, uid: str):
+    m = _get_main()
     first = True
     try:
         while True:
@@ -123,7 +115,8 @@ async def relay_tcp_to_ws(ws: WebSocket, reader: asyncio.StreamReader, conn_id: 
             if not await check_and_use(uid, len(data)):
                 await ws.close(code=1008, reason="quota/disabled/unknown")
                 break
-            connections[conn_id]["bytes"] += len(data)
+            if conn_id in m.connections:
+                m.connections[conn_id]["bytes"] += len(data)
             payload = (b"\x00\x00" + data) if first else data
             first = False
             await ws.send_bytes(payload)
@@ -150,14 +143,14 @@ async def websocket_tunnel(ws: WebSocket, uuid: str, proxy_override: str = None)
 
     ip = _ws_client_ip(ws)
     conn_id = secrets.token_urlsafe(6)
-    connections[conn_id] = {
+    m.connections[conn_id] = {
         "uuid": uuid,
         "ip": ip,
         "transport": "vless-ws",
         "connected_at": datetime.now().isoformat(),
         "bytes": 0,
     }
-    logger.info(f"WS [{conn_id}] uuid={uuid[:8]}… ip={ip} total={len(connections)}")
+    logger.info(f"WS [{conn_id}] uuid={uuid[:8]}… ip={ip} total={len(m.connections)}")
     m.log_activity("connection", f"اتصال جدید از {ip} (کانفیگ {link.get('label','?')})", "info")
 
     # Enforce per-user IP limit using the real connection IP
@@ -181,8 +174,9 @@ async def websocket_tunnel(ws: WebSocket, uuid: str, proxy_override: str = None)
             await ws.close(code=1008, reason="quota/disabled")
             return
 
-        stats["total_requests"] += 1
-        connections[conn_id]["bytes"] += len(first_chunk)
+        m.stats["total_requests"] += 1
+        if conn_id in m.connections:
+            m.connections[conn_id]["bytes"] += len(first_chunk)
         logger.info(f"[{conn_id}] → {address}:{port}")
 
         # Route the outbound connection through the user's selected proxy IP(s),
@@ -216,11 +210,11 @@ async def websocket_tunnel(ws: WebSocket, uuid: str, proxy_override: str = None)
     except WebSocketDisconnect:
         pass
     except asyncio.TimeoutError:
-        stats["total_errors"] += 1
-        error_logs.append({"error": "connection timeout", "time": datetime.now().isoformat()})
+        m.stats["total_errors"] += 1
+        m.error_logs.append({"error": "connection timeout", "time": datetime.now().isoformat()})
     except Exception as exc:
-        stats["total_errors"] += 1
-        error_logs.append({"error": str(exc), "time": datetime.now().isoformat()})
+        m.stats["total_errors"] += 1
+        m.error_logs.append({"error": str(exc), "time": datetime.now().isoformat()})
         logger.error(f"WS error [{conn_id}]: {exc}")
     finally:
         if writer:
@@ -229,10 +223,10 @@ async def websocket_tunnel(ws: WebSocket, uuid: str, proxy_override: str = None)
                 await writer.wait_closed()
             except Exception:
                 pass
-        connections.pop(conn_id, None)
+        m.connections.pop(conn_id, None)
         # Release the IP so USER_IP_MAP reflects live concurrent connections
         try:
             asyncio.create_task(m.release_ip_for_link(uuid, ip))
         except Exception:
             pass
-        logger.info(f"WS closed [{conn_id}] total={len(connections)}")
+        logger.info(f"WS closed [{conn_id}] total={len(m.connections)}")
