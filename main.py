@@ -700,7 +700,7 @@ def _xray_x25519_privkey_norm(private_key: str) -> str:
         return ""
 
 
-XRAY_URL = "https://github.com/XTLS/Xray-core/releases/download/v26.3.27/Xray-linux-64.zip"
+XRAY_URL = "https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip"
 
 
 async def _ensure_xray() -> bool:
