@@ -1,808 +1,295 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl" data-theme="dark" data-accent="red">
+<html lang="fa" dir="rtl" class="dark">
 <head>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>White Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Estedad', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Segoe UI', 'Tahoma', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Consolas', 'Menlo', 'monospace']
+      }
+    }
+  }
+};
+</script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <style>
+/* ═══════ White Panel — glassmorphism theme ═══════
+   Structure & spacing come from Tailwind utilities; this layer holds the
+   interactive components + JS-driven class toggles + theme variables. */
 
-/* Ultra-dark sub-style theme — absolute black, no glass, fixed teal accent.
-   Matches the /sub page exactly. */
 :root{
-  /* Accent matches the /sub page: teal #00e1c1 on pure black, no glass, no glow. */
-  --teal:#00e1c1;--blue:#9db4ff;--wp-blue:#9db4ff;--wp-purple:#b9a6ff;--wp-red:#ff6b6b;
-  --neon:#00e1c1;--neon2:#2ef2d6;--purple:#b9a6ff;--green:#00e1c1;--red:#ff6b6b;
-  --gold:#00e1c1;--success:#00e1c1;--warning:#ffab00;--danger:#ff6b6b;
-  --bg:#050a18;--bg2:#0a1025;--bg3:rgba(255,255,255,.06);--txt:#ffffff;--txt2:#c9c9ce;
-  --r:12px;--radius:14px;--radius-lg:16px;--radius-xl:24px;
-  --glass:#080e22;--surface-glass:#080e22;
-  --grad1:#00e1c1;--grad2:#2ef2d6;--grad:linear-gradient(135deg,#00e1c1,#2ef2d6);
-  --gradient:linear-gradient(90deg,#00e1c1,#2ef2d6);
-  --border:rgba(255,255,255,.06);
-  --glow:none;--glow-strong:none;
-  --logo-shadow:none;
-  --tab-bg:#00e1c1;--tab-color:#000;--tab-glow:none;
-  --nav-bg:rgba(0,225,193,.14);--nav-color:#00e1c1;
+  color-scheme:dark;
+  --neon:#00e1c1;--neon2:#2ef2d6;--teal:#00e1c1;--green:#00e1c1;--success:#00e1c1;
+  --red:#ff6b6b;--wp-red:#ff6b6b;--danger:#ff6b6b;
+  --blue:#9db4ff;--wp-blue:#9db4ff;--purple:#c4b5fd;--wp-purple:#b9a6ff;
+  --gold:#00e1c1;--warning:#ffab00;
+  --txt:#ffffff;--txt2:rgba(255,255,255,.6);--text-secondary:rgba(255,255,255,.6);
+  --border:rgba(255,255,255,.1);--bg3:rgba(255,255,255,.08);
+  --radius:14px;--radius-lg:16px;--radius-xl:24px;
+  --glass:rgba(255,255,255,.06);--surface-glass:rgba(9,15,33,.6);
+  --nav-bg:rgba(255,255,255,.05);--input-bg:rgba(255,255,255,.06);
   --border-glow:rgba(0,225,193,.4);--input-glow:rgba(0,225,193,.14);
-  --line:rgba(255,255,255,.16);--input-bg:#121216;
-  --orb1:rgba(255,255,255,.05);--orb2:rgba(255,255,255,.03);
-  --surface:#FFFFFF;--text-primary:#ffffff;--text-secondary:#c9c9ce;
-  --shadow-sm:0 8px 32px rgba(0,0,0,.55);--shadow-md:0 8px 32px rgba(0,0,0,.6);
-  --shadow-lg:0 16px 48px rgba(0,0,0,.7);--shadow-hover:0 8px 32px rgba(0,0,0,.6);
+  --grad1:#00e1c1;--grad2:#8b5cf6;
+  --grad:linear-gradient(135deg,#00e1c1,#2ef2d6);
+  --gradient:linear-gradient(135deg,#00e1c1,#8b5cf6);
+  --shadow-sm:0 4px 20px rgba(0,0,0,.3);--shadow-md:0 12px 40px rgba(0,0,0,.4);
+  --shadow-lg:0 20px 56px rgba(0,0,0,.5);
+}
+:root:not(.dark){
+  color-scheme:light;
+  --neon:#0aa892;--neon2:#0aa892;--teal:#0aa892;--green:#0aa892;--success:#0aa892;
+  --red:#e5484d;--wp-red:#e5484d;--danger:#e5484d;
+  --blue:#2563eb;--wp-blue:#2563eb;--purple:#7c3aed;--wp-purple:#5e4ec4;
+  --gold:#0aa892;--warning:#b45309;
+  --txt:#0f172a;--txt2:rgba(15,23,42,.62);--text-secondary:rgba(15,23,42,.62);
+  --border:rgba(15,23,42,.12);--bg3:rgba(15,23,42,.06);
+  --radius:14px;--radius-lg:16px;--radius-xl:24px;
+  --glass:rgba(255,255,255,.65);--surface-glass:rgba(255,255,255,.72);
+  --nav-bg:rgba(15,23,42,.04);--input-bg:rgba(255,255,255,.85);
+  --border-glow:rgba(10,168,146,.35);--input-glow:rgba(10,168,146,.12);
+  --grad1:#0aa892;--grad2:#7c3aed;
+  --grad:linear-gradient(135deg,#0aa892,#34d399);
+  --gradient:linear-gradient(135deg,#0aa892,#7c3aed);
+  --shadow-sm:0 2px 12px rgba(15,23,42,.06);--shadow-md:0 10px 30px rgba(15,23,42,.08);
+  --shadow-lg:0 16px 48px rgba(15,23,42,.1);
 }
 
-/* ── Light mode (iOS-style, pure black text) ── */
-[data-theme="light"]{
-  --teal:#000000;--blue:#0a84ff;--wp-blue:#0a84ff;--wp-purple:#5e4ec4;--wp-red:#000000;
-  --neon:#000000;--neon2:#000000;--purple:#5e4ec4;--green:#000000;--red:#000000;
-  --gold:#000000;--success:#000000;--warning:#000000;--danger:#000000;
-  --bg:#f0f4f8;--bg2:#f0f4f8;--bg3:rgba(0,0,0,.06);--txt:#000000;--txt2:#3a3a3e;
-  --r:12px;--radius:14px;--radius-lg:16px;--radius-xl:24px;
-  --glass:#ffffff;--surface-glass:#ffffff;
-  --grad1:#000000;--grad2:#000000;--grad:linear-gradient(135deg,#000000,#000000);
-  --gradient:linear-gradient(90deg,#000000,#000000);
-  --border:rgba(0,0,0,.08);
-  --glow:none;--glow-strong:none;
-  --logo-shadow:none;
-  --tab-bg:#000000;--tab-color:#fff;--tab-glow:none;
-  --nav-bg:rgba(0,0,0,.08);--nav-color:#000000;
-  --border-glow:rgba(0,0,0,.25);--input-glow:rgba(0,0,0,.08);
-  --line:rgba(0,0,0,.16);--input-bg:#ffffff;
-  --orb1:rgba(0,0,0,.05);--orb2:rgba(0,0,0,.03);
-  --surface:#FFFFFF;--text-primary:#000000;--text-secondary:#3a3a3e;
-  --shadow-sm:0 8px 30px rgba(0,0,0,.08);--shadow-md:0 10px 32px rgba(0,0,0,.1);
-  --shadow-lg:0 16px 48px rgba(0,0,0,.12);--shadow-hover:0 10px 32px rgba(0,0,0,.12);
-}
-/* Light: cards are white, softer shadows */
-[data-theme="light"] .panel,
-[data-theme="light"] .stat,
-[data-theme="light"] .u-card,
-[data-theme="light"] .tbl,
-[data-theme="light"] .sidebar,
-[data-theme="light"] .topbar,
-[data-theme="light"] .modal-c,
-[data-theme="light"] .contact-bubble,
-[data-theme="light"] .login-card{background:#ffffff}
-[data-theme="light"] .f-g input,[data-theme="light"] .f-g select,[data-theme="light"] .f-g textarea,
-[data-theme="light"] .input-glass{background:#ffffff;color:#000000;border-color:rgba(0,0,0,.16)}
-[data-theme="light"] .f-g select option{background:#ffffff;color:#000000}
-[data-theme="light"] .f-g input:focus,[data-theme="light"] .f-g select:focus,[data-theme="light"] .f-g textarea:focus,
-[data-theme="light"] .input-glass:focus{background:#ffffff;color:#000000;border-color:#000000;box-shadow:0 0 0 4px rgba(0,0,0,.08)}
-[data-theme="light"] .f-g input::placeholder,[data-theme="light"] .f-g textarea::placeholder,
-[data-theme="light"] .input-glass::placeholder{color:#3a3a3e;opacity:.6}
-[data-theme="light"] .btn-g{background:rgba(0,0,0,.05)}
-/* Light: no colored/white glow on the background */
-[data-theme="light"] .bg-fx{background:none}
-[data-theme="light"] .bg-grid{background:none}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Estedad',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI','Tahoma',system-ui,sans-serif;background:#050a18;color:#fff;transition:background .4s ease,color .4s ease;-webkit-font-smoothing:antialiased}
+:root:not(.dark) body{background:#eef2f7}
+input,select,button,textarea{font-family:inherit}
+::selection{background:rgba(0,225,193,.28)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(128,128,128,.28);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:rgba(128,128,128,.5)}
+::-webkit-scrollbar-button{display:none}
 
-/* ── Live background (matches /sub) ── */
-.bg-fx{
-  position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;
-  background:
-    radial-gradient(ellipse 900px 600px at 25% 20%, rgba(99,102,241,0.14) 0%, transparent 70%),
-    radial-gradient(ellipse 700px 500px at 75% 15%, rgba(139,92,246,0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 600px 400px at 60% 75%, rgba(167,139,250,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 500px 400px at 10% 80%, rgba(99,102,241,0.05) 0%, transparent 55%);
-}
-.bg-grid{
-  position:fixed;inset:-2px;z-index:-2;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+/* ── Live animated background (matches /sub) ── */
+.bg-fx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:
+  radial-gradient(ellipse 900px 600px at 25% 20%,rgba(0,225,193,.08) 0%,transparent 70%),
+  radial-gradient(ellipse 700px 500px at 75% 15%,rgba(139,92,246,.08) 0%,transparent 60%),
+  radial-gradient(ellipse 600px 400px at 60% 75%,rgba(99,102,241,.06) 0%,transparent 60%),
+  radial-gradient(ellipse 500px 400px at 10% 80%,rgba(0,225,193,.05) 0%,transparent 55%)}
+.bg-grid{position:fixed;inset:-2px;z-index:-2;pointer-events:none;
+  background-image:linear-gradient(rgba(99,102,241,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.04) 1px,transparent 1px);
   background-size:48px 48px;
-  mask-image:radial-gradient(ellipse 90% 80% at 50% 45%, black 20%, transparent 70%);
-  -webkit-mask-image:radial-gradient(ellipse 90% 80% at 50% 45%, black 20%, transparent 70%);
-  animation:grid-drift 36s linear infinite;
-}
+  mask-image:radial-gradient(ellipse 90% 80% at 50% 45%,black 20%,transparent 70%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 80% at 50% 45%,black 20%,transparent 70%);
+  animation:grid-drift 36s linear infinite}
 @keyframes grid-drift{from{background-position:0 0}to{background-position:48px 48px}}
 
-*{margin:0;padding:0;box-sizing:border-box}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* ── Animations ── */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes particle{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes scaleIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@keyframes copyFlash{0%{background:var(--neon)}100%{background:transparent}}
 
-body{
-  /* iOS system font stack — SF Pro on Apple devices, graceful fallbacks
-     elsewhere; RTL Persian text uses the system Arabic UI font on iOS. */
-  font-family:'Estedad',-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',system-ui,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-  background:var(--bg);color:var(--txt);overflow-x:hidden;
-  min-height:100vh;line-height:1.6;
-  transition:background .4s ease,color .4s ease;
-}
-/* Persian: iOS uses the built-in system Arabic font for RTL text */
-html[lang="fa"] body{
-  font-family:'Estedad',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI','Tahoma',system-ui,sans-serif;
-}
-/* Dark mode: ultra-white text */
-[data-theme="dark"] body{
-  color:#ffffff;
-  text-shadow:none;
-}
-[data-theme="dark"] .panel-h,
-[data-theme="dark"] .stat-l,
-[data-theme="dark"] .set-lbl,
-[data-theme="dark"] .u-card-name,
-[data-theme="dark"] .scn-item .scn-ip,
-[data-theme="dark"] td,
-[data-theme="dark"] th,
-[data-theme="dark"] .f-g label,
-[data-theme="dark"] .topbar-greet,
-[data-theme="dark"] .sb-brand-t{
-  text-shadow:none;
-}
-/* Neon accent in dark mode: teal like the /sub page */
-[data-theme="dark"]{
-  --neon:#00e1c1;--neon2:#2ef2d6;--teal:#00e1c1;--green:#00e1c1;--success:#00e1c1;
-  --grad1:#00e1c1;--grad2:#2ef2d6;
-  --tab-bg:#00e1c1;--nav-color:#00e1c1;--nav-bg:rgba(0,225,193,.14);--border-glow:rgba(0,225,193,.4);--input-glow:rgba(0,225,193,.14);
-  --glow:none;--glow-strong:none;
-  --logo-shadow:none;
-  --wp-red:#ff6b6b;--red:#ff6b6b;--danger:#ff6b6b;
-  --shadow-sm:0 8px 32px rgba(0,0,0,.7);--shadow-md:0 12px 40px rgba(0,0,0,.75);
-  --shadow-lg:0 20px 56px rgba(0,0,0,.85);--shadow-hover:0 12px 40px rgba(99,102,241,.15);
-}
-/* White grid for the live background in dark mode */
-[data-theme="dark"] .bg-grid{
-  background-image:linear-gradient(rgba(99,102,241,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.04) 1px,transparent 1px);
-}
-::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(99,102,241,.2);border-radius:99px;transition:background .2s}
-::-webkit-scrollbar-thumb:hover{background:rgba(99,102,241,.4)}
-::-webkit-scrollbar-button{display:none}
-input,select,button,textarea{font-family:inherit}
+/* ── Shared glass surface ── */
+.glass{background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border)}
 
-/* ═══ LOGIN — Modern Glassmorphism ═══ */
-        #particles{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.2}
-        .login-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-        }
-        .login-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            overflow: hidden;
-        }
-        #shader-canvas {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-        .login-card {
-            position: relative;
-            z-index: 1;
-            background: #080e22;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 32px 28px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: var(--shadow-lg);
-            animation: scaleIn .5s ease;
-            overflow: hidden;
-            border: 1px solid rgba(99,102,241,.15);
-        }
-        .login-card::before{
-          content:'';position:absolute;top:0;right:0;width:180px;height:180px;
-          background:radial-gradient(circle,rgba(99,102,241,.08),transparent 70%);pointer-events:none;
-        }
-        .login-card::after{
-          content:'';position:absolute;bottom:0;left:0;width:160px;height:160px;
-          background:radial-gradient(circle,rgba(139,92,246,.08),transparent 70%);pointer-events:none;
-        }
-        .login-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .login-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg,#6366f1,#8b5cf6);
-            box-shadow: 0 6px 18px rgba(99,102,241,.3);
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 4px;
-        }
-        .login-icon .material-symbols-outlined {
-            font-size: 28px;
-            color: #fff;
-        }
-        .login-title {
-            font-size: 24px;
-            font-weight: 800;
-            background: linear-gradient(135deg,#6366f1,#8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 2px;
-        }
-        .login-subtitle {
-            font-size: 13px;
-            color: var(--txt2);
-        }
-        .error-msg {
-            background: rgba(255, 180, 171, 0.1);
-            border: 1px solid rgba(255, 180, 171, 0.3);
-            color: #ffb4ab;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 13px;
-            display: none;
-            align-items: center;
-            gap: 8px;
-        }
-        .error-msg.show { display: flex; }
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .input-group label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--txt2);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .input-wrapper {
-            position: relative;
-        }
-        .input-wrapper .material-symbols-outlined {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            color: var(--txt2);
-            pointer-events: none;
-        }
-        .input-glass {
-            width: 100%;
-            padding: 12px 16px 12px 48px;
-            background: var(--input-bg);
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius);
-            color: var(--txt);
-            font-size: 14px;
-            outline: none;
-            transition: border-color 300ms ease, box-shadow 300ms ease, background 300ms ease;
-            font-family: inherit;
-        }
-        .input-glass:focus {
-            border-color: var(--neon);
-            box-shadow: 0 0 0 4px var(--input-glow);
-            background: var(--input-bg);
-        }
-        .input-glass::placeholder {
-            color: var(--txt2);
-            opacity:.6;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg,#6366f1,#8b5cf6);
-            color: #fff;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms ease;
-            font-family: inherit;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 6px 20px rgba(99,102,241,.25);
-        }
-        .login-btn::after{
-          content:'';position:absolute;inset:0;background:linear-gradient(90deg,#6366f1,#8b5cf6);opacity:0;transition:opacity .3s;
-        }
-        .login-btn span{position:relative;z-index:1;display:flex;align-items:center;gap:8px}
-        .login-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(99,102,241,.35);
-        }
-        .login-btn:hover:not(:disabled)::after { opacity:1; }
-        .login-btn:active:not(:disabled) {
-            transform: translateY(0) scale(0.98);
-        }
-        .login-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .btn-text, .btn-spinner {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-spinner { display: none; }
-        .btn-spinner .material-symbols-outlined { animation: spin 1s linear infinite; }
-        .btn-spinner.show { display: flex; }
-        .btn-text.hidden { display: none; }
+/* ── Panels ── */
+.panel{background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:var(--radius-xl);padding:20px;box-shadow:var(--shadow-sm)}
+.panel-h{display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:18px;font-weight:800}
+.glow{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 
-/* ═══ PROXY IP SELECTOR (map + IP list) ═══ */
-.px-map {
-  height: 220px; border-radius: var(--radius); overflow: hidden;
-  border: 1px solid var(--border); margin-bottom: 10px;
-  background: rgba(0,0,0,.3); z-index: 1; box-shadow: var(--shadow-sm);
-}
-.px-map .leaflet-container { background: #0B1121; font-family: inherit; }
-#px-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }
-.px-country { fill: rgba(255,255,255,.12); stroke: rgba(255,255,255,.25); stroke-width: .5; cursor: pointer; transition: fill .15s; }
-.px-country:hover { fill: rgba(255,255,255,.25); }
-.px-country.has { fill: rgba(255,255,255,.28); stroke: rgba(255,255,255,.7); stroke-width: .6; }
-[data-theme="light"] .px-country.has { fill: rgba(0,0,0,.18); stroke: rgba(0,0,0,.55); stroke-width: .6; }
-.px-country.sel { fill: var(--neon) !important; stroke: #fff !important; stroke-width: 1; }
-.px-ipbox { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; background: rgba(0,0,0,.3); max-height: 170px; overflow-y: auto; }
-.px-ip { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: all .15s; }
-.px-ip:hover { background: rgba(255,255,255,.04); }
-.px-ip.sel { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.25); }
-[data-theme="light"] .px-ip.sel { background: rgba(0,0,0,.05); border: 1px solid rgba(0,0,0,.18); }
-.px-ip input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--neon); cursor: pointer; flex-shrink: 0; }
-.px-ip-ad { font-family: monospace; font-size: 12px; direction: ltr; color: var(--txt); }
-.px-ip-pt { font-family: monospace; font-size: 10px; color: var(--txt2); }
-.px-ping { margin-left: auto; font-family: monospace; font-size: 10px; font-weight: 700; direction: ltr; flex-shrink: 0; }
-.px-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.22); border-radius: 8px; font-size: 11px; color: var(--neon); margin: 3px 3px 0 0; }
-[data-theme="light"] .px-tag { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.15); }
-.px-tag .x { cursor: pointer; opacity: .6; }
-.px-tag .x:hover { opacity: 1; }
-.px-path {
-  direction: ltr; text-align: left; font-family: monospace; font-size: 11px;
-  background: rgba(0,0,0,.4); border: 1px solid var(--border); border-radius: 10px;
-  padding: 9px 12px; margin-top: 8px; word-break: break-all; color: var(--neon);
-}
-.px-path .dim { color: var(--txt2); }
-.px-tools { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-.px-tools input { flex: 1; }
-.px-hint { font-size: 10px; color: var(--txt2); margin: 6px 0 8px; }
-.px-noselected { color: var(--txt2); font-size: 12px; padding: 14px; text-align: center; }
-.px-loading { color: var(--txt2); font-size: 12px; padding: 18px; text-align: center; }
-
-/* ═══ IP SCANNER ═══ */
-.scn-tabs { display: flex; gap: 8px; margin: 14px 0; background: var(--bg3); padding: 5px; border-radius: 14px; border: 1px solid var(--border); }
-.scn-tab { flex: 1; padding: 10px 6px; border: none; border-radius: 10px; background: transparent; color: var(--txt2); font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-.scn-tab:hover { color: var(--txt); }
-.scn-tab.active { background: var(--gradient); color: #fff; box-shadow: 0 4px 16px rgba(99,102,241,.3); }
-.scn-pane { display: none; animation: fadeIn .25s ease; }
-.scn-pane.active { display: block; }
-.scn-cfg { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
-.scn-cfg .f-g { margin-bottom: 0; min-width: 120px; }
-.scn-live { margin-top: 12px; }
-.scn-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-.scn-chip { flex: 1; min-width: 110px; background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; text-align: center; }
-.scn-chip b { font-size: 20px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: block; }
-.scn-chip span { font-size: 10px; color: var(--txt2); }
-.scn-progress { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
-.scn-progress .scn-bar { height: 100%; width: 0%; background: var(--gradient); border-radius: 4px; transition: width .3s; }
-.scn-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
-.scn-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 10px; font-size: 12px; }
-.scn-item .scn-ip { font-family: monospace; direction: ltr; color: var(--txt); font-weight: 600; }
-.scn-item .scn-port { color: var(--neon); font-family: monospace; direction: ltr; }
-.scn-item .scn-ms { margin-left: auto; font-family: monospace; direction: ltr; font-weight: 700; }
-.scn-ms.good { color: var(--green); }
-.scn-ms.ok { color: #ffab00; }
-.scn-ms.bad { color: var(--red); }
-.scn-ms.soon { color: var(--txt2); }
-.scn-saved { margin-top: 14px; }
-.scn-saved-t { font-size: 11px; font-weight: 700; color: var(--txt2); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: .5px; }
-.scn-saved-t::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-.scn-saved-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.scn-tag { font-family: monospace; direction: ltr; font-size: 11px; padding: 4px 10px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.22); border-radius: 8px; color: var(--neon); }
-[data-theme="light"] .scn-tag { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.15); }
-.scn-empty { color: var(--txt2); font-size: 11px; padding: 12px; text-align: center; border: 1px dashed var(--border); border-radius: 10px; }
-.scn-dom-list { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; max-height: 200px; overflow-y: auto; }
-.scn-dom { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 10px; font-family: monospace; direction: ltr; font-size: 12px; }
-.scn-dom .rm { margin-left: auto; cursor: pointer; color: var(--red); background: none; border: none; font-size: 14px; opacity: .7; }
-.scn-dom .rm:hover { opacity: 1; }
-.scn-dom-add { display: flex; gap: 8px; }
-.scn-dom-add input {
-  flex: 1;
-  min-width: 0;
-  padding: 11px 16px;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--txt);
-  font-size: 13px;
-  outline: none;
-  transition: all .2s;
-}
-[data-theme="light"] .scn-dom-add input { background: #ffffff; }
-.scn-dom-add input:focus { border-color: var(--neon); background: var(--input-bg); box-shadow: 0 0 0 4px var(--input-glow); }
-[data-theme="light"] .scn-dom-add input:focus { background: #ffffff; }
-.scn-dom-add .btn { border-radius: 999px; }
-.scn-result { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 10px; font-size: 11px; }
-.scn-result .scn-ip { font-family: monospace; direction: ltr; }
-.scn-result .scn-dom-name { color: var(--txt2); font-size: 10px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ═══ SPOOF SCANNER ═══ */
-.scn-adv-dropdown { position: relative; }
-.scn-adv-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-  max-height: 250px;
-  overflow-y: auto;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-.scn-adv-dd-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  transition: background .2s;
-}
-.scn-adv-dd-item:last-child { border-bottom: none; }
-.scn-adv-dd-item:hover { background: rgba(99,102,241,.1); }
-.scn-adv-dd-domain { flex: 1; font-family: monospace; font-size: 12px; direction: ltr; }
-.scn-adv-dd-edit, .scn-adv-dd-del {
-  background: none;
-  border: none;
-  color: var(--txt2);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: all .2s;
-}
-.scn-adv-dd-edit:hover { color: var(--neon); background: rgba(99,102,241,.1); }
-.scn-adv-dd-del:hover { color: var(--red); background: rgba(255,107,107,.1); }
-.scn-adv-dd-empty { padding: 12px; text-align: center; color: var(--txt2); font-size: 11px; }
-
-/* Spoof tab styles */
-#scn-pane-spoof .scn-tabs { margin-top: 14px; }
-#scn-pane-spoof .scn-tab { font-size: 11px; padding: 8px 4px; }
-#scn-pane-spoof .scn-cfg { margin-top: 10px; }
-#scn-pane-spoof .scn-hint { margin-top: 8px; margin-bottom: 8px; }
-
-/* ═══ CUSTOM-IP PICKER (create-user modal) ═══ */
-.cu-custom-wrap { position: relative; }
-.cu-custom-btn { width: 100%; justify-content: space-between; }
-.cu-custom-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-md); display: none; }
-.cu-custom-opt { display: flex; width: 100%; align-items: center; gap: 8px; padding: 10px 14px; background: none; border: none; color: var(--txt); font-size: 12px; font-weight: 600; cursor: pointer; text-align: right; }
-.cu-custom-opt:hover { background: rgba(99,102,241,.1); color: var(--neon); }
-.cu-custom-opt.active { color: var(--neon); }
-.cu-custom-opt + .cu-custom-opt { border-top: 1px solid var(--border); }
-
-/* App Layout */
-.app-wrap{display:none;min-height:100vh;position:relative;z-index:1;overflow-x:hidden}
-.app-wrap.active{display:flex}
-
-/* Sidebar - Glass */
-.sidebar{
-  width:260px;background:#060d1e;
-  border-left:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;
-  position:fixed;top:0;bottom:0;right:0;z-index:100;transition:transform .35s cubic-bezier(.4,0,.2,1);
-  overflow-y:auto;overflow-x:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6);
-}
-.sb-brand{padding:22px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
-.sb-brand img{width:42px;height:42px;mix-blend-mode:screen}
-.sb-brand-t{font-size:17px;font-weight:800;letter-spacing:3px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.sb-brand-t span{color:inherit;-webkit-text-fill-color:inherit}
-.sb-brand-s{font-size:10px;color:var(--txt2);letter-spacing:5px;margin-top:2px}
-.sb-nav{flex:1;padding:10px;overflow-y:auto}
-.nav-item{
-  padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;
-  font-size:13px;font-weight:500;color:var(--txt2);transition:all .2s;
-  border-radius:12px;margin:2px 0;position:relative;
-}
-.nav-item:hover{color:var(--txt);background:rgba(99,102,241,.06)}
-.nav-item.active{color:#fff;background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(139,92,246,.14));border:1px solid rgba(99,102,241,.3);box-shadow:0 0 20px rgba(99,102,241,.12),inset 0 0 20px rgba(99,102,241,.06)}
-.nav-item .nav-ic{width:20px;height:20px;display:inline-flex;flex-shrink:0}
-.sb-foot{padding:16px 22px;border-top:1px solid var(--border);font-size:11px;color:var(--txt2)}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-left:6px;animation:pulse 2s infinite}
-
-/* Main area */
-.main-area{flex:1;min-width:0;margin-right:260px;display:flex;flex-direction:column;position:relative;z-index:1}
-.topbar{
-  padding:14px 24px;background:#060d1e;
-  border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:50;
-}
-.topbar-greet{font-size:14px}.topbar-greet strong{color:var(--neon)}
-.topbar-r{display:flex;gap:8px;align-items:center}
-.lang-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);color:var(--txt);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
-.lang-btn:hover{border-color:var(--border-glow);color:var(--neon)}
-.content{min-width:0;padding:20px 24px;flex:1;overflow-x:hidden;overflow-y:auto;position:relative;z-index:1}
-
-/* LTR (English) adjustments — iOS system font */
-html[lang="en"] body, html[lang="en"] .sidebar, html[lang="en"] .panel, html[lang="en"] .btn { font-family: 'Estedad', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif; }
-
-/* Cards - solid */
-.panel{
-  background:#080e22;
-  border:1px solid rgba(255,255,255,.05);border-radius:var(--radius-lg);padding:22px;
-  margin-bottom:16px;transition:all .3s;animation:fadeIn .4s ease;box-shadow:0 8px 32px rgba(0,0,0,.55);
-}
-.panel:hover{border-color:rgba(99,102,241,.15);box-shadow:0 8px 32px rgba(99,102,241,.08);transform:translateY(-1px)}
-.panel-h{
-  font-size:17px;font-weight:800;margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;
-}
-.panel-h .glow{color:var(--neon)}
-
-/* Stats */
+/* ── Stats ── */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.stat{
-  background:#080e22;
-  border:1px solid rgba(255,255,255,.05);border-radius:var(--radius-lg);padding:20px 16px;
-  text-align:center;transition:all .3s;animation:fadeIn .5s ease;position:relative;overflow:hidden;
-  box-shadow:0 8px 32px rgba(0,0,0,.55);border-top:4px solid transparent;border-image:linear-gradient(135deg,#6366f1,#8b5cf6,#a78bfa) 1;
-}
-.stat:hover{border-color:var(--border-glow);transform:translateY(-4px) scale(1.02);box-shadow:0 12px 40px rgba(99,102,241,.15)}
+.stat{background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:20px;padding:18px;transition:all .2s}
+.stat:hover{transform:translateY(-3px);border-color:var(--border-glow);box-shadow:var(--shadow-md)}
 .stat-icon{margin-bottom:8px;color:var(--neon)}
-.stat-v{font-size:28px;font-weight:800;color:var(--neon)}
+.stat-v{font-size:26px;font-weight:800;color:var(--neon)}
 .stat-l{font-size:11px;color:var(--txt2);margin-top:4px}
 
-/* Buttons */
-.btn{
-  display:inline-flex;align-items:center;gap:6px;padding:9px 18px;
-  border:none;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;
-  transition:all .25s;font-family:inherit;text-decoration:none;position:relative;
-}
-.btn-p{background:var(--neon);color:var(--tab-color);box-shadow:0 4px 16px var(--neon)}
-.btn-p:hover{transform:translateY(-2px);filter:brightness(1.15);box-shadow:0 8px 28px rgba(99,102,241,.4);background:linear-gradient(135deg,#6366f1,#8b5cf6)}
-.btn-g{background:var(--input-bg);color:var(--txt);border:1px solid rgba(255,255,255,.08)}.btn-g:hover{background:var(--nav-bg);color:var(--neon);border-color:var(--border-glow)}
-.btn-r{background:rgba(239,68,68,.1);color:var(--wp-red);border:1px solid rgba(239,68,68,.2)}.btn-r:hover{background:rgba(239,68,68,.2)}
-.btn-gr{background:rgba(22,163,74,.1);color:var(--green);border:1px solid rgba(22,163,74,.2)}.btn-b{background:rgba(99,102,241,.1);color:var(--blue);border:1px solid rgba(99,102,241,.2)}
-.btn-sm{padding:5px 12px;font-size:11px;border-radius:10px}
-.btn-icon{width:36px;height:36px;padding:0;justify-content:center;border-radius:12px}
+/* ── Server bars ── */
+.srv-bar{margin-bottom:6px}
+.srv-bar-h{display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px}
+.srv-bar-h strong{font-size:11px;color:var(--txt)}
+.srv-bar-h span{color:var(--txt2)}
+.srv-bar-bg{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.srv-bar-f{height:100%;border-radius:4px;transition:width .5s ease;background:linear-gradient(90deg,var(--neon),var(--grad2))}
+.pbar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:5px}
+.pbar-f{height:100%;background:var(--gradient);border-radius:3px;transition:width .5s ease}
 
-/* Tables */
-.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;border-radius:var(--radius-lg);border:1px solid rgba(255,255,255,.05);background:#080e22;box-shadow:0 8px 32px rgba(0,0,0,.55)}
-table{width:100%;min-width:0;border-collapse:collapse}
-/* Users as cards on mobile (replaces the wide table) */
-.u-cards{display:flex;flex-direction:column;gap:10px}
-.u-card{background:#080e22;border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.55)}
-.u-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.u-card-name{font-size:15px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.u-card-traffic{font-size:12px;color:var(--txt)}
-.u-card-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 0}
-.u-card-meta span{display:flex;flex-direction:column;gap:2px}
-.u-card-meta i{font-style:normal;font-size:9px;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px}
-.u-card-meta b{font-size:12px;color:var(--txt);font-weight:600}
-.u-card-meta .badge{width:fit-content}
-.u-card-actions .act-row{flex-wrap:wrap;gap:6px}
-.u-card-actions .btn-sm{flex:1 1 auto}
-th{text-align:right;padding:12px;font-size:10px;color:var(--txt2);font-weight:700;border-bottom:1px solid var(--border);background:rgba(99,102,241,.04)}
-td{padding:12px;font-size:13px;border-bottom:1px solid var(--border)}
-tr:nth-child(even) td{background:rgba(99,102,241,.02)}
-tr:hover td{background:rgba(99,102,241,.06)}
-tr:last-child td{border-bottom:none}
-tr{animation:fadeIn .3s ease}
-.act-row{display:flex;gap:4px;flex-wrap:wrap}
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:14px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .2s;line-height:1;white-space:nowrap}
+.btn:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+.btn-p{background:var(--gradient);color:#fff;box-shadow:0 6px 20px rgba(0,225,193,.28)}
+.btn-p:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn-g{background:var(--nav-bg);color:var(--txt);border-color:var(--border)}
+.btn-g:hover{background:var(--input-bg);color:var(--neon);border-color:var(--border-glow)}
+.btn-r{background:rgba(239,68,68,.12);color:var(--red);border-color:rgba(239,68,68,.25)}
+.btn-r:hover{background:rgba(239,68,68,.22)}
+.btn-b{background:rgba(99,102,241,.12);color:var(--blue);border-color:rgba(99,102,241,.25)}
+.btn-b:hover{background:rgba(99,102,241,.22)}
+.btn-gr{background:rgba(22,163,74,.12);color:var(--green);border-color:rgba(22,163,74,.25)}
+.btn-sm{padding:5px 12px;font-size:11px;border-radius:10px}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:12px}
+
+/* ── Badges ── */
 .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600}
 .badge-g{background:rgba(22,163,74,.15);color:var(--green)}
 .badge-r{background:rgba(239,68,68,.15);color:var(--red)}
 .badge-b{background:rgba(99,102,241,.15);color:var(--blue)}
 .badge-p{background:rgba(139,92,246,.15);color:var(--purple)}
+
+/* ── Tables / user cards ── */
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--glass)}
+.tbl table{width:100%;border-collapse:collapse}
+.tbl th{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--txt2);text-align:right;padding:10px 12px;background:var(--nav-bg)}
+.tbl td{padding:10px 12px;font-size:12px;color:var(--txt);border-top:1px solid var(--border)}
+.tbl tr:hover td{background:var(--nav-bg)}
+.u-cards{display:none;flex-direction:column;gap:10px}
+.u-card{background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow-sm)}
+.u-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.u-card-name{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.u-card-traffic{font-size:12px}
+.u-card-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 0}
+.u-card-meta span{display:flex;flex-direction:column;gap:2px}
+.u-card-meta i{font-style:normal;font-size:9px;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px}
+.u-card-meta b{font-size:12px;font-weight:600}
+.act-row{display:flex;gap:6px;flex-wrap:wrap}
 .empty{text-align:center;padding:40px;color:var(--txt2);font-size:13px}
 
-.pbar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:5px}
-.pbar-f{height:100%;background:var(--gradient);border-radius:3px;transition:width .5s ease}
+/* ── Forms ── */
+.f-g{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;flex:1}
+.f-g label{font-size:11px;font-weight:600;color:var(--txt2);letter-spacing:.4px}
+.f-g input,.f-g select,.f-g textarea,select.f-g{
+  width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:12px;
+  padding:10px 12px;font-size:13px;color:var(--txt);outline:none;transition:all .2s}
+.f-g input:hover,.f-g select:hover,.f-g textarea:hover{border-color:var(--border-glow)}
+.f-g input:focus,.f-g select:focus,.f-g textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px var(--input-glow)}
+.f-g input::placeholder,.f-g textarea::placeholder{color:var(--txt2);opacity:.7}
+.f-g select,select.f-g{appearance:none;-webkit-appearance:none;cursor:pointer;padding-left:30px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--neon) 50%),linear-gradient(135deg,var(--neon) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.f-g select option{background:#0a1022;color:#fff}
+:root:not(.dark) .f-g select option{background:#fff;color:#0f172a}
+.f-r{display:flex;gap:10px;flex-wrap:wrap}
+.px-hint{font-size:10px;color:var(--txt2);margin:6px 0 8px;line-height:1.7}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);gap:8px}
+.set-row:last-child{border-bottom:none}
+.set-lbl{font-size:13px;color:var(--txt2)}
+.set-val{font-size:13px;font-weight:600}
 
-.srv-bar{margin-bottom:6px}.srv-bar-h{display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px}
-.srv-bar-h strong{font-size:11px}.srv-bar-bg{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
-.srv-bar-f{height:100%;border-radius:4px;transition:width .5s ease}
+/* ── iOS-style switch ── */
+.ios-switch{width:51px;height:31px;border-radius:999px;background:#39393d;border:none;position:relative;cursor:pointer;flex-shrink:0;transition:background .25s ease;padding:0;margin:0;-webkit-tap-highlight-color:transparent}
+.ios-switch::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.35),0 0 1px rgba(0,0,0,.4);transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.ios-switch.on{background:#34c759}
+.ios-switch.on::after{transform:translateX(20px)}
+:root:not(.dark) .ios-switch{background:#e5e5ea}
+:root:not(.dark) .ios-switch.on{background:#34c759}
 
-/* Modal - Glass */
-.modal{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);
-  z-index:200;display:none;align-items:center;justify-content:center;padding:20px;
-}
-.modal.show{display:flex;animation:fadeIn .2s ease}
-.modal-c{
-  background:#080e22;
-  border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xl);padding:28px;
-  width:100%;max-width:480px;max-height:85vh;overflow-y:auto;
-  box-shadow:0 16px 48px rgba(0,0,0,.7);animation:scaleIn .3s ease;position:relative;
-}
-.modal-c::before{content:none}
-.modal-t{font-size:21px;font-weight:800;margin-bottom:18px;position:relative}
-.modal-t .glow{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.modal-btns{display:flex;gap:8px;margin-top:18px;position:relative}
+/* ── Modal ── */
+.modal{display:flex;position:fixed;inset:0;z-index:80;align-items:flex-start;justify-content:center;padding:20px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility .2s;background:rgba(3,7,18,.6);backdrop-filter:blur(8px)}
+.modal.show{opacity:1;visibility:visible;pointer-events:auto}
+.modal-c{width:100%;max-width:520px;max-height:calc(100vh - 40px);overflow-y:auto;background:var(--surface-glass);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid var(--border);border-radius:var(--radius-xl);padding:24px;box-shadow:var(--shadow-lg);animation:scaleIn .25s ease;position:relative}
+.modal-t{font-size:21px;font-weight:800;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.modal-btns{display:flex;gap:8px;margin-top:18px}
 .modal-btns .btn{flex:1;justify-content:center;padding:11px}
-/* Modal X close button (top-right corner of every modal) */
-.modal-x{position:absolute;top:-14px;right:-14px;width:34px;height:34px;border-radius:50%;
-  background:var(--bg3);border:1px solid var(--border);color:var(--txt);
-  font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.modal-x{position:absolute;top:-14px;right:-14px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--nav-bg);border:1px solid var(--border);color:var(--txt2);cursor:pointer;transition:all .2s}
 .modal-x:hover{background:var(--red);color:#fff;border-color:var(--red);transform:rotate(90deg)}
 
-/* Form fields */
-.f-g{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;flex:1}
-.f-g label{font-size:11px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px}
-.f-g input,.f-g select,.f-g textarea{
-  width:100%;padding:11px 14px;background:var(--input-bg);
-  border:1px solid var(--border);border-radius:12px;
-  color:var(--txt);font-size:13px;outline:none;transition:all .2s;
-}
-.f-g input:hover,.f-g select:hover,.f-g textarea:hover{border-color:var(--border-glow)}
-.f-g input:focus,.f-g select:focus,.f-g textarea:focus{
-  border-color:var(--neon);background:var(--input-bg);
-}
-.f-g select{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--neon) 50%),linear-gradient(135deg,var(--neon) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
-.f-g select option{background:var(--input-bg);color:var(--txt)}
-.f-r{display:flex;gap:10px;flex-wrap:wrap}
+/* ── Toast ── */
+#toast{position:fixed;bottom:24px;left:0;right:0;z-index:150;display:flex;justify-content:center;pointer-events:none}
+.toast{background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:16px;padding:12px 22px;font-size:13px;font-weight:600;color:var(--txt);box-shadow:var(--shadow-md);opacity:0;transform:translateY(16px);transition:all .25s;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateY(0)}
 
-/* Tabs */
-.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.tab{
-  padding:8px 18px;border-radius:var(--radius);font-size:12px;font-weight:600;
-  cursor:pointer;color:var(--txt2);background:var(--bg3);border:1px solid var(--border);
-  font-family:inherit;transition:all .25s;
-}
-.tab:hover{color:var(--txt)}
-.tab.active{background:var(--tab-bg);color:var(--tab-color);border-color:transparent}
+/* ── Config viewer ── */
+.cfg-code{background:#050a18;border:1px solid var(--border);border-radius:14px;padding:16px;font-size:11px;direction:ltr;text-align:left;max-height:420px;overflow:auto;white-space:pre-wrap;word-break:break-all;color:#7ee6d4;font-family:Consolas,Menlo,monospace}
+:root:not(.dark) .cfg-code{background:#0f172a}
 
-/* Toast */
-.toast{
-  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
-  background:var(--surface-glass);
-  border:1px solid var(--border);color:var(--txt);padding:12px 28px;
-  border-radius:30px;font-size:13px;z-index:999;opacity:0;
-  transition:opacity .3s;pointer-events:none;box-shadow:var(--shadow-lg);
-}
-.toast.show{opacity:1;animation:slideUp .3s ease}
-
-.ip-addr{font-family:'Cascadia Code',monospace;font-size:13px;direction:ltr;color:var(--neon)}
-
-/* Config code */
-.cfg-code{
-  background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:var(--radius);
-  padding:16px;font-family:'Cascadia Code',monospace;font-size:12px;
-  direction:ltr;text-align:left;word-break:break-all;max-height:220px;
-  overflow-y:auto;margin-bottom:14px;white-space:pre-wrap;color:var(--neon);
-}
-
-/* Settings rows */
-.set-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
-.set-row:last-child{border-bottom:none}
-.set-lbl{font-size:13px;color:var(--txt2)}.set-val{font-size:13px;font-weight:600}
-
-/* Sub cards */
-.sub-card{background:var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:10px;transition:all .2s;border:1px solid var(--border)}
-.sub-card:hover{border:1px solid var(--border-glow)}
-.sub-card-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.sub-card-name{font-size:14px;font-weight:700}
-.sub-link{width:100%;padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;font-family:monospace;font-size:11px;direction:ltr;text-align:left;color:var(--txt2);margin-bottom:8px}
-.sub-acts{display:flex;gap:6px;flex-wrap:wrap}
-
-/* Animated inbound picker cards */
-.ib-pick{
-  display:flex;align-items:center;gap:10px;flex:1;min-width:200px;cursor:pointer;
-  padding:10px 12px;background:var(--surface-glass);border:1.5px solid var(--border);
-  border-radius:var(--radius);transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
-}
-.ib-pick::before{
-  content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--neon),var(--neon2));
-  opacity:0;transition:opacity .25s;z-index:0;
-}
-.ib-pick:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+/* ── Inbound pick chips (create/edit user) ── */
+.ib-pick{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--nav-bg);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;transition:all .2s;min-width:0;flex:1 1 200px}
+.ib-pick:hover{border-color:var(--border-glow)}
 .ib-pick.selected{border-color:var(--neon);box-shadow:0 0 0 1px var(--neon)}
-.ib-pick.selected::before{opacity:.12}
-.ib-pick > *{position:relative;z-index:1}
-.ib-pick-ic{
-  width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-  background:rgba(99,102,241,.12);color:var(--neon);flex-shrink:0;transition:all .25s;
-}
-.ib-pick.selected .ib-pick-ic{background:var(--gradient);color:#fff;box-shadow:0 4px 12px rgba(99,102,241,.35)}
-.ib-pick-ic .material-symbols-outlined{font-size:18px}
+.ib-pick-ic{color:var(--neon);display:flex}
 .ib-pick-info{flex:1;min-width:0}
-.ib-pick-name{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ib-pick-meta{font-size:10px;color:var(--txt2);direction:ltr;text-align:right}
-.ib-pick-check{
-  width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;transition:all .25s;color:transparent;
-}
-.ib-pick.selected .ib-pick-check{background:var(--gradient);border-color:transparent;color:#fff;animation:scaleIn .25s ease}
+.ib-pick-name{font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib-pick-meta{font-size:10px;color:var(--txt2);direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib-pick-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:transparent;transition:all .2s;font-size:12px}
+.ib-pick.selected .ib-pick-check{background:var(--gradient);border-color:transparent;color:#fff}
 .ib-pick-check .material-symbols-outlined{font-size:14px}
 
-/* Country tick chips — per-country toggle (replaces the Ctrl multi-select). */
-.country-tick{
-  display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;
-  padding:5px 10px;background:var(--surface-glass);border:1.5px solid var(--border);
-  border-radius:999px;font-size:12px;color:var(--txt);transition:all .2s;
-}
+/* ── Per-inbound options panel ── */
+.ib-opts{flex-basis:100%;margin-top:4px;padding:10px 12px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;gap:8px}
+.ib-opts select{width:100%;padding:9px 12px;background:var(--glass);border:1px solid var(--border);border-radius:10px;color:var(--txt);font-size:12px;outline:none}
+.ib-opts select option{background:var(--glass);color:var(--txt)}
+
+/* ── Country tick chips ── */
+.country-tick{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:5px 10px;background:var(--surface-glass);border:1.5px solid var(--border);border-radius:999px;font-size:12px;color:var(--txt);transition:all .2s}
 .country-tick:hover{box-shadow:var(--shadow-sm)}
-.country-tick .ck{
-  width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;color:transparent;transition:all .2s;font-size:11px;
-}
+.country-tick .ck{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:transparent;transition:all .2s;font-size:11px}
 .country-tick.selected{border-color:var(--neon);box-shadow:0 0 0 1px var(--neon)}
 .country-tick.selected .ck{background:var(--gradient);border-color:transparent;color:#fff}
 
-/* Per-inbound options panel (country multi-select + iOS switches). Theme-aware. */
-.ib-opts{
-  flex-basis:100%;margin-top:4px;padding:10px 12px;
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
-  display:flex;flex-direction:column;gap:8px;
-}
-.ib-opts select{
-  width:100%;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);
-  border-radius:10px;color:var(--txt);font-size:12px;outline:none;
-}
-.ib-opts select option{background:var(--bg2);color:var(--txt)}
+/* ── IP Scanner ── */
+.scn-tabs{display:flex;gap:8px;margin:14px 0;background:var(--glass);padding:5px;border-radius:14px;border:1px solid var(--border)}
+.scn-tab{flex:1;padding:10px 6px;border:none;border-radius:10px;background:transparent;color:var(--txt2);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.scn-tab:hover{color:var(--txt)}
+.scn-tab.active{background:var(--gradient);color:#fff;box-shadow:0 4px 16px rgba(0,225,193,.3)}
+.scn-pane{display:none;animation:fadeIn .25s ease}
+.scn-pane.active{display:block}
+.scn-cfg{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.scn-cfg .f-g{min-width:130px}
+.scn-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.scn-chip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;background:var(--glass);border:1px solid var(--border);border-radius:12px;font-size:10px;color:var(--txt2)}
+.scn-chip b{font-size:16px;font-weight:800;color:var(--txt);font-family:monospace;direction:ltr}
+.scn-progress{height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;margin:10px 0}
+.scn-bar{height:100%;width:0%;background:var(--gradient);border-radius:99px;transition:width .4s ease}
+.scn-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+.scn-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--glass);border:1px solid var(--border);border-radius:10px;font-size:12px}
+.scn-item .scn-ip{font-family:monospace;direction:ltr;color:var(--txt);font-weight:600}
+.scn-item .scn-port{color:var(--neon);font-family:monospace;direction:ltr}
+.scn-item .scn-ms{margin-left:auto;font-family:monospace;direction:ltr;font-weight:700}
+.scn-ms.good{color:var(--green)}
+.scn-ms.ok{color:#ffab00}
+.scn-ms.bad{color:var(--red)}
+.scn-ms.soon{color:var(--txt2)}
+.scn-empty{color:var(--txt2);font-size:12px;padding:14px;text-align:center;display:block}
+.scn-saved{margin-top:12px}
+.scn-saved-t{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--txt2);margin-bottom:6px;gap:6px;flex-wrap:wrap}
+.scn-saved-tags{display:flex;flex-wrap:wrap;gap:6px}
+.scn-tag{display:inline-block;padding:4px 10px;border-radius:8px;background:var(--nav-bg);border:1px solid var(--border);font-size:11px;color:var(--txt);direction:ltr}
+.scn-dom-add{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.scn-dom-add input{flex:1;min-width:180px;background:var(--input-bg);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--txt);outline:none}
+.scn-dom-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.scn-dom{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--glass);border:1px solid var(--border);border-radius:10px;font-size:11px;direction:ltr}
+.scn-dom .rm{border:none;background:none;color:var(--red);cursor:pointer;font-size:12px;padding:0 2px}
+.scn-result{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--glass);border:1px solid var(--border);border-radius:10px;font-size:12px}
+.scn-result .scn-dom-name{font-weight:700;direction:ltr}
+.scn-result .scn-ip{font-family:monospace;direction:ltr;color:var(--txt2)}
 
-/* iOS-style switch */
-.ios-switch{
-  width:51px;height:31px;border-radius:999px;background:#39393d;
-  border:none;position:relative;cursor:pointer;flex-shrink:0;
-  transition:background .25s ease;padding:0;margin:0;
-  -webkit-tap-highlight-color:transparent;
-}
-.ios-switch::after{
-  content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;
-  background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.35),0 0 1px rgba(0,0,0,.4);
-  transition:transform .25s cubic-bezier(.3,1.4,.5,1);
-}
-.ios-switch.on{background:#34c759}
-.ios-switch.on::after{transform:translateX(20px)}
-[data-theme="light"] .ios-switch{background:#e9e9eb}
-[data-theme="light"] .ios-switch.on{background:#34c759}
+/* Advanced domain dropdown (glass, positioned by JS) */
+.scn-adv-dropdown-menu{position:absolute;z-index:40;background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);padding:6px;max-height:240px;overflow-y:auto}
+.scn-adv-dd-item{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:10px;cursor:pointer;transition:all .15s}
+.scn-adv-dd-item:hover{background:rgba(99,102,241,.1)}
+.scn-adv-dd-domain{font-size:12px;direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scn-adv-dd-edit,.scn-adv-dd-del{border:none;background:none;cursor:pointer;font-size:12px;padding:2px 4px}
+.scn-adv-dd-edit{color:var(--blue)}
+.scn-adv-dd-del{color:var(--red)}
+.scn-adv-dd-empty{font-size:12px;color:var(--txt2);padding:10px;text-align:center}
 
-/* Theme selector in settings */
-.theme-dots{display:flex;gap:8px}
-.theme-dot{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;position:relative}
-.theme-dot:hover{transform:scale(1.15);border-color:var(--txt)}
-.theme-dot.active{border-color:var(--neon);box-shadow:0 0 12px var(--neon)}
-.theme-dot.red{background:#ff1744}.theme-dot.green{background:#00ff41}.theme-dot.blue{background:#6366f1}
-
-/* Contact Me bubbles */
+/* ── Contact bubbles ── */
 .contact-panel{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
 .contact-sub{font-size:12px;color:var(--txt2);margin-bottom:18px}
 .contact-bubbles{display:flex;gap:28px;justify-content:center;align-items:center;flex-wrap:wrap;padding:16px 0 8px}
-.contact-bubble{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  width:150px;height:150px;border-radius:50%;
-  background:#080e22;
-  border:1.5px solid var(--border);color:var(--txt);text-decoration:none;
-  box-shadow:var(--shadow-md);transition:all .3s ease;position:relative;overflow:hidden;
-}
-.contact-bubble::before{content:none}
+.contact-bubble{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:150px;height:150px;border-radius:50%;background:var(--surface-glass);backdrop-filter:blur(24px);border:1.5px solid var(--border);color:var(--txt);text-decoration:none;box-shadow:var(--shadow-md);transition:all .3s ease;position:relative;overflow:hidden}
 .contact-bubble svg{width:40px;height:40px;color:var(--neon);transition:transform .3s ease}
 .contact-bubble span{font-size:13px;font-weight:700}
 .contact-bubble small{font-size:10px;color:var(--txt2);direction:ltr}
@@ -810,160 +297,135 @@ tr{animation:fadeIn .3s ease}
 .contact-bubble:hover svg{transform:scale(1.15)}
 .contact-bubble.tg:hover svg{color:#229ED9}
 .contact-bubble.gh:hover svg{color:#a5a5a5}
-.contact-bubble.tg::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(34,158,217,.14),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none}
-.contact-bubble.gh::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(148,148,148,.14),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none}
-.contact-bubble:hover::after{opacity:1}
 
+/* ── Sidebar (transform handled here so .open toggling works; RTL) ── */
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(2,6,16,.55);backdrop-filter:blur(4px);z-index:40}
+@media(max-width:1023px){.sidebar-backdrop.show{display:block}}
+.sidebar{transform:translateX(100%);transition:transform .3s ease}
+.sidebar.open{transform:translateX(0)}
+@media(min-width:1024px){.sidebar{transform:none}}
+.sb-brand-t{font-size:17px;font-weight:800;letter-spacing:3px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sb-brand-s{font-size:10px;color:var(--txt2);letter-spacing:5px;margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:var(--txt2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid transparent;margin-bottom:2px}
+.nav-item:hover{color:var(--txt);background:var(--nav-bg)}
+.nav-item.active{color:#fff;background:linear-gradient(135deg,rgba(0,225,193,.16),rgba(139,92,246,.12));border:1px solid rgba(0,225,193,.3);box-shadow:0 0 20px rgba(0,225,193,.1)}
+:root:not(.dark) .nav-item.active{color:#0f172a}
+.nav-ic{width:20px;height:20px;display:inline-flex;flex-shrink:0}
+.sb-foot{font-size:11px;color:var(--txt2);display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite}
+
+/* ── Topbar ── */
+.topbar-greet{font-size:14px}
+.topbar-greet strong{color:var(--neon)}
+.lang-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:var(--glass);border:1px solid var(--border);color:var(--txt);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.lang-btn:hover{border-color:var(--border-glow);color:var(--neon)}
+
+/* ── Custom Sub dropdown ── */
+.custom-sub-dropdown-wrap{position:relative;margin-top:8px;flex:1}
+.custom-sub-dropdown{display:flex;align-items:center;justify-content:space-between;background:var(--glass);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;cursor:pointer;transition:all .2s;gap:8px;overflow:hidden}
+.custom-sub-dropdown:hover{border-color:var(--border-glow)}
+#custom-sub-selected-label{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+#custom-sub-chevron{font-size:14px;color:var(--txt2);transition:transform .2s}
+.custom-sub-dropdown.open #custom-sub-chevron{transform:rotate(180deg)}
+.custom-sub-dropdown-icon{display:inline-block;width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,var(--wp-blue),var(--wp-purple));flex-shrink:0;box-shadow:0 0 6px rgba(99,102,241,.4)}
+.custom-sub-dropdown-menu{position:absolute;top:100%;left:0;right:0;background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:var(--radius);max-height:220px;overflow-y:auto;overflow-x:hidden;z-index:30;margin-top:6px;box-shadow:var(--shadow-lg);opacity:0;visibility:hidden;transform:translateY(-6px);transition:all .2s}
+.custom-sub-dropdown-wrap.open .custom-sub-dropdown-menu{opacity:1;visibility:visible;transform:translateY(0)}
+.custom-sub-option{padding:10px 14px;cursor:pointer;border-radius:var(--radius);margin:4px 6px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all .2s;display:flex;align-items:center;gap:8px}
+.custom-sub-option:hover{background:rgba(99,102,241,.1);color:var(--wp-blue)}
+.custom-sub-option.active{background:rgba(99,102,241,.16);color:var(--wp-blue);border:1px solid rgba(99,102,241,.25);font-weight:600}
+.sub-link{font-size:11px;color:var(--wp-blue);direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── Login (fallback inline form; real login lives at /login) ── */
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.2}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;position:relative;z-index:1}
+.login-bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+#shader-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.error-msg{display:none;align-items:center;gap:8px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:var(--red);border-radius:12px;padding:10px 14px;font-size:12px;margin-bottom:16px}
+.error-msg.show{display:flex}
+.btn-spinner{display:none;animation:spin 1s linear infinite}
+.btn-spinner.show{display:inline-flex}
+
+/* ── Utilities ── */
 .hidden{display:none!important}
+.tab-content{display:block}
+.tab-content.hidden{display:none!important}
 
-/* Separator */
-.divider{height:1px;background:var(--border);margin:16px 0}
-
-/* Copy button flash */
-@keyframes copyFlash{0%{background:var(--neon)}100%{background:transparent}}
-
-/* Mobile */
-@media(max-width:900px){
-  body{font-size:14px}
+/* ── Responsive ── */
+@media(max-width:1023px){
   input,select,button,textarea{font-size:16px!important}
-  .sidebar{transform:translateX(100%);width:260px}.sidebar.open{transform:translateX(0)}
-  .main-area{margin-right:0}
   .stats{grid-template-columns:repeat(2,1fr);gap:8px}
-  .stat{padding:14px 10px}.stat-v{font-size:20px}.stat-l{font-size:10px}
-  .topbar{padding:10px 14px}.content{padding:12px}
-  .panel{padding:14px;border-radius:12px}
-  .modal-c{padding:18px;border-radius:16px}
-  .btn{padding:10px 14px;font-size:12px}
-  .btn-sm{padding:6px 10px;font-size:11px}
-  td,th{padding:8px 6px;font-size:11px}
-  .sb-brand{padding:16px 14px}
-  .scn-cfg{flex-direction:column;align-items:stretch}
-  .scn-cfg .f-g{min-width:0}
-  .scn-cfg .btn{width:100%}
-  .scn-tabs{flex-wrap:nowrap}
-  .scn-tab{font-size:11px;padding:8px 4px}
-  .px-tools{flex-wrap:wrap}
-  .px-tools .btn{flex:1 1 auto}
-  .f-r{flex-wrap:wrap}
-  .f-r > .f-g{min-width:100%}
-  .topbar .sidebar-tog svg{display:block!important}
+  .stat{padding:14px 12px}.stat-v{font-size:20px}.stat-l{font-size:10px}
+  .scn-stats{grid-template-columns:repeat(2,1fr)}
 }
-/* Users table on small screens: let each row stack so nothing is cut off */
 @media(max-width:640px){
   #tab-users .tbl{display:none}
   .u-cards{display:flex}
   .act-row{flex-wrap:wrap;gap:4px}
 }
-/* Sidebar backdrop */
-.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
-@media(max-width:900px){.sidebar-backdrop.show{display:block}}
-.sidebar-tog{display:none}@media(max-width:900px){.sidebar-tog{display:inline-flex!important}}
-
-/* ═══ Custom Sub Dropdown ═══ */
-.custom-sub-dropdown-wrap{position:relative;margin-top:8px}
-.custom-sub-dropdown{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);
-  padding:10px 14px;cursor:pointer;transition:all .2s;gap:8px;overflow:hidden;
-  backdrop-filter:blur(8px)
-}
-[data-theme="light"] .custom-sub-dropdown{background:var(--bg)}
-.custom-sub-dropdown:hover{border-color:rgba(99,102,241,.25)}
-.custom-sub-dropdown::after{
-  content:'';position:absolute;inset:0;border-radius:var(--radius);
-  background:linear-gradient(135deg,rgba(99,102,241,.05),transparent);opacity:0;transition:opacity .2s
-}
-.custom-sub-dropdown:hover::after{opacity:1}
-#custom-sub-selected-label{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
-#custom-sub-chevron{font-size:14px;color:var(--txt2);transition:transform .2s}
-.custom-sub-dropdown.open #custom-sub-chevron{transform:rotate(180deg)}
-.custom-sub-dropdown-icon{
-  display:inline-block;width:18px;height:18px;border-radius:4px;
-  background:linear-gradient(135deg,var(--wp-blue),var(--wp-purple));
-  flex-shrink:0;box-shadow:0 0 4px rgba(99,102,241,.4)
-}
-.custom-sub-dropdown-menu{
-  position:absolute;top:100%;left:0;right:0;
-  background:var(--bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:1.5px solid var(--border);border-radius:var(--radius);
-  max-height:220px;overflow-y:auto;overflow-x:hidden;
-  z-index:10;margin-top:6px;box-shadow:var(--shadow-lg);
-  opacity:0;visibility:hidden;transform:translateY(-6px);transition:all .2s
-}
-.custom-sub-dropdown-wrap.open .custom-sub-dropdown-menu{opacity:1;visibility:visible;transform:translateY(0)}
-.custom-sub-dropdown-menu::-webkit-scrollbar{width:6px}
-.custom-sub-dropdown-menu::-webkit-scrollbar-track{background:transparent}
-.custom-sub-dropdown-menu::-webkit-scrollbar-thumb{background:rgba(99,102,241,.18);border-radius:3px}
-.custom-sub-dropdown-menu::-webkit-scrollbar-thumb:hover{background:rgba(99,102,241,.28)}
-.custom-sub-option{
-  padding:10px 14px;cursor:pointer;border-radius:var(--radius);margin:4px 6px;
-  font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  transition:all .2s;display:flex;align-items:center;gap:8px
-}
-.custom-sub-option:hover{background:rgba(99,102,241,.08);color:var(--wp-blue)}
-.custom-sub-option.active{background:rgba(99,102,241,.14);color:var(--wp-blue);border:1px solid rgba(99,102,241,.2);font-weight:600}
 </style>
 </head>
-<body>
+<body class="min-h-screen text-slate-900 dark:text-white transition-colors overflow-x-hidden">
 
-<canvas id="particles"></canvas>
+<canvas id="particles" class="fixed inset-0 z-0 pointer-events-none opacity-20"></canvas>
 
 <!-- Live animated background (matches /sub) -->
 <div class="bg-fx"></div>
 <div class="bg-grid"></div>
 
-<!-- ═══════ LOGIN ═══════ -->
+<!-- ═══════ LOGIN (fallback; the real login is /login) ═══════ -->
 <div class="login-wrap" id="login-wrap" style="display:none">
-  <div class="login-bg">
-    <canvas id="shader-canvas"></canvas>
-  </div>
-  <div class="login-card">
-    <div class="login-header">
-      <div class="login-icon"><span class="material-symbols-outlined">cloud</span></div>
-      <div class="login-title">WHITE PANEL</div>
-      <div class="login-subtitle">High Performance Panel</div>
+  <div class="login-bg"><canvas id="shader-canvas"></canvas></div>
+  <div class="login-card relative z-10 w-full max-w-[400px] rounded-[28px] glass p-8 shadow-lg animate-[scaleIn_.5s_ease]">
+    <div class="flex flex-col items-center gap-2 mb-6">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-indigo-500 flex items-center justify-center text-white shadow-lg">
+        <span class="material-symbols-outlined" style="font-size:32px">cloud</span>
+      </div>
+      <div class="text-xl font-extrabold tracking-[3px] bg-gradient-to-r from-teal-400 to-indigo-400 bg-clip-text text-transparent">WHITE PANEL</div>
+      <div class="text-xs text-slate-500 dark:text-slate-400">High Performance Panel</div>
     </div>
     <div class="error-msg" id="login-err">
-      <span class="material-symbols-outlined" style="font-size:18px;">error</span>
+      <span class="material-symbols-outlined" style="font-size:18px">error</span>
       <span id="login-err-text"></span>
     </div>
     <form class="login-form" id="login-form">
-      <div class="input-group">
-        <label for="login-user">USERNAME</label>
-        <div class="input-wrapper">
-          <span class="material-symbols-outlined">person</span>
-          <input class="input-glass" id="login-user" type="text" placeholder="Enter username" value="admin" autocomplete="username"/>
+      <div class="flex flex-col gap-2 mb-4">
+        <label for="login-user" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">USERNAME</label>
+        <div class="flex items-center gap-2 bg-white/70 dark:bg-white/[0.06] border border-slate-300/60 dark:border-white/10 rounded-xl px-3 focus-within:ring-2 focus-within:ring-teal-400/30">
+          <span class="material-symbols-outlined text-slate-400">person</span>
+          <input class="input-glass bg-transparent flex-1 py-2.5 text-sm outline-none text-slate-900 dark:text-white" id="login-user" type="text" placeholder="Enter username" value="admin" autocomplete="username"/>
         </div>
       </div>
-      <div class="input-group">
-        <label for="login-pw">PASSWORD</label>
-        <div class="input-wrapper">
-          <span class="material-symbols-outlined">lock</span>
-          <input class="input-glass" id="login-pw" type="password" placeholder="Enter password" value="admin" autocomplete="current-password"/>
+      <div class="flex flex-col gap-2 mb-6">
+        <label for="login-pw" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">PASSWORD</label>
+        <div class="flex items-center gap-2 bg-white/70 dark:bg-white/[0.06] border border-slate-300/60 dark:border-white/10 rounded-xl px-3 focus-within:ring-2 focus-within:ring-teal-400/30">
+          <span class="material-symbols-outlined text-slate-400">lock</span>
+          <input class="input-glass bg-transparent flex-1 py-2.5 text-sm outline-none text-slate-900 dark:text-white" id="login-pw" type="password" placeholder="Enter password" value="admin" autocomplete="current-password"/>
         </div>
       </div>
-      <button class="login-btn" id="login-btn" type="submit">
-        <span class="btn-text" id="login-btn-text">Sign In <span class="material-symbols-outlined" style="font-size:20px;">arrow_forward</span></span>
-        <span class="btn-spinner" id="login-btn-spinner"><span class="material-symbols-outlined" style="font-size:20px;">progress_activity</span></span>
+      <button class="login-btn w-full py-3 rounded-xl bg-gradient-to-r from-teal-400 to-indigo-500 text-white font-bold text-sm shadow-lg shadow-teal-500/20 hover:brightness-110 transition-all flex items-center justify-center gap-2" id="login-btn" type="submit">
+        <span class="btn-text inline-flex items-center gap-2" id="login-btn-text">Sign In <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span></span>
+        <span class="btn-spinner" id="login-btn-spinner"><span class="material-symbols-outlined" style="font-size:20px">progress_activity</span></span>
       </button>
     </form>
   </div>
 </div>
 
 <!-- ═══════ APP ═══════ -->
-<div class="app-wrap" id="app-wrap">
+<div id="app-wrap" class="hidden min-h-screen relative z-10 overflow-x-hidden flex">
 
   <!-- SIDEBAR -->
   <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
-  <aside class="sidebar" id="sidebar">
-    <div class="sb-brand">
-      <svg width="42" height="42" viewBox="0 0 100 100"><defs><linearGradient id="sg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="50%" style="stop-color:#8b5cf6"/><stop offset="100%" style="stop-color:#a78bfa"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#sg1)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
+  <aside id="sidebar" class="sidebar fixed top-0 bottom-0 right-0 z-50 w-[260px] flex flex-col glass lg:border-l dark:border-white/10 border-slate-900/10 lg:border-r-0">
+
+    <div class="flex items-center gap-3 px-5 py-5 border-b border-slate-900/10 dark:border-white/10">
+      <svg width="42" height="42" viewBox="0 0 100 100"><defs><linearGradient id="sg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00e1c1"/><stop offset="100%" style="stop-color:#8b5cf6"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#sg1)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
       <div>
         <div class="sb-brand-t"><span>W</span>HITE</div>
         <div class="sb-brand-s">PANEL</div>
       </div>
     </div>
-    <nav class="sb-nav">
+
+    <nav class="flex-1 p-2.5 overflow-y-auto overflow-x-hidden">
       <div class="nav-item active" onclick="switchTab('dashboard',this)">
         <span class="nav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></span>
         <span data-i18n="dash">داشبورد</span>
@@ -997,23 +459,28 @@ tr{animation:fadeIn .3s ease}
         <span data-i18n="logout">خروج</span>
       </div>
     </nav>
-    <div class="sb-foot"><span class="dot"></span> White Panel</div>
+
+    <div class="px-5 py-4 border-t border-slate-900/10 dark:border-white/10">
+      <div class="sb-foot"><span class="dot"></span> White Panel</div>
+    </div>
   </aside>
 
   <!-- MAIN -->
-  <div class="main-area">
-    <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px">
-        <svg width="28" height="28" viewBox="0 0 100 100" style="display:none" class="sidebar-tog"><defs><linearGradient id="sg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="50%" style="stop-color:#8b5cf6"/><stop offset="100%" style="stop-color:#a78bfa"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#sg2)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
+  <div class="main-area flex-1 min-w-0 flex flex-col relative z-10 lg:mr-[260px]">
+    <div class="topbar sticky top-0 z-30 glass px-4 py-3 lg:px-6 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <button class="btn btn-sm btn-g lg:hidden" onclick="toggleSidebar()" aria-label="menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <div class="topbar-greet" id="grt"></div>
       </div>
-      <div class="topbar-r">
+      <div class="flex items-center gap-2">
         <button class="lang-btn" id="theme-btn" onclick="toggleThemeMode()" title="حالت روشن/تاریک / Dark-Light mode"><span id="theme-ic" class="material-symbols-outlined" style="font-size:18px">light_mode</span><span id="theme-label">روشن</span></button>
-        <button class="lang-btn" id="lang-btn" onclick="toggleLang()" title="تغییر زبان / Change language"><span id="lang-flag" class="lang-flag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span id="lang-label">EN</span></button>
-        <button class="btn btn-sm btn-g sidebar-tog" onclick="toggleSidebar()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <button class="lang-btn" id="lang-btn" onclick="toggleLang()" title="تغییر زبان / Change language"><span id="lang-flag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span><span id="lang-label">EN</span></button>
       </div>
     </div>
-    <div class="content">
+
+    <div class="content flex-1 min-w-0 p-4 lg:p-6 overflow-x-hidden">
 
       <!-- DASHBOARD TAB -->
       <div class="tab-content" id="tab-dashboard">
@@ -1037,13 +504,16 @@ tr{animation:fadeIn .3s ease}
       <!-- INBOUNDS TAB -->
       <div class="tab-content hidden" id="tab-inbounds">
         <div class="panel">
-          <div class="panel-h">
+          <div class="panel-h" style="justify-content:space-between">
             <span class="glow" data-i18n="tab.inbounds">مدیریت اینباندها</span>
+            <button class="btn btn-p" onclick="openCreateInbound()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span data-i18n="newInbound">اینباند جدید</span>
+            </button>
           </div>
           <div class="px-hint" data-i18n="inboundFixedHint">فقط اینباندهای پیش‌فرض پنل استفاده می‌شوند. WS/TLS به‌صورت خودکار با دامنه اصلی پنل آماده است؛ Reality را با دامنه و پورت خودتان تکمیل کنید (کلید pbk به‌صورت خودکار ساخته می‌شود).</div>
           <div id="inbounds-list"><div class="empty" data-i18n="loading">در حال بارگذاری...</div></div>
         </div>
-
       </div>
 
       <!-- IP SCANNER TAB -->
@@ -1120,7 +590,7 @@ tr{animation:fadeIn .3s ease}
           <!-- SPOOF PANE -->
           <div class="scn-pane" id="scn-pane-spoof">
             <!-- Advanced Section: Domain input that populates all inbound domains -->
-            <div class="panel" style="margin-bottom:14px">
+            <div class="panel" style="margin-bottom:14px;box-shadow:none">
               <div class="panel-h"><span class="glow">⚙️ پیشرفته</span></div>
               <div class="scn-hint px-hint" style="margin-bottom:10px">دامنه پنل را اینجا وارد کنید تا به صورت خودکار در تمام اینباندها (دامنه/سنی/دامنه خارجی) اعمال شود. دامنه‌های قبلی در منوی شیشه‌ای قابل انتخاب/حذف هستند.</div>
               <div class="scn-dom-add" style="position:relative">
@@ -1185,14 +655,14 @@ tr{animation:fadeIn .3s ease}
 
             <!-- Fake SNI & Spoof IP Fields with Lightning Bolt -->
             <div class="divider"></div>
-            <div class="panel" style="margin-top:14px">
+            <div class="panel" style="margin-top:14px;box-shadow:none">
               <div class="panel-h"><span class="glow">⚡ Spoof Settings</span></div>
               <div class="f-r" style="gap:10px;flex-wrap:wrap">
                 <div class="f-g" style="flex:1;min-width:280px">
                   <label>Fake SNI</label>
                   <div style="display:flex;gap:6px;align-items:flex-end">
                     <input type="text" id="spf-fake-sni" placeholder="مثال: www.cloudflare.com" dir="ltr" style="flex:1">
-                    <button class="btn btn-b" style="border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center" onclick="spfPickBestFakeSni()" title="انتخاب بهترین SNI از نتایج اسکن">
+                    <button class="btn btn-b" style="border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0" onclick="spfPickBestFakeSni()" title="انتخاب بهترین SNI از نتایج اسکن">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                     </button>
                   </div>
@@ -1201,7 +671,7 @@ tr{animation:fadeIn .3s ease}
                   <label>Spoof IP</label>
                   <div style="display:flex;gap:6px;align-items:flex-end">
                     <input type="text" id="spf-spoof-ip" placeholder="مثال: 104.16.0.1" dir="ltr" style="flex:1">
-                    <button class="btn btn-b" style="border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center" onclick="spfPickBestSpoofIp()" title="انتخاب بهترین IP از نتایج اسکن">
+                    <button class="btn btn-b" style="border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0" onclick="spfPickBestSpoofIp()" title="انتخاب بهترین IP از نتایج اسکن">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                     </button>
                   </div>
@@ -1225,7 +695,7 @@ tr{animation:fadeIn .3s ease}
           </div>
 
           <!-- DAILY PROXY SOURCE (always available) -->
-          <div class="panel-h" style="margin-top:2px;border-top:1px solid var(--border);padding-top:14px">
+          <div class="panel-h" style="margin-top:2px;border-top:1px solid var(--border);padding-top:14px;font-size:15px">
             <span class="glow" data-i18n="proxySource">منبع پروکسی روزانه</span>
             <span id="wk-source-count" class="badge badge-g" style="margin-right:auto"></span>
           </div>
@@ -1266,7 +736,7 @@ tr{animation:fadeIn .3s ease}
             </div>
             <div class="set-row">
               <span class="set-lbl" data-i18n="workerUrl">Worker URL</span>
-              <a id="worker-url" href="#" target="_blank" rel="noopener" dir="ltr" style="color:var(--neon);font-size:12px"></a>
+              <a id="worker-url" href="#" target="_blank" rel="noopener" dir="ltr" style="color:var(--neon);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></a>
             </div>
             <div class="set-row">
               <span class="set-lbl" data-i18n="lastSync">آخرین Sync</span>
@@ -1277,7 +747,7 @@ tr{animation:fadeIn .3s ease}
               <span id="worker-error" dir="ltr" style="font-size:12px;color:var(--red)"></span>
             </div>
 
-            <div class="panel-h" style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px">
+            <div class="panel-h" style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px;font-size:15px">
               <span class="glow" data-i18n="proxyPool">Proxy IP Pool</span>
               <button class="btn btn-sm btn-p" onclick="workerAddProxy()" style="margin-left:auto">+ <span data-i18n="addProxy">افزودن کشور</span></button>
               <button class="btn btn-sm btn-g" onclick="workerSync()" title="Re-deploy" style="margin-right:6px">
@@ -1286,7 +756,7 @@ tr{animation:fadeIn .3s ease}
             </div>
             <div id="worker-proxies"></div>
 
-            <div class="panel-h" style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px">
+            <div class="panel-h" style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px;font-size:15px">
               <span class="glow" data-i18n="workerSettings">تنظیمات Worker</span>
             </div>
             <button class="btn btn-sm btn-r" onclick="workerDisconnect()" style="margin-top:6px"><span data-i18n="removeConn">حذف اتصال Worker</span></button>
@@ -1313,7 +783,7 @@ tr{animation:fadeIn .3s ease}
               <div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:var(--txt2)">Disk</span><span id="disk-val" style="color:var(--blue);font-family:monospace">--</span></div>
               <div class="pbar" style="height:8px;border-radius:4px"><div class="pbar-f" id="disk-bar" style="width:0%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:4px;transition:width .5s"></div></div>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt2);margin-top:8px">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt2);margin-top:8px;gap:8px;flex-wrap:wrap">
               <span>Network: <b id="net-sent" style="color:var(--neon)">--</b> up / <b id="net-recv" style="color:var(--blue)">--</b> down</span>
               <span>Uptime: <b id="sys-uptime" style="color:var(--gold)">--</b></span>
             </div>
@@ -1329,9 +799,13 @@ tr{animation:fadeIn .3s ease}
               <button class="btn btn-sm btn-g" onclick="setTheme('light')"><span data-i18n="light">روشن</span></button>
             </div>
           </div>
+          <div class="set-row">
+            <span class="set-lbl" data-i18n="showStatusConfig">نمایش کانفیگ وضعیت در لینک ساب</span>
+            <button type="button" class="ios-switch" id="set-show-status" onclick="toggleShowStatusConfig()" data-i18n-title="showStatusConfig" title="نمایش کانفیگ وضعیت"></button>
+          </div>
         </div>
 
-        <div class="panel">
+        <div class="panel" style="margin-top:14px">
           <div class="panel-h"><span class="glow" data-i18n="panelMusic">Panel Music</span></div>
           <div class="set-row"><span class="set-lbl" data-i18n="bgMusic">Background Music</span>
             <button type="button" class="ios-switch on" id="audio-autoplay" onclick="togglePanelAudio()" data-i18n-title="toggleMusic" title="روشن/خاموش"></button>
@@ -1340,7 +814,7 @@ tr{animation:fadeIn .3s ease}
           <audio id="panel-audio-player" loop style="display:none"></audio>
         </div>
 
-        <div class="panel">
+        <div class="panel" style="margin-top:14px">
           <div class="panel-h"><span class="glow" data-i18n="customSubPages">صفحات سفارشی ساب</span></div>
           <div class="px-hint" style="margin-top:6px;margin-bottom:10px">صفحه‌ای که برای <code>/sub/{username}</code> سرو می‌شود. می‌توانید فایل‌های دلخواه را در <code>static/custom_sub/</code> قرار دهید.</div>
           <div class="set-row">
@@ -1349,7 +823,7 @@ tr{animation:fadeIn .3s ease}
               <div class="custom-sub-dropdown" id="custom-sub-dropdown" onclick="toggleCustomSubMenu()">
                 <span class="custom-sub-dropdown-icon"></span>
                 <span id="custom-sub-selected-label" data-i18n="pickSubPage">صفحه‌ای انتخاب کنید...</span>
-                <i class="ti ti-chevron-down" id="custom-sub-chevron"></i>
+                <span class="material-symbols-outlined" id="custom-sub-chevron" style="font-size:16px">expand_more</span>
                 <input type="hidden" id="set-custom-sub-default" value="">
               </div>
               <div class="custom-sub-dropdown-menu" id="custom-sub-dropdown-menu"></div>
@@ -1363,7 +837,7 @@ tr{animation:fadeIn .3s ease}
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel" style="margin-top:14px">
           <div class="panel-h"><span class="glow" data-i18n="changePassword">Change Password</span></div>
           <form onsubmit="changePassword(event)">
             <div class="f-g"><label data-i18n="curPass">رمز فعلی</label><input type="password" id="cp-old" required></div>
@@ -1462,6 +936,8 @@ tr{animation:fadeIn .3s ease}
   <form onsubmit="submitInbound(event)">
     <input type="hidden" id="ib-id">
     <div class="f-g"><label data-i18n="inboundName">نام اینباند</label><input type="text" id="ib-name" required data-i18n-placeholder="inboundName" placeholder="مثال: Main-WS"></div>
+    <div class="f-g"><label data-i18n="namingFormat">فرمت نام کانفیگ</label><input type="text" id="ib-naming-format" value="White-{username}" dir="ltr" placeholder="White-{username}"></div>
+    <div class="px-hint" data-i18n="namingFormatHint" style="margin-top:-8px;margin-bottom:10px">متغیر {username} با نام کاربری جایگزین می‌شود؛ از {inbound_name} هم می‌توانید استفاده کنید.</div>
     <div class="f-g"><label data-i18n="intPort">پورت اصلی (پورتی که سرور روی آن گوش میدهد)</label><input type="number" id="ib-port" required placeholder="8443" dir="ltr"></div>
     <div class="f-g"><label data-i18n="securityType">امنیت</label><select id="ib-security" onchange="onSecurityChange()">
       <option value="tls">TLS</option>
@@ -1544,7 +1020,6 @@ tr{animation:fadeIn .3s ease}
 <div class="toast" id="toast"></div>
 
 <script>
-
 // ─── State ───
 var $ = qs => document.querySelector(qs);
 var $id = id => document.getElementById(id);
@@ -1593,6 +1068,7 @@ var I18N = {
     'cancel': 'انصراف', 'submitUser': 'ایجاد کاربر', 'creatingUser': 'در حال ایجاد...', 'saving': 'در حال ذخیره...', 'userCreated': 'با موفقیت ایجاد شد',
     'volEdit': 'حجم (GB - ۰=نامحدود)', 'daysEdit': 'روز اعتبار (۰=نامحدود)', 'status': 'وضعیت', 'active': 'فعال', 'inactive': 'غیرفعال', 'resetTraffic': 'بازنشانی ترافیک', 'saveChanges': 'ذخیره تغییرات',
     'inboundName': 'نام اینباند', 'proto': 'پروتکل', 'port': 'پورت', 'extPort': 'پورت خارجی', 'optional': 'اختیاری', 'sniFixed': 'SNI هدف ثابت',
+    'namingFormat': 'فرمت نام کانفیگ', 'namingFormatHint': 'متغیر {username} با نام کاربری جایگزین می‌شود؛ از {inbound_name} هم می‌توانید استفاده کنید.',
     'securityType': 'نوع امنیت', 'realitySettings': 'تنظیمات Reality', 'autoGen': 'تولید خودکار', 'genRealityKey': 'تولید کلید Reality (x25519)',
     'dest': 'Destination', 'serverNames': 'Server Names (SNI)', 'shortIds': 'Short IDs', 'hex8': 'هگز ۸ رقمی — خالی = تصادفی', 'generate': '+ تولید', 'kmx': 'KMX',
     'extDomain': 'External Domain', 'extPortCfg': 'External Port', 'extDomainPlace': 'دامنه خارجی برای کانفیگ کلاینت', 'commaSep': 'با کاما جدا کنید',
@@ -1603,6 +1079,7 @@ var I18N = {
     'inboundUpdated': 'اینباند بروزرسانی شد', 'inboundCreated': 'اینباند ایجاد شد', 'updateInbound': 'بروزرسانی اینباند', 'inboundDeleted': 'اینباند حذف شد',
     'srv': 'وضعیت زنده سرور', 'cpu': 'پردازنده', 'ram': 'حافظه رم', 'disk': 'دیسک', 'sent': 'ارسال', 'recv': 'دریافت', 'activeUsers': 'کاربران فعال/کل', 'trafficUsed': 'ترافیک مصرفی', 'activeConns': 'اتصالات فعال', 'uptime': 'زمان فعالیت',
     'goodMorning': 'صبح بخیر', 'goodNoon': 'ظهر بخیر', 'goodEvening': 'عصر بخیر', 'admin': 'ادمین',
+    'showStatusConfig': 'نمایش کانفیگ وضعیت در لینک ساب',
     'toast.userCreated': 'کاربر ایجاد شد', 'toast.userUpdated': 'کاربر بروزرسانی شد', 'toast.userDeleted': 'کاربر حذف شد', 'toast.userToggled': 'وضعیت کاربر تغییر کرد', 'toast.inboundSaved': 'اینباند ذخیره شد', 'toast.domainSaved': 'دامنه ذخیره شد', 'toast.passChanged': 'رمز تغییر کرد', 'toast.err': 'خطا',
     'login': { 'signIn': 'Sign In' }
   },
@@ -1641,6 +1118,7 @@ var I18N = {
     'cancel': 'Cancel', 'submitUser': 'Create User', 'creatingUser': 'Creating...', 'saving': 'Saving...', 'userCreated': 'created successfully',
     'volEdit': 'Traffic (GB - 0=Unlimited)', 'daysEdit': 'Expiry days (0=Unlimited)', 'status': 'Status', 'active': 'Active', 'inactive': 'Inactive', 'resetTraffic': 'Reset traffic', 'saveChanges': 'Save Changes',
     'inboundName': 'Inbound Name', 'proto': 'Protocol', 'port': 'Port', 'extPort': 'External Port', 'optional': 'optional', 'sniFixed': 'Fixed target SNI',
+    'namingFormat': 'Config Naming Format', 'namingFormatHint': '{username} is replaced with the username; you can also use {inbound_name}.',
     'securityType': 'Security Type', 'realitySettings': 'Reality Settings', 'autoGen': 'Auto-generated', 'genRealityKey': 'Generate Reality Keys (x25519)',
     'dest': 'Destination', 'serverNames': 'Server Names (SNI)', 'shortIds': 'Short IDs', 'hex8': '8-digit hex — empty = random', 'generate': '+ Generate', 'kmx': 'KMX',
     'extDomain': 'External Domain', 'extPortCfg': 'External Port', 'extDomainPlace': 'External domain shown in the client config', 'commaSep': 'Separate with commas',
@@ -1651,6 +1129,7 @@ var I18N = {
     'inboundUpdated': 'Inbound updated', 'inboundCreated': 'Inbound created', 'updateInbound': 'Update Inbound', 'inboundDeleted': 'Inbound deleted',
     'srv': 'Live Server Status', 'cpu': 'CPU', 'ram': 'RAM', 'disk': 'Disk', 'sent': 'Sent', 'recv': 'Received', 'activeUsers': 'Active / Total Users', 'trafficUsed': 'Traffic Used', 'activeConns': 'Active Connections', 'uptime': 'Uptime',
     'goodMorning': 'Good morning', 'goodNoon': 'Good afternoon', 'goodEvening': 'Good evening', 'admin': 'Admin',
+    'showStatusConfig': 'Show status config in sub link',
     'toast.userCreated': 'User created', 'toast.userUpdated': 'User updated', 'toast.userDeleted': 'User deleted', 'toast.userToggled': 'User status changed', 'toast.inboundSaved': 'Inbound saved', 'toast.domainSaved': 'Domain saved', 'toast.passChanged': 'Password changed', 'toast.err': 'Error',
     'login': { 'signIn': 'Sign In' }
   }
@@ -1701,6 +1180,9 @@ async function api(url, opts) {
     throw new Error('خطای سرور: ' + r.status);
   }
   return r.json();
+}
+function apiPost(url, body) {
+  return api(url, {method: 'POST', body: body});
 }
 
 // ─── Toast ───
@@ -1771,21 +1253,22 @@ function initParticles() {
   draw();
 }
 
-// ─── Theme ───
-// ─── Light / Dark mode ───
+// ─── Light / Dark mode (Tailwind .dark class) ───
 function applyThemeUI() {
-  var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  var isLight = !document.documentElement.classList.contains('dark');
   var ic = $id('theme-ic'), lb = $id('theme-label');
   if (ic) ic.textContent = isLight ? 'dark_mode' : 'light_mode';
   if (lb) lb.textContent = isLight ? (LANG === 'en' ? 'Dark' : 'تاریک') : (LANG === 'en' ? 'Light' : 'روشن');
 }
 function loadTheme() {
-  document.documentElement.setAttribute('data-theme', selectedTheme || 'dark');
+  if (selectedTheme === 'light') document.documentElement.classList.remove('dark');
+  else document.documentElement.classList.add('dark');
   applyThemeUI();
 }
 function setTheme(t) {
   selectedTheme = (t === 'light') ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', selectedTheme);
+  if (selectedTheme === 'light') document.documentElement.classList.remove('dark');
+  else document.documentElement.classList.add('dark');
   localStorage.setItem('wp-theme', selectedTheme);
   applyThemeUI();
 }
@@ -1806,10 +1289,10 @@ async function checkAuth() {
   window.location.href = '/login';
 }
 
-function showLogin() { $id('login-wrap').style.display = 'flex'; $id('app-wrap').classList.remove('active'); }
+function showLogin() { $id('login-wrap').style.display = 'flex'; $id('app-wrap').classList.add('hidden'); }
 function showApp() {
   $id('login-wrap').style.display = 'none';
-  $id('app-wrap').classList.add('active');
+  $id('app-wrap').classList.remove('hidden');
   loadAll();
   updateGreeting();
 }
@@ -1892,6 +1375,7 @@ function switchTab(tab, el) {
   if (tab === 'inbounds') loadInbounds();
   if (tab === 'scanner') scnInit();
   if (tab === 'worker') loadWorker();
+  if (tab === 'settings') loadSettings();
   // Close sidebar on mobile
   closeSidebar();
 }
@@ -2360,8 +1844,30 @@ async function generateShortId() {
 }
 
 function openCreateInbound() {
-  // Adding new inbounds is disabled — only the default inbounds are used.
-  toast(t('inboundFixed'), 'warn');
+  $id('ib-title').textContent = t('createInbound');
+  $id('ib-id').value = '';
+  $id('ib-name').value = '';
+  $id('ib-port').value = '8443';
+  $id('ib-security').value = 'tls';
+  $id('ib-network').value = 'ws';
+  $id('ib-extdomain').value = '';
+  $id('ib-extport').value = '443';
+  $id('ib-sni').value = 'is1-ssl.mzstatic.com';
+  $id('ib-naming-format').value = 'White-{username}';
+  $id('ib-privkey').value = '';
+  $id('ib-pubkey').value = '';
+  $id('ib-dest').value = 'is1-ssl.mzstatic.com:443';
+  $id('ib-servernames').value = 'is1-ssl.mzstatic.com';
+  $id('ib-shortids').value = '';
+  $id('ib-kmx').value = '/';
+  $id('ib-wspath').value = '/';
+  $id('ib-xhttppath').value = '/';
+  $id('ib-xhttp-mode').value = 'auto';
+  $id('ib-grpc-svc').value = 'grpc';
+  $id('ib-submit').textContent = t('createInbound');
+  onSecurityChange();
+  onNetworkChange();
+  openModal('mod-inbound');
 }
 
 function editInbound(iid) {
@@ -2371,7 +1877,13 @@ function editInbound(iid) {
   $id('ib-title').textContent = t('editInbound');
   $id('ib-id').value = iid;
   $id('ib-name').value = ib.name || '';
+  $id('ib-port').value = ib.port || '8443';
+  $id('ib-security').value = isReality ? 'reality' : (ib.security || 'tls');
+  $id('ib-network').value = ib.network || 'ws';
+  $id('ib-extdomain').value = ib.external_domain || '';
+  $id('ib-extport').value = ib.external_port || '443';
   $id('ib-sni').value = ib.sni || 'is1-ssl.mzstatic.com';
+  $id('ib-naming-format').value = ib.naming_format || 'White-{username}';
   var rs = ib.reality_settings || {};
   $id('ib-privkey').value = (rs || {}).private_key || '';
   $id('ib-pubkey').value = (rs || {}).public_key || '';
@@ -2384,22 +1896,10 @@ function editInbound(iid) {
   $id('ib-xhttppath').value = xh.path || '/';
   $id('ib-xhttp-mode').value = xh.mode || 'auto';
   $id('ib-grpc-svc').value = (ib.grpc_settings || {}).serviceName || 'grpc';
-
-  if (isReality) {
-    // Reality: user fills domain + ports; pbk is auto-generated.
-    $id('ib-security').value = 'reality';
-    $id('ib-network').value = ib.network || 'xhttp';
-    $id('ib-port').value = ib.port || '';
-    $id('ib-extdomain').value = ib.external_domain || '';
-    $id('ib-extport').value = ib.external_port || '';
-    $id('ib-submit').textContent = t('updateInbound');
-    onSecurityChange();
-    onNetworkChange();
-    openModal('mod-inbound');
-  } else {
-    // WS/TLS: fully automatic — nothing to configure.
-    toast(t('inboundAuto'), 'ok');
-  }
+  $id('ib-submit').textContent = t('updateInbound');
+  onSecurityChange();
+  onNetworkChange();
+  openModal('mod-inbound');
 }
 
 async function submitInbound(e) {
@@ -2420,7 +1920,8 @@ async function submitInbound(e) {
     external_domain: $id('ib-extdomain').value || '',
     network: network,
     security: security,
-    sni: sni
+    sni: sni,
+    naming_format: $id('ib-naming-format').value || 'White-{username}'
   };
 
   // Reality settings
@@ -2465,8 +1966,27 @@ async function deleteInbound(iid) {
 // ─── Settings ───
 function $id(id){return document.getElementById(id)}
 function loadSettings() {
-  // Already handled by theme pickers in HTML
+  // Theme pickers are handled in HTML; load the rest on demand.
   loadCustomSubsCurrent();
+  loadShowStatusConfig();
+}
+
+// ─── Show status config toggle (global setting) ───
+async function loadShowStatusConfig() {
+  try {
+    var s = await api('/api/tools/settings');
+    var sw = $id('set-show-status');
+    if (sw) sw.classList.toggle('on', !!s.show_status_config);
+  } catch(e) {}
+}
+function toggleShowStatusConfig() {
+  var sw = $id('set-show-status');
+  if (!sw) return;
+  var on = !sw.classList.contains('on');
+  sw.classList.toggle('on', on);
+  api('/api/tools/settings', {method: 'POST', body: {show_status_config: on}})
+    .then(function() { toast(on ? (LANG === 'en' ? 'Status config shown' : 'نمایش کانفیگ وضعیت فعال شد') : (LANG === 'en' ? 'Status config hidden' : 'نمایش کانفیگ وضعیت غیرفعال شد'), 'ok'); })
+    .catch(function(e) { toast(e.message, 'err'); sw.classList.toggle('on', !on); });
 }
 
 // ─── Custom Sub Dropdown ───
