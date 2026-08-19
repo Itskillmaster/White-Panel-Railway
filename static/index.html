@@ -1738,38 +1738,42 @@ async function loadInbounds() {
 function renderInbounds() {
   var el = $id('inbounds-list');
   if (!ALL_IB.length) { el.innerHTML = '<div class="empty">' + t('noInbounds') + '</div>'; return; }
-  var html = '<div class="stats" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">';
+  
+  var html = '<div class="stats" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px;">';
   for (var i = 0; i < ALL_IB.length; i++) {
     var ib = ALL_IB[i];
     var protoBadge = ib.protocol === 'reality' ? 'badge-p' : 'badge-b';
-    html += '<div class="stat" style="text-align:right">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
-    html += '<strong>' + esc(ib.name) + '</strong><span class="badge ' + protoBadge + '">' + (ib.protocol || 'vless').toUpperCase() + '</span>';
+    
+    html += '<div class="stat glass hover:border-[var(--neon)] transition-all duration-300" style="text-align:right; display:flex; flex-direction:column; justify-content:space-between; padding:20px;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px;">';
+    html += '<strong style="font-size:16px;color:var(--txt)">' + esc(ib.name) + '</strong><span class="badge ' + protoBadge + '">' + (ib.protocol || 'vless').toUpperCase() + '</span>';
     html += '</div>';
-    html += '<div style="font-size:11px;color:var(--txt2);line-height:1.8">';
+    
+    html += '<div style="font-size:12px;color:var(--txt2);line-height:2;flex-grow:1;">';
     var isReality = (ib.protocol === 'reality' || ib.security === 'reality');
     if (isReality) {
-      // Reality: user fills domain + ports; pbk is auto-generated.
-      html += t('domain') + ': ' + (ib.external_domain || '—') + '<br>';
-      html += t('port') + ': ' + (ib.port || '—') + '<br>';
+      html += '🌍 <b>دامنه:</b> <span dir="ltr">' + (ib.external_domain || '—') + '</span><br>';
+      html += '🔌 <b>پورت:</b> ' + (ib.port || '—') + '<br>';
     } else if (ib.protocol === 'worker') {
-      html += t('domain') + ': ' + (ib.external_domain || '—') + '<br>';
-      html += t('port') + ': 443 (Worker)<br>';
+      html += '🌍 <b>دامنه:</b> <span dir="ltr">' + (ib.external_domain || '—') + '</span><br>';
+      html += '🔌 <b>پورت:</b> 443 (Worker)<br>';
     } else {
-      // WS/TLS: fully automatic with the panel's main domain.
-      html += t('domain') + ': ' + (ib.external_domain || '—') + ' (خودکار)<br>';
-      html += t('port') + ': 443 / relay<br>';
+      html += '🌍 <b>دامنه:</b> <span dir="ltr">' + (ib.external_domain || '—') + '</span> (خودکار)<br>';
+      html += '🔌 <b>پورت:</b> 443 / relay<br>';
     }
-    html += t('secNetwork') + ': ' + (ib.network || 'tcp') + ' | ' + t('security') + ': ' + (ib.security || 'none') + '<br>';
-    html += t('usersCount') + ': ' + (ib.users_count || 0);
+    html += '🛡️ <b>شبکه:</b> ' + (ib.network || 'tcp').toUpperCase() + ' | <b>امنیت:</b> ' + (ib.security || 'none').toUpperCase() + '<br>';
+    html += '👥 <b>کاربران متصل:</b> ' + (ib.users_count || 0);
     html += '</div>';
-    html += '<div style="margin-top:10px;display:flex;gap:4px">';
-    html += '<button class="btn btn-sm btn-b" onclick="editInbound(\'' + ib.inbound_id + '\')">' + t('edit') + '</button>';
+    
+    html += '<div style="margin-top:16px;display:flex;gap:8px;border-top:1px solid var(--border);padding-top:16px;">';
+    html += '<button class="btn btn-sm btn-b" style="flex:1; justify-content:center;" onclick="editInbound(\'' + ib.inbound_id + '\')"><span class="material-symbols-outlined" style="font-size:16px;">edit</span> ' + t('edit') + '</button>';
+    html += '<button class="btn btn-sm btn-r" style="flex:1; justify-content:center;" onclick="deleteInbound(\'' + ib.inbound_id + '\')"><span class="material-symbols-outlined" style="font-size:16px;">delete</span> ' + t('delete') + '</button>';
     html += '</div></div>';
   }
   html += '</div>';
   el.innerHTML = html;
 }
+
 
 function populateInboundSelects() {
   // Default-select every inbound so per-inbound options show immediately.
