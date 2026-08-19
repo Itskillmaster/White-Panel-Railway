@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SPiDER — Web</title>
+<style>
+  :root{
+    --c:#00e1c1;        /* cyan web */
+    --red:#ff1744;      /* spider red */
+    --blue:#2196f3;     /* spider blue */
+    --web:rgba(0,225,193,.06);
+    --bg:#000000;
+    --panel:rgba(8,10,14,.8);
+    --panel-border:rgba(255,255,255,.08);
+    --txt:#f0f0f0;
+    --muted:#9aa0a6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden}
+  body{
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);
+    min-height:100vh;
+    background:linear-gradient(180deg,#000000,#0a0a10 70%);
+  }
+  /* spider web SVG background */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(circle at 50% 50%,rgba(0,225,193,.05) 0%,transparent 50%);
+  }
+  .web-svg{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    opacity:.12;animation:rotate-web 40s linear infinite
+  }
+  .web-svg svg{width:100%;height:100%;}
+  @keyframes rotate-web{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .phone{
+    width:100%;max-width:390px;
+    background:var(--panel);
+    border:2px solid var(--blue);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 0 30px rgba(33,150,243,.12),0 0 50px rgba(0,225,193,.08),
+      inset 0 0 18px rgba(0,225,193,.04);
+    position:relative;
+  }
+  .phone::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+    background-image:
+      radial-gradient(circle at 20% 30%,rgba(33,150,243,.08) 0%,transparent 45%),
+      radial-gradient(circle at 80% 70%,rgba(0,225,193,.06) 0%,transparent 45%);
+    z-index:1;pointer-events:none
+  }
+  /* spider logo watermark */
+  .spider-logo{
+    position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    font-size:18px;z-index:2;opacity:.25;font-style:italic;
+    color:rgba(33,150,243,.2);letter-spacing:2px
+  }
+  .header{
+    padding:26px 20px 22px;text-align:center;
+    background:linear-gradient(145deg,rgba(33,150,243,.18),rgba(0,225,193,.08));
+    position:relative;z-index:2;
+    border-bottom:2px solid var(--blue);
+  }
+  .header h1{
+    font-size:22px;font-weight:800;letter-spacing:4px;text-transform:uppercase;
+    background:linear-gradient(90deg,var(--blue),var(--red));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 0 8px rgba(33,150,243,.3)
+  }
+  .header p{
+    font-size:12px;color:var(--muted);margin-top:3px;
+    text-shadow:0 0 6px rgba(255,255,255,.2)
+  }
+  .content{
+    padding:18px 16px 22px;
+    display:flex;flex-direction:column;gap:12px;
+    background:linear-gradient(180deg,rgba(8,10,14,.85),rgba(8,10,14,.80));
+    position:relative;z-index:2;
+  }
+  .card{
+    background:rgba(18,20,26,.8);
+    border:1px solid var(--panel-border);
+    border-left:4px solid var(--c);
+    border-radius:10px;
+    padding:16px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 6px 16px rgba(0,0,0,.4);
+    transition:all .3s ease
+  }
+  .card:hover{
+    border-left-color:var(--blue);
+    box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 16px rgba(33,150,243,.12)
+  }
+  .ring-wrap{position:relative;width:126px;height:126px;margin:0 auto}
+  .card-ring svg{width:100%;height:auto;transform:rotate(-90deg)}
+  .card-ring circle{fill:none;stroke-linecap:round}
+  .card-value{
+    font-size:24px;font-weight:700;color:#fff;margin:4px 0;
+    text-shadow:0 0 8px rgba(0,225,193,.35);
+    font-variant-numeric:tabular-nums
+  }
+  .card-sub{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.5px}
+  .card-title{
+    font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:600;
+    background:linear-gradient(90deg,var(--c),var(--blue));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent
+  }
+  .progress-bar{height:7px;background:rgba(0,0,0,.5);border-radius:10px;overflow:hidden;margin:10px 0;border:1px solid rgba(0,0,0,.4)}
+  .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--c),var(--blue));box-shadow:0 0 10px var(--c)}
+  .ip-tag{
+    display:inline-block;background:rgba(0,225,193,.1);border:1px solid rgba(0,225,193,.25);
+    border-radius:50px;padding:4px 10px;font-size:9px;color:var(--c);
+    margin:2px;box-shadow:0 0 5px rgba(0,225,193,.15)
+  }
+  .buttons{display:flex;gap:12px;margin-top:10px}
+  .btn{
+    flex:1;padding:14px 10px;border:none;border-radius:14px;
+    font-size:13.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .25s ease
+  }
+  .btn:active{transform:scale(.95)}
+  .btn-a{
+    background:linear-gradient(135deg,var(--blue),var(--c));color:#fff;
+    box-shadow:0 0 14px rgba(33,150,243,.35)
+  }
+  .btn-b{
+    background:transparent;color:var(--c);
+    border:1px solid var(--c);
+    box-shadow:0 0 8px rgba(0,225,193,.18)
+  }
+  .btn-b:hover{
+    background:var(--c);color:#0a0a10;
+    box-shadow:0 0 14px rgba(0,225,193,.35)
+  }
+  .btn span{font-size:15px}
+  .cfg-text{
+    font-size:9px;font-family:'SF Mono',monospace;color:var(--muted);
+    margin-top:6px;word-break:break-all;
+    background:rgba(0,0,0,.55);padding:8px;border-radius:8px;
+    border:1px solid rgba(0,0,0,.4);overflow-x:auto;text-align:left;direction:ltr
+  }
+  .toast{
+    position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+    background:rgba(8,10,14,.9);border:1px solid var(--panel-border);
+    color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;z-index:50;opacity:0;
+    transition:opacity .3s;box-shadow:0 0 12px rgba(33,150,243,.2)
+  }
+  .toast.show{opacity:1}
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.12);border-top-color:var(--c);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pulse-dot{box-shadow:0 0 0 0 rgba(0,225,193,.0);animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,225,193,.0)} 50%{box-shadow:0 0 0 6px rgba(0,225,193,0)} 100%{box-shadow:0 0 0 0 rgba(0,225,193,.0)}}
+</style>
+<script src="fx.js"></script>
+<script>
+(function(){
+  var uname = (new URLSearchParams(location.search)).get('u') || location.hash.slice(1) || location.pathname.split('/').pop() || 'guest';
+  var apiUrl='/api/sub/'+encodeURIComponent(uname);var subUrl=window.location.origin+'/sub/'+uname;var state={data:null};
+  function fmtBytes(b){if(!b||b<1)return'0 B';var u=['B','KB','MB','GB','TB'],i=0;while(b>=1024&&i<u.length-1){b/=1024;i++}return b.toFixed(i?2:0)+' '+u[i]}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
+  function copyText(t){if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('Copied!')},function(){toast('Copy failed')})}else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Copied!')}catch(e){toast('Copy failed')}document.body.removeChild(a)}}
+  function ring(d,m){
+    var r=46,c=2*Math.PI*r,pct=m>0?Math.min(1,d/m):1,off=c*(1-pct);var num=d==null||d===undefined?'∞':String(d);
+    return'<div class="ring-wrap"><svg viewBox="0 0 120 120"><circle class="stroke-white/10" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-width="6"></circle><circle class="stroke-[#2196f3] progress-ring__circle" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-dasharray="'+c.toFixed(3)+'" stroke-dashoffset="'+off.toFixed(3)+'" stroke-linecap="round" stroke-width="6" style="filter:drop-shadow(0 0 6px rgba(33,150,243,.5))"></circle></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="font-bold text-xl" style="color:#fff">'+num+'</span><span class="text-[9px]" style="color:var(--muted)">DAYS</span></div></div>'
+  }
+  function render(d){
+    state.data=d;var used=d.traffic_used_bytes||0;var limit=d.traffic_limit_bytes||0;
+    var pct=limit>0?Math.min(100,used/limit*100):0;var days=(d.expire_days===null||d.expire_days===undefined)?null:d.expire_days;
+    var active=d.is_active!==false&&d.status==='active';var cfg=d.config||d.vless_link||'';
+    var cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(cfg?[cfg]:[]);var r=d.proxy_ips||[];
+    var html='';
+    html+='<div class="card glow-blue" reveal><div class="specular"></div><div class="text-center">'+ring(days,30)+'<div class="mt-3 flex items-center justify-center gap-2"><span class="pulse-dot w-2 h-2 rounded-full"></span><span style="font-size:11px;color:var(--muted)">'+esc(active?'WEB ACTIVE':'WEB INACTIVE')+'</span></div></div></div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Data Flow</div><div class="flex justify-between"><span style="font-size:12px;color:var(--muted)">'+esc(fmtBytes(used))+'</span><span style="font-size:12px;color:var(--muted)">'+(limit>0?esc(fmtBytes(limit)):'∞')+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct.toFixed(1)+'%"></div></div><div class="card-sub" reveal>'+pct.toFixed(1)+'%</div></div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Protocol</div><div style="font-size:18px;font-weight:700;background:linear-gradient(90deg,var(--c),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent">'+esc((d.protocol||'vless').toUpperCase())+'</div><div class="card-sub" reveal>'+esc(r.length>0?'Multi-path':'Standard')+'</div></div>';
+    var usedIps=d.used_ips!=null?esc(String(d.used_ips)):'∞';var maxIps=d.max_ip_per_user!=null?esc(String(d.max_ip_per_user)):'∞';
+    html+='<div class="card" reveal><div class="card-title" reveal>Web Nodes</div><div style="font-size:18px;font-weight:700;background:linear-gradient(90deg,var(--blue),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent">'+usedIps+' / '+maxIps+'</div>'+(r.length?'<div class="flex flex-wrap justify-center mt-2">'+r.slice(0,6).map(function(ip){return'<span class="ip-tag">'+esc(ip)+'</span>'}).join('')+'</div>':'')+'</div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Config</div>'+(cfg?'<div class="cfg-text" dir="ltr" title="'+esc(cfg)+'">'+esc(cfg)+'</div>':'')+'<div class="buttons"><button class="btn btn-a" onclick="copyCfg()">COPY WEB</button><button class="btn btn-b" onclick="importSub()">SWING</button></div></div>';
+    document.getElementById('app').innerHTML=html; setTimeout(function(){if(window.FX)FX.revealAll()},50)document.title='SPiDER | '+(d.username||uname)
+  }
+  function renderError(m){var a=document.getElementById('app');a.innerHTML='<div class="card" reveal><div style="text-align:center"><span style="font-size:32px">⚠️</span><h2 style="margin:12px 0">'+esc(uname)+'</h2><p style="color:var(--muted)">'+esc(m)+'</p></div></div>'}
+  async function load(){try{var r=await fetch(apiUrl);if(!r.ok){if(r.status===404)throw new Error('User not found');throw new Error('Server error')}var d=await r.json();state.data=d;window.__cfg=d.config||d.vless_link||'';window.__cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(window.__cfg?[window.__cfg]:[]);render(d)}catch(e){renderError(e.message)}}
+  window.copyCfg=function(){var c=window.__cfg||(window.__cfgs&&window.__cfgs[0]);if(c)copyText(c)};
+  window.copySub=function(){copyText(subUrl)};
+  window.importSub=function(){window.open('v2rayng://install-sub?url='+encodeURIComponent(subUrl),'_blank')};
+  load();
+})();
+</script>
+<body>
+<div class="web-svg">
+  <svg viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+    <defs><path id="spiral" d="M200,400 C120,380 80,300 80,220 C80,140 150,70 220,70 C290,70 360,140 360,220 C360,300 320,380 260,400 C200,420 140,420 80,460 C20,500 40,600 120,640 C200,680 280,640 320,600" fill="none" stroke="rgba(0,225,193,.12)" stroke-width="1.5"/>
+  </defs>
+    <use href="#spiral" transform="translate(0,0) scale(.6)"/>
+    <use href="#spiral" transform="translate(0,60) scale(.5)" opacity=".6"/>
+    <use href="#spiral" transform="translate(0,40) scale(.4)" opacity=".4"/>
+    <use href="#spiral" transform="translate(0,20) scale(.7)" opacity=".5"/>
+  </svg>
+</div>
+<div class="phone glow-blue" reveal parallax>
+<span class="spider-logo">██╗  ╔═</span>
+<div class="header"><h1>SPIDER NETWORK</h1><p>Web-Slinging Proxy</p></div>
+<div id="app"><div style="text-align:center;padding:60px"><span class="spinner"></span><p style="margin-top:20px;color:var(--muted)">Spinning up...</p></div></div>
+</div>
+<div id="toast" class="toast"></div>
+</body>
+</html>

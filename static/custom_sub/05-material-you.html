@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SPiDER — Material You</title>
+<meta name="theme-color" content="#6366f1"/>
+<script src="fx.js"></script>
+<style>
+  :root{
+    --c:#6366f1;--c2:#8b5cf6;--c3:#a855f7;--c4:#38bdf8;
+    --bg:#0f172a;--panel:rgba(15,23,42,.88);
+    --txt:#e2e8f0;--muted:#94a3b8;--border:rgba(99,102,242,.14)
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:'Inter','Roboto','Segoe UI',sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden}
+  body{
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 30%,rgba(99,102,242,.07) 0,transparent 50%),
+      radial-gradient(circle at 80% 65%,rgba(139,92,246,.06) 0,transparent 50%),
+      radial-gradient(circle at 50% 50%,rgba(56,189,248,.04) 0,transparent 70%),
+      #0f172a;
+  }
+  /* Material You dynamic color waves */
+  body::before{
+    content:'';position:fixed;top:-120px;left:-120px;width:420px;height:420px;
+    background:radial-gradient(circle,var(--c) 0%,var(--c2) 35%,transparent 70%);
+    filter:blur(70px);opacity:.38;animation:colorWave 22s ease-in-out infinite;z-index:0;pointer-events:none
+  }
+  body::after{
+    content:'';position:fixed;bottom:-140px;right:-140px;width:380px;height:380px;
+    background:radial-gradient(circle,var(--c4) 0%,var(--c3) 35%,transparent 70%);
+    filter:blur(70px);opacity:.28;animation:colorWave2 26s ease-in-out infinite;z-index:0;pointer-events:none
+  }
+  @keyframes colorWave{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-40px) scale(1.12)}}
+  @keyframes colorWave2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,40px) scale(1.1)}}
+  .phone{
+    position:relative;z-index:1;
+    width:100%;max-width:390px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:32px;
+    overflow:hidden;
+    box-shadow:
+      0 32px 64px -12px rgba(0,0,0,.65),
+      0 0 60px rgba(99,102,242,.08),
+      inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter:blur(3px)
+  }
+  .phone::before{
+    content:'';position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    width:150px;height:5px;border-radius:4px;
+    background:linear-gradient(90deg,var(--c2),var(--c4));
+    box-shadow:0 0 8px var(--c2);z-index:2
+  }
+  .header{
+    padding:28px 16px 18px;text-align:center;position:relative;z-index:2;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(135deg,rgba(99,102,242,.10),rgba(139,92,246,.08))
+  }
+  .dp{
+    width:72px;height:72px;border-radius:50%;margin:0 auto;
+    background:linear-gradient(135deg,var(--c),var(--c2),var(--c3));
+    box-shadow:0 0 28px rgba(99,102,242,.38),inset 0 0 0 4px rgba(255,255,255,.1);
+    display:flex;align-items:center;justify-content:center;
+    font-size:32px;filter:brightness(1.1);animation:float 3s ease-in-out infinite
+  }
+  @keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.04)}}
+  .header h1{
+    margin-top:12px;font-size:24px;font-weight:700;letter-spacing:.5px;
+    background:linear-gradient(120deg,var(--c2),var(--c4));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    text-shadow:0 2px 6px rgba(99,102,242,.15)
+  }
+  .header p{font-size:12px;color:var(--muted);margin-top:2px}
+  .content{
+    padding:18px 14px 20px;
+    display:flex;flex-direction:column;gap:12px;
+    background:rgba(15,23,42,.95)
+  }
+  .card{
+    background:rgba(15,23,42,.82);
+    border:1px solid var(--border);
+    border-left:4px solid var(--c);
+    border-radius:24px;
+    padding:18px;
+    position:relative;overflow:hidden;
+    box-shadow:0 8px 20px -6px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter:blur(2px)
+  }
+  .specular{
+    position:absolute;top:0;left:0;width:100%;height:32%;
+    background:linear-gradient(165deg,rgba(255,255,255,.24) 0,rgba(255,255,255,.06) 60%,transparent 100%);
+    opacity:.5;border-radius:24px 24px 0 0;pointer-events:none
+  }
+  .card.reveal,.card.parallax{transform:translateZ(0)}
+  /* Material ripple */
+  .card::after{
+    content:'';position:absolute;inset:0;border-radius:24px;
+    background:rgba(139,92,246,.02);opacity:0;transition:opacity .2s
+  }
+  .card:hover::after{opacity:1}
+  .card:hover{transform:translateY(-2px);border-color:rgba(99,102,242,.25)}
+  .card-title{
+    font-size:11px;text-transform:uppercase;letter-spacing:1.2px;font-weight:600;
+    color:var(--c2);margin-bottom:8px;z-index:1
+  }
+  .card-value{
+    font-size:26px;font-weight:700;
+    background:linear-gradient(135deg,var(--c2),var(--c4));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    z-index:1
+  }
+  .ring-wrap{position:relative;width:110px;height:110px;margin:6px auto;z-index:1}
+  .card-ring svg{width:100%;height:auto;transform:rotate(-90deg)}
+  .card-ring circle{fill:none;stroke-linecap:round}
+  .card-sub{font-size:11px;color:var(--muted);margin-top:6px;z-index:1}
+  .progress-bar{
+    height:8px;background:rgba(0,0,0,.45);border-radius:4px;overflow:hidden;
+    margin:10px 0;border:1px solid rgba(0,0,0,.2);z-index:1
+  }
+  .progress-fill{
+    height:100%;border-radius:4px;
+    background:linear-gradient(90deg,var(--c),var(--c2));
+    box-shadow:0 0 8px var(--c);transition:width .5s
+  }
+  .ip-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px;z-index:1}
+  .ip-item{
+    background:rgba(15,23,42,.9);border:1px solid var(--border);border-radius:16px;
+    padding:8px;font-size:10px;color:var(--txt);font-family:'Fira Mono',monospace;
+    text-align:left;transition:all .2s;position:relative;overflow:hidden
+  }
+  .ip-item::after{
+    content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);
+    transition:left .4s
+  }
+  .ip-item:hover::after{left:100%}
+  .buttons{display:flex;gap:8px;margin-top:6px;z-index:1}
+  .btn{
+    flex:1;padding:14px 8px;border:none;border-radius:20px;
+    font-size:12px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    transition:all .2s;backdrop-filter:blur(2px);overflow:hidden
+  }
+  .btn::after{
+    content:'';position:absolute;inset:0;border-radius:inherit;
+    background:linear-gradient(135deg,rgba(255,255,255,.08),transparent);opacity:0;transition:opacity .2s
+  }
+  .btn:hover::after{opacity:1}
+  .btn:active{transform:scale(.97)}
+  .btn-a{
+    background:linear-gradient(135deg,var(--c),var(--c3));
+    color:#fff;box-shadow:0 4px 16px rgba(99,102,242,.36)
+  }
+  .btn-a:hover{box-shadow:0 6px 20px rgba(99,102,242,.46)}
+  .btn-b{
+    background:rgba(255,255,255,.04);color:var(--c);
+    border:1px solid var(--border);backdrop-filter:blur(2px)
+  }
+  .btn-b:hover{
+    background:rgba(255,255,255,.08);border-color:rgba(99,102,242,.3)
+  }
+  .cfg-text{
+    font-size:9px;font-family:'Fira Mono',monospace;color:var(--c2);
+    margin-top:6px;word-break:break-all;
+    background:rgba(0,0,0,.45);padding:10px;border-radius:16px;
+    overflow-x:auto;text-align:left;direction:ltr;
+    border:1px solid rgba(0,0,0,.3);box-shadow:inset 0 0 6px rgba(0,0,0,.4);z-index:1
+  }
+  .toast{
+    position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+    background:rgba(15,23,42,.92);border:1px solid var(--c);
+    color:var(--c2);padding:8px 16px;font-size:12px;z-index:50;opacity:0;
+    transition:opacity .3s;backdrop-filter:blur(2px);box-shadow:0 0 12px rgba(99,102,242,.2)
+  }
+  .toast.show{opacity:1}
+  .spinner{width:16px;height:16px;border:2px solid rgba(99,102,242,.15);border-top-color:var(--c);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pulse-dot{box-shadow:0 0 8px var(--c);animation:pulse 2.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,242,.0)} 50%{box-shadow:0 0 8px 4px rgba(99,102,242,.25)}}
+  .en-only,.fa-only{display:inline}
+  html[lang="fa"] .en-only{display:none}html[lang="fa"] .fa-only{display:inline}
+</style>
+<script>
+(function(){
+  var uname = (new URLSearchParams(location.search)).get('u') || location.hash.slice(1) || location.pathname.split('/').pop() || 'guest';
+  var apiUrl='/api/sub/'+encodeURIComponent(uname);var subUrl=window.location.origin+'/sub/'+uname;var state={data:null};
+  function fmtBytes(b){if(!b||b<1)return'0 B';var u=['B','KB','MB','GB','TB'],i=0;while(b>=1024&&i<u.length-1){b/=1024;i++}return b.toFixed(i?2:0)+' '+u[i]}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1600)}
+  function copyText(t){if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('COPIED!')},function(){toast('COPY FAIL')})}else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('COPIED!')}catch(e){toast('COPY FAIL')}document.body.removeChild(a)}}
+  function ring3(d,m){
+    var r=48,c=(2*Math.PI*r).toFixed(3),pct=m>0?Math.min(1,d/m):1,off=(c*(1-pct)).toFixed(3);
+    var num=d==null||d===undefined?'∞':String(d);
+    return'<div class="progress-ring"><svg viewBox="0 0 120 120"><circle class="circle-bg" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-width="6"></circle><circle class="circle-prog progress-ring__circle" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" stroke-linecap="round" stroke-width="6"></circle></svg><div class="label" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:24px;font-weight:700;color:#fff">'+num+'</span><span style="font-size:11px;color:var(--muted)">DAYS</span></div></div>'
+  }
+  /* Inject dynamic color vars for the ring based on theme */
+  var style=document.createElement('style');
+  style.textContent='.circle-bg{stroke:rgba(255,255,255,.08)}.circle-prog{stroke:var(--c);stroke-linecap:round}.progress-ring .label{margin-top:2px}';
+  document.head.appendChild(style)
+  function render(d){
+    state.data=d;var used=d.traffic_used_bytes||0;var limit=d.traffic_limit_bytes||0;
+    var pct=limit>0?Math.min(100,used/limit*100):0;var days=(d.expire_days===null||d.expire_days===undefined)?null:d.expire_days;
+    var active=d.is_active!==false&&d.status==='active';var cfg=d.config||d.vless_link||'';
+    var cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(cfg?[cfg]:[]);var r=d.proxy_ips||[];
+    var html='';
+    html+='<div class="card reveal glow-pink"><div class="specular"></div><div class="text-center">'+ring3(days,30)+'<div class="mt-2 flex items-center justify-center gap-2"><span class="pulse-dot w-2 h-2 rounded-full"></span><span style="font-size:11px;color:var(--muted)">'+esc(active?'Active session':'Inactive')+'</span></div></div></div>';
+    html+='<div class="card reveal"><div class="card-title">TRAFFIK</div><div class="flex justify-between"><span style="font-size:10px;color:var(--muted)">'+esc(fmtBytes(used))+'</span><span style="font-size:10px;color:var(--muted)">'+(limit>0?esc(fmtBytes(limit)):'∞')+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct.toFixed(1)+'%"></div></div><div class="card-sub">'+pct.toFixed(1)+' %</div></div>';
+    html+='<div class="card reveal"><div class="card-title">PROTOCOL</div><div class="card-value">'+(d.protocol||'vless').toUpperCase()+'</div><div class="card-sub">'+(r.length>0?'<span class="chip" style="background:rgba(99,102,242,.12);color:var(--c);border:1px solid rgba(99,102,242,.3);border-radius:20px;padding:4px 12px;font-size:10px">'+r.length+' IPs</span>':'<span class="chip" style="background:rgba(99,102,242,.12);color:var(--c);border:1px solid rgba(99,102,242,.3);border-radius:20px;padding:4px 12px;font-size:10px">Standard</span>')+'</div></div>';
+    var usedIps=d.used_ips!=null?esc(String(d.used_ips)):'∞';var maxIps=d.max_ip_per_user!=null?esc(String(d.max_ip_per_user)):'∞';
+    html+='<div class="card reveal"><div class="card-title">DEVICES</div><div class="card-value">'+usedIps+'/'+maxIps+'</div>'+(r.length?'<div class="ip-grid">'+r.slice(0,6).map(function(ip){return'<div class="ip-item">'+esc(ip)+'</div>'}).join('');'')+'</div>':'')+'</div>';
+    html+='<div class="card reveal"><div class="card-title">KONFIG</div>'+(cfg?'<div class="cfg-text" dir="ltr" title="'+esc(cfg)+')}}">'+esc(cfg)+'</div>':'')+'<div class="buttons"><button class="btn btn-a" onclick="copyCfg()">COPY CONFIG</button><button class="btn btn-b" onclick="importSub()">IMPORT</button></div></div>';
+    document.getElementById('app').innerHTML=html;document.title='SPiDER | '+(d.username||uname);
+    setTimeout(function(){if(window.FX)FX.revealAll()},50)
+  }
+  function renderError(m){var a=document.getElementById('app');a.innerHTML='<div class="card reveal"><div style="text-align:center"><span style="font-size:28px">⚠️</span><h2 style="margin:12px 0">'+esc(uname)+'</h2><p style="color:var(--muted)">'+esc(m)+'</p></div></div>';setTimeout(function(){if(window.FX)FX.revealAll()},50)}
+  async function load(){try{var r=await fetch(apiUrl);if(!r.ok){if(r.status===404)throw new Error('NOT FOUND');throw new Error('SERVER ERR')}var d=await r.json();state.data=d;window.__cfg=d.config||d.vless_link||'';window.__cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(window.__cfg?[window.__cfg]:[]);render(d)}catch(e){renderError(e.message)}}
+  window.copyCfg=function(){var c=window.__cfg||(window.__cfgs&&window.__cfgs[0]);if(c)copyText(c)};
+  window.copySub=function(){copyText(subUrl)};
+  window.importSub=function(){window.open('v2rayng://install-sub?url='+encodeURIComponent(subUrl),'_blank')};
+  load();
+})();
+</script>
+<body>
+<div class="phone reveal glow-pink">
+  <div class="header">
+    <div class="dp">💜</div>
+    <h1>SPIDER</h1><p>MATERIAL YOU</p>
+  </div>
+  <div id="app" style="padding:14px 14px 18px;display:flex;flex-direction:column;gap:12px">
+    <div style="text-align:center;padding:40px 20px"><span class="spinner"></span><p style="margin-top:16px;color:var(--muted)">Loading...</p></div>
+  </div>
+  <div style="padding:0 14px 12px;text-align:center;border-top:1px solid var(--border);font-size:9px;color:var(--muted)">v2.6.1 // material edition</div>
+</div>
+<div id="toast" class="toast"></div>
+</body>
+</html>

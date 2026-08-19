@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SPiDER — Cyberpunk</title>
+<style>
+  :root{
+    --c:#0ff;
+    --c2:#ff00ff;
+    --c3:#ff9800;
+    --c4:#00e676;
+    --bg:#000000;
+    --panel:rgba(10,5,20,.82);
+    --panel-border:rgba(0,255,255,.18);
+    --txt:#e0e0e0;
+    --muted:#8a8a8a;
+    --scan:rgba(0,255,255,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden}
+  body{
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);
+    min-height:100vh;
+    background:linear-gradient(180deg,#000000,#030008 55%,#0a0012);
+  }
+  /* scanline grid */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg,rgba(0,255,255,.025) 0 1px,transparent 1px 3px),
+      repeating-linear-gradient(90deg,rgba(255,0,255,.02) 0 1px,transparent 1px 4px);
+    animation:scanline 6s linear infinite;
+  }
+  @keyframes scanline{from{background-position:0 0}to{background-position:0 100%}}
+  .glitch{
+    position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.12;
+    background:
+      radial-gradient(circle at 20% 30%,rgba(0,255,255,.22) 0%,transparent 60%),
+      radial-gradient(circle at 80% 70%,rgba(255,0,255,.18) 0%,transparent 60%),
+      radial-gradient(circle at 50% 50%,rgba(255,152,0,.12) 0%,transparent 70%);
+    animation:glitch-anim 3.2s ease-in-out infinite;
+  }
+  @keyframes glitch-anim{0%,100%{opacity:.12} 25%,75%{opacity:.18}}
+  .phone{
+    position:relative;
+    width:100%;max-width:390px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:
+      0 0 20px rgba(0,255,255,.15),
+      0 0 40px rgba(255,0,255,.08),
+      inset 0 0 20px rgba(0,255,255,.1);
+    backdrop-filter:blur(20px) saturate(200%);
+    -webkit-backdrop-filter:blur(20px) saturate(200%);
+    transition:all .5s cubic-bezier(.22,1,.36,1);
+    z-index:2;
+  }
+  .phone::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+    background:
+      linear-gradient(90deg,transparent,rgba(255,0,255,.03),transparent),
+      linear-gradient(180deg,rgba(255,255,255,.02) 0%,transparent 50%,rgba(0,255,255,.02) 100%);
+    z-index:1;
+    animation:scan 4s linear infinite;
+  }
+  @keyframes scan{from{opacity:0} 5%,60%{opacity:1} to{opacity:0}}
+  .header{
+    padding:26px 20px 22px;text-align:center;
+    background:linear-gradient(90deg,rgba(0,255,255,.08),rgba(255,0,255,.06));
+    position:relative;
+    border-bottom:2px solid var(--panel-border);
+    box-shadow:0 0 12px rgba(0,255,255,.1)
+  }
+  .header h1{
+    font-size:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+    background:linear-gradient(90deg,var(--c),var(--c2),var(--c3));
+    background-size:300% 300%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    animation:text-glow 3s ease-in-out infinite;
+    text-shadow:0 0 8px rgba(0,255,255,.5)
+  }
+  @keyframes text-glow{0%{background-position:0% 50%;text-shadow:0 0 4px rgba(0,255,255,.3)} 50%{background-position:100% 50%;text-shadow:0 0 12px rgba(0,255,255,.6),0 0 20px rgba(255,0,255,.4)} 100%{background-position:0% 50%;text-shadow:0 0 4px rgba(0,255,255,.3)}}
+  .header p{
+    font-size:12px;color:var(--c4);margin-top:4px;
+    text-shadow:0 0 6px rgba(0,255,255,.4)
+  }
+  .content{padding:18px 16px 22px;display:flex;flex-direction:column;gap:12px;background:rgba(0,0,0,.6);position:relative;z-index:2}
+  .card{
+    background:rgba(15,10,30,.78);
+    border:1px solid var(--panel-border);
+    border-left:3px solid var(--c);
+    border-radius:6px;
+    padding:16px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 0 12px rgba(0,0,0,.55),inset 0 0 12px rgba(255,255,255,.02);
+    transition:all .3s ease
+  }
+  .card:hover{
+    box-shadow:0 0 18px rgba(0,255,255,.25),0 0 24px rgba(255,0,255,.15);
+    border-left-color:var(--c4)
+  }
+  .card::before{
+    content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(0,255,255,.08),transparent);
+    transition:left .8s
+  }
+  .card:hover::before{left:100%}
+  .ring-wrap{position:relative;width:128px;height:128px;margin:0 auto}
+  .card-ring svg{width:100%;height:auto;transform:rotate(-90deg)}
+  .card-ring circle{fill:none;stroke-linecap:round}
+  .card-value{font-size:24px;font-weight:700;color:var(--c);margin:6px 0;font-variant-numeric:tabular-nums;text-shadow:0 0 6px rgba(0,255,255,.4)}
+  .card-sub{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:1px}
+  .card-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;color:var(--c);text-shadow:0 0 6px rgba(0,255,255,.35)}
+  .progress-bar{height:6px;background:rgba(0,0,0,.5);border-radius:3px;overflow:hidden;margin:10px 0;border:1px solid rgba(0,255,255,.1)}
+  .progress-fill{height:100%;border-radius:0;background:linear-gradient(90deg,var(--c),var(--c2));box-shadow:0 0 8px var(--c)}
+  .ip-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:6px}
+  .ip-item{
+    background:rgba(0,0,0,.5);border:1px solid rgba(0,255,255,.1);border-radius:4px;padding:6px;
+    font-size:8px;font-family:monospace;color:var(--c4);text-align:left;word-break:break-all
+  }
+  .ip-label{font-size:9px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:1px}
+  .buttons{display:flex;gap:12px;margin-top:10px}
+  .btn{
+    flex:1;padding:13px 10px;border:none;border-radius:6px;
+    font-size:12.5px;font-weight:700;letter-spacing:1px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;
+    transition:all .2s ease;
+    text-transform:uppercase;
+    box-shadow:0 0 8px rgba(0,0,0,.5)
+  }
+  .btn:active{transform:scale(.94)}
+  .btn-a{
+    background:linear-gradient(135deg,var(--c),var(--c2));color:#000;
+    box-shadow:0 0 14px rgba(0,255,255,.35)
+  }
+  .btn-b{
+    background:transparent;color:var(--c);
+    border:1px solid var(--c);
+    box-shadow:0 0 10px rgba(0,255,255,.2)
+  }
+  .btn-b:hover{
+    background:var(--c);color:#000;
+    box-shadow:0 0 14px rgba(0,255,255,.45)
+  }
+  .cfg-text{
+    font-size:9px;font-family:monospace;color:var(--c4);margin-top:6px;word-break:break-all;
+    background:rgba(0,0,0,.6);padding:8px;border-radius:4px;border:1px solid rgba(0,255,255,.08);
+    overflow-x:auto;text-align:left;direction:ltr
+  }
+  .toast{
+    position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+    background:rgba(20,10,30,.9);border:1px solid var(--panel-border);
+    color:var(--c);padding:10px 20px;border-radius:6px;font-size:13px;z-index:50;opacity:0;
+    transition:opacity .3s;box-shadow:0 0 12px rgba(0,255,255,.2)
+  }
+  .toast.show{opacity:1}
+  .spinner{width:14px;height:14px;border:2px solid rgba(0,255,255,.12);border-top-color:var(--c);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pulse-dot{box-shadow:0 0 0 0 rgba(0,255,255,.0);animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,255,255,.0)} 50%{box-shadow:0 0 0 8px rgba(0,255,255,0)} 100%{box-shadow:0 0 0 0 rgba(0,255,255,0)}}
+</style>
+<script src="fx.js"></script>
+<script>
+(function(){
+  var uname = (new URLSearchParams(location.search)).get('u') || location.hash.slice(1) || location.pathname.split('/').pop() || 'guest';
+  var apiUrl='/api/sub/'+encodeURIComponent(uname);var subUrl=window.location.origin+'/sub/'+uname;var state={data:null};
+  function fmtBytes(b){if(!b||b<1)return'0 B';var u=['B','KB','MB','GB','TB'],i=0;while(b>=1024&&i<u.length-1){b/=1024;i++}return b.toFixed(i?2:0)+' '+u[i]}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
+  function copyText(t){if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('COPIED!')},function(){toast('COPY FAIL')})}else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('COPIED!')}catch(e){toast('COPY FAIL')}document.body.removeChild(a)}}
+  function ring(d,m){
+    var r=44,c=2*Math.PI*r,pct=m>0?Math.min(1,d/m):1,off=c*(1-pct);var num=d==null||d===undefined?'∞':String(d);
+    return'<div class="ring-wrap"><svg viewBox="0 0 120 120"><circle class="stroke-white/10" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-width="7"></circle><circle class="stroke-[#00ffff] progress-ring__circle" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-dasharray="'+c.toFixed(3)+'" stroke-dashoffset="'+off.toFixed(3)+'" stroke-linecap="round" stroke-width="7" style="filter:drop-shadow(0 0 6px rgba(0,255,255,.5))"></circle></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="font-bold text-xl" style="color:var(--c)">'+num+'</span><span class="text-[9px]" style="color:var(--muted)">DAYS</span></div></div>'
+  }
+  function render(d){
+    state.data=d;var used=d.traffic_used_bytes||0;var limit=d.traffic_limit_bytes||0;
+    var pct=limit>0?Math.min(100,used/limit*100):0;var days=(d.expire_days===null||d.expire_days===undefined)?null:d.expire_days;
+    var active=d.is_active!==false&&d.status==='active';var cfg=d.config||d.vless_link||'';
+    var cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(cfg?[cfg]:[]);var r=d.proxy_ips||[];
+    var html='';
+    html+='<div class="card glow-pink" reveal><div class="specular"></div><div class="text-center">'+ring(days,30)+'<div class="mt-3 flex items-center justify-center gap-2"><span class="pulse-dot w-2 h-2 rounded-full"></span><span style="font-size:11px;color:var(--muted)">'+esc(active?'ONLINE':'OFFLINE')+'</span></div></div></div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Traffic</div><div class="flex justify-between"><span style="font-size:11px;color:var(--muted)">'+esc(fmtBytes(used))+'</span><span style="font-size:11px;color:var(--muted)">'+(limit>0?esc(fmtBytes(limit)):'∞')+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct.toFixed(1)+'%"></div></div><div class="card-sub" reveal>'+pct.toFixed(1)+'%</div></div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Protocol</div><div style="font-size:18px;font-weight:700">'+esc((d.protocol||'vless').toUpperCase())+'</div><div class="card-sub" reveal>'+esc(r.length>0?'Multi-node':'Standard')+'</div></div>';
+    var usedIps=d.used_ips!=null?esc(String(d.used_ips)):'∞';var maxIps=d.max_ip_per_user!=null?esc(String(d.max_ip_per_user)):'∞';
+    html+='<div class="card" reveal><div class="card-title" reveal>Connections</div><div style="font-size:18px;font-weight:700">'+usedIps+' / '+maxIps+'</div>'+(r.length?'<div class="ip-label">Active proxies</div><div class="ip-grid">'+r.slice(0,6).map(function(ip){return'<div class="ip-item">'+esc(ip)+'</div>'}).join('')+'</div>':'')+'</div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Config</div>'+(cfg?'<div class="cfg-text">'+esc(cfg)+'</div>':'')+'<div class="buttons"><button class="btn btn-a" onclick="copyCfg()">COPY</button><button class="btn btn-b" onclick="importSub()">LINK</button></div></div>';
+    document.getElementById('app').innerHTML=html; setTimeout(function(){if(window.FX)FX.revealAll()},50)document.title='SPiDER | '+(d.username||uname)
+  }
+  function renderError(m){var a=document.getElementById('app');a.innerHTML='<div class="card" reveal><div style="text-align:center"><span style="font-size:28px">⚠️</span><h2 style="margin:10px 0">'+esc(uname)+'</h2><p style="color:var(--muted)">'+esc(m)+'</p></div></div>'}
+  async function load(){try{var r=await fetch(apiUrl);if(!r.ok){if(r.status===404)throw new Error('NOT FOUND');throw new Error('SERVER ERR')}var d=await r.json();state.data=d;window.__cfg=d.config||d.vless_link||'';window.__cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(window.__cfg?[window.__cfg]:[]);render(d)}catch(e){renderError(e.message)}}
+  window.copyCfg=function(){var c=window.__cfg||(window.__cfgs&&window.__cfgs[0]);if(c)copyText(c)};
+  window.copySub=function(){copyText(subUrl)};
+  window.importSub=function(){window.open('v2rayng://install-sub?url='+encodeURIComponent(subUrl),'_blank')};
+  load();
+})();
+</script>
+<body><div class="glitch"></div><div class="phone glow-pink" reveal parallax><div class="header"><h1>SPiDER</h1><p>CYBERPUNK TERMINAL</p></div><div id="app"><div style="text-align:center;padding:60px"><span class="spinner"></span><p style="margin-top:20px;color:var(--muted)">BOOTING...</p></div></div></div><div id="toast" class="toast"></div></body>
+</html>

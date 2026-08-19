@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SPiDER — Anime</title>
+<style>
+  :root{
+    --c:#ff4081;
+    --c2:#2196f3;
+    --c3:#00e676;
+    --bg:rgba(10,5,20,.94);
+    --panel:rgba(25,15,35,.88);
+    --panel-border:rgba(255,255,255,.12);
+    --txt:#f5f5f5;
+    --muted:#b3b3b3;
+    --pink:rgba(255,64,129,.16);
+    --blue:rgba(33,150,243,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden}
+  body{
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);
+    min-height:100vh;
+    background:linear-gradient(180deg,#0a0514 0%,#190f24 45%,#0a0514 100%);
+  }
+  /* cherry blossom petals */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(circle at 15% 25%,rgba(255,64,129,.06) 0%,transparent 60%),
+      radial-gradient(circle at 85% 20%,rgba(33,150,243,.05) 0%,transparent 60%),
+      radial-gradient(circle at 50% 80%,rgba(0,230,118,.04) 0%,transparent 60%);
+  }
+  .petal{
+    position:fixed;z-index:0;pointer-events:none;
+    font-size:14px;opacity:.45;animation:fall linear infinite;
+    color:var(--c)
+  }
+  @keyframes fall{from{transform:translateY(-20px) rotate(0deg);}to{transform:translateY(calc(100vh + 20px)) rotate(360deg);}}
+  .phone{
+    width:100%;max-width:390px;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04),
+      0 0 30px rgba(255,64,129,.12),0 0 50px rgba(33,150,243,.08);
+    backdrop-filter:blur(30px) saturate(170%);
+    -webkit-backdrop-filter:blur(30px) saturate(170%);
+    transition:all .5s cubic-bezier(.22,1,.36,1);
+    position:relative;
+  }
+  .phone::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+    background:
+      linear-gradient(135deg,rgba(255,64,129,.06) 0%,transparent 50%),
+      linear-gradient(225deg,rgba(33,150,243,.05) 0%,transparent 50%);
+    opacity:.8;z-index:1;pointer-events:none;
+  }
+  .header{
+    padding:28px 20px 24px;text-align:center;
+    background:linear-gradient(145deg,rgba(255,64,129,.22),rgba(33,150,243,.16));
+    position:relative;z-index:2;
+    border-bottom:1px solid var(--panel-border);
+  }
+  .header h1{
+    font-size:22px;font-weight:700;letter-spacing:2px;
+    background:linear-gradient(90deg,var(--c),var(--c2),var(--c3));
+    background-size:300% 300%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    animation:gradient-shift 4s ease-in-out infinite;
+  }
+  @keyframes gradient-shift{0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}}
+  .header p{
+    font-size:12px;color:var(--muted);margin-top:3px;
+    text-shadow:0 0 8px rgba(255,255,255,.2)
+  }
+  /* anime sparkle */
+  .sparkle{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+    width:12px;height:12px;background:var(--c);border-radius:50%;
+    box-shadow:0 0 8px var(--c);
+    animation:sparkle 2s ease-in-out infinite;
+  }
+  @keyframes sparkle{0%,100%{opacity:0;transform:translate(-50%,-50%) scale(0);} 50%{opacity:.5;transform:translate(-50%,-50%) scale(1);box-shadow:0 0 16px var(--c),0 0 24px rgba(255,255,255,.3);}}
+  .sparkle:nth-child(1){animation-delay:0s;top:20%;left:15%}
+  .sparkle:nth-child(2){animation-delay:.3s;top:30%;left:80%}
+  .sparkle:nth-child(3){animation-delay:.6s;top:75%;left:25%}
+  .sparkle:nth-child(4){animation-delay:.9s;top:80%;left:70%}
+  .sparkle:nth-child(5){animation-delay:1.2s;top:50%;left:45%}
+  .content{
+    padding:20px 16px 24px;
+    display:flex;flex-direction:column;gap:14px;
+    background:linear-gradient(180deg,rgba(25,15,35,.9),rgba(25,15,35,.88));
+    position:relative;z-index:2;
+  }
+  .card{
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--panel-border);
+    border-radius:16px;
+    padding:18px 16px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+    transition:all .3s ease;
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 12px 28px rgba(0,0,0,.4),0 0 20px rgba(255,64,129,.12);
+    border-color:rgba(255,64,129,.3)
+  }
+  .card::before{
+    content:'';position:absolute;top:-60%;left:-60%;width:120%;height:120%;
+    background:linear-gradient(45deg,transparent,rgba(255,255,255,.04),transparent);
+    transition:2s
+  }
+  .card:hover::before{transform:translateX(100%)}
+  .ring-wrap{position:relative;width:132px;height:132px;margin:0 auto}
+  .card-ring svg{width:100%;height:auto;transform:rotate(-90deg)}
+  .card-ring circle{fill:none;stroke-linecap:round}
+  .card-value{
+    font-size:25px;font-weight:700;color:#fff;margin:6px 0;
+    text-shadow:0 0 8px rgba(255,64,129,.35);
+    font-variant-numeric:tabular-nums
+  }
+  .card-sub{
+    font-size:11px;color:var(--muted);margin-top:3px;
+    text-shadow:0 0 4px rgba(255,255,255,.1)
+  }
+  .card-title{
+    font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:600;
+    background:linear-gradient(90deg,var(--c),var(--c2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent
+  }
+  .progress-bar{height:7px;background:rgba(0,0,0,.4);border-radius:12px;overflow:hidden;margin:10px 0;border:1px solid rgba(0,0,0,.3)}
+  .progress-fill{height:100%;border-radius:12px;background:linear-gradient(90deg,var(--c),var(--c2));box-shadow:0 0 10px var(--c)}
+  .ip-chips{display:flex;flex-wrap:gap:4px;justify-content:center;margin-top:6px}
+  .ip-chip{
+    background:rgba(255,64,129,.1);border:1px solid rgba(255,64,129,.25);
+    border-radius:50px;padding:4px 10px;font-size:9px;color:var(--c);
+    box-shadow:0 0 6px rgba(255,64,129,.2)
+  }
+  .buttons{display:flex;gap:12px;margin-top:10px}
+  .btn{
+    flex:1;padding:14px 10px;border:none;border-radius:14px;
+    font-size:13.5px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .25s ease;
+    box-shadow:0 4px 14px rgba(0,0,0,.35)
+  }
+  .btn:active{transform:scale(.95)}
+  .btn-a{background:linear-gradient(135deg,var(--c),var(--c2));color:#fff}
+  .btn-b{background:rgba(255,255,255,.9);color:#333}
+  .btn span{font-size:15px}
+  .cfg-text{
+    font-size:10px;font-family:'SF Mono',monospace;color:var(--muted);
+    margin-top:6px;word-break:break-all;
+    background:rgba(0,0,0,.4);padding:8px;border-radius:10px;
+    border:1px solid rgba(0,0,0,.3)
+  }
+  .toast{
+    position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+    background:rgba(25,15,35,.9);border:1px solid var(--panel-border);
+    color:#fff;padding:10px 20px;border-radius:14px;font-size:13px;z-index:50;opacity:0;
+    transition:opacity .3s;backdrop-filter:blur(8px)
+  }
+  .toast.show{opacity:1}
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.12);border-top-color:var(--c);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pulse-dot{box-shadow:0 0 0 0 rgba(255,64,129,.0);animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,64,129,.0)} 50%{box-shadow:0 0 0 10px rgba(255,64,129,0)} 100%{box-shadow:0 0 0 0 rgba(255,64,129,.0)}}
+</style>
+<script src="fx.js"></script>
+<script>
+(function(){
+  var uname = (new URLSearchParams(location.search)).get('u') || location.hash.slice(1) || location.pathname.split('/').pop() || 'guest';
+  var apiUrl='/api/sub/'+encodeURIComponent(uname);var subUrl=window.location.origin+'/sub/'+uname;var state={data:null};
+  function fmtBytes(b){if(!b||b<1)return'0 B';var u=['B','KB','MB','GB','TB'],i=0;while(b>=1024&&i<u.length-1){b/=1024;i++}return b.toFixed(i?2:0)+' '+u[i]}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
+  function copyText(t){if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('Copied!')},function(){toast('Copy failed')})}else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Copied!')}catch(e){toast('Copy failed')}document.body.removeChild(a)}}
+  function ring(d,m){
+    var r=48,c=2*Math.PI*r,pct=m>0?Math.min(1,d/m):1,off=c*(1-pct);var num=d==null||d===undefined?'∞':String(d);
+    return'<div class="ring-wrap"><svg viewBox="0 0 120 120"><circle class="stroke-white/10" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-width="7"></circle><circle class="stroke-[#ff4081] progress-ring__circle" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-dasharray="'+c.toFixed(3)+'" stroke-dashoffset="'+off.toFixed(3)+'" stroke-linecap="round" stroke-width="7" style="filter:drop-shadow(0 0 6px rgba(255,64,129,.5))"></circle></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="font-bold text-xl" style="color:#fff">'+num+'</span><span class="text-[10px]" style="color:var(--muted)">DAYS</span></div></div>'
+  }
+  function render(d){
+    state.data=d;var used=d.traffic_used_bytes||0;var limit=d.traffic_limit_bytes||0;
+    var pct=limit>0?Math.min(100,used/limit*100):0;var days=(d.expire_days===null||d.expire_days===undefined)?null:d.expire_days;
+    var active=d.is_active!==false&&d.status==='active';var cfg=d.config||d.vless_link||'';
+    var cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(cfg?[cfg]:[]);var r=d.proxy_ips||[];
+    var html='';
+    html+='<div class="card glow-pink" reveal><div class="specular"></div><div class="text-center">'+ring(days,30)+'<div class="mt-3 flex items-center justify-center gap-2"><span class="w-2 h-2 rounded-full" style="background:var(--c3);box-shadow:0 0 6px var(--c3);animation:pulse 2s infinite"></span><span style="font-size:11px;color:var(--muted)">'+esc(active?'Live connection':'Paused')+'</span></div></div></div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Data volume</div><div class="flex justify-between"><span style="font-size:12px;color:var(--muted)">'+esc(fmtBytes(used))+'</span><span style="font-size:12px;color:var(--muted)">'+(limit>0?esc(fmtBytes(limit)):'∞')+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct.toFixed(1)+'%"></div></div><div class="card-sub" reveal>'+pct.toFixed(1)+'% consumed</div></div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Protocol</div><div style="font-size:19px;font-weight:700;background:linear-gradient(90deg,var(--c),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent">'+esc((d.protocol||'vless').toUpperCase())+'</div><div class="card-sub" reveal>'+esc(r.length>0?'Multi-route':'Standard')+'</div></div>';
+    var usedIps=d.used_ips!=null?esc(String(d.used_ips)):'∞';var maxIps=d.max_ip_per_user!=null?esc(String(d.max_ip_per_user)):'∞';
+    html+='<div class="card" reveal><div class="card-title" reveal>Devices</div><div style="font-size:25px;font-weight:700;background:linear-gradient(90deg,var(--c),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent">'+usedIps+' / '+maxIps+'</div>'+(r.length?'<div class="ip-chips">'+r.slice(0,6).map(function(ip){return'<span class="ip-chip">'+esc(ip)+'</span>'}).join('')+'</div>':'')+'</div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Config</div>'+(cfg?'<div class="cfg-text truncate" title="'+esc(cfg)+'">'+esc(cfg)+'</div>':'')+'<div class="buttons"><button class="btn btn-a" onclick="copyCfg()">COPY</button><button class="btn btn-b" onclick="importSub()">IMPORT</button></div></div>';
+    document.getElementById('app').innerHTML=html; setTimeout(function(){if(window.FX)FX.revealAll()},50)document.title='SPiDER | '+(d.username||uname)
+  }
+  function renderError(m){var a=document.getElementById('app');a.innerHTML='<div class="card" reveal><div style="text-align:center"><span style="font-size:32px">⚠️</span><h2 style="margin:12px 0">'+esc(uname)+'</h2><p style="color:var(--muted)">'+esc(m)+'</p></div></div>'}
+  async function load(){try{var r=await fetch(apiUrl);if(!r.ok){if(r.status===404)throw new Error('User not found');throw new Error('Server error')}var d=await r.json();state.data=d;window.__cfg=d.config||d.vless_link||'';window.__cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(window.__cfg?[window.__cfg]:[]);render(d)}catch(e){renderError(e.message)}}
+  window.copyCfg=function(){var c=window.__cfg||(window.__cfgs&&window.__cfgs[0]);if(c)copyText(c)};
+  window.copySub=function(){copyText(subUrl)};
+  window.importSub=function(){window.open('v2rayng://install-sub?url='+encodeURIComponent(subUrl),'_blank')};
+  load();
+})();
+</script>
+<body>
+<div class="petal" style="left:10%;animation-duration:8s">🌸</div>
+<div class="petal" style="left:25%;animation-duration:11s">🌸</div>
+<div class="petal" style="left:40%;animation-duration:9s">🌸</div>
+<div class="petal" style="left:55%;animation-duration:10s">🌸</div>
+<div class="petal" style="left:70%;animation-duration:7s">🌸</div>
+<div class="petal" style="left:85%;animation-duration:12s">🌸</div>
+<div class="petal" style="left:15%;animation-duration:13s;top:10%">🌸</div>
+<div class="petal" style="left:60%;animation-duration:9s;top:15%">🌸</div>
+<div class="phone glow-pink" reveal parallax><div class="header"><h1>SPiDER</h1><p>SUBSCRIPTION PORTAL</p></div><div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div><div class="sparkle"></div><div id="app"><div style="text-align:center;padding:60px"><span class="spinner"></span><p style="margin-top:20px;color:var(--muted)">Loading spirals...</p></div></div></div><div id="toast" class="toast"></div></body>
+</html>

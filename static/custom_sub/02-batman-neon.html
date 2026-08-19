@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SPiDER — Gotham</title>
+<meta name="theme-color" content="#00e1c1"/>
+<script src="fx.js"></script>
+<style>
+  :root{
+    --c:#00e1c1;--c2:#5ac8fa;--c3:#00e676;--c4:#ff9800;
+    --bg:#000000;--panel:rgba(5,3,9,.8);--txt:#f0f0f0;--muted:#8a8a8a;
+    --border:rgba(0,225,193,.12);--red:#ff1744;--blue:#2196f3
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden}
+  body{
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);
+    min-height:100vh;
+    background:linear-gradient(180deg,#000000,#0a0a10 70%);
+  }
+  /* scanline + noise */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg,rgba(0,255,136,.03) 0 1px,transparent 1px 3px),
+      repeating-linear-gradient(90deg,rgba(33,150,243,.015) 0 1px,transparent 1px 4px);
+    animation:scanmove 5s linear infinite
+  }
+  @keyframes scanmove{from{background-position:0 0}to{background-position:0 100%}}
+  .glitch{
+    position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.12;
+    background:
+      radial-gradient(circle at 20% 30%,rgba(0,255,255,.08) 0%,transparent 60%),
+      radial-gradient(circle at 80% 70%,rgba(255,64,129,.06) 0%,transparent 60%),
+      radial-gradient(circle at 50% 50%,rgba(255,152,0,.04) 0%,transparent 60%);
+    animation:glitch-anim 3.2s ease-in-out infinite
+  }
+  @keyframes glitch-anim{0%,100%{opacity:.12} 25%,75%{opacity:.18} 50%,50%{opacity:.15}}
+  .phone{
+    position:relative;
+    width:100%;max-width:390px;
+    background:var(--panel);
+    border:2px solid var(--blue);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:
+      0 0 30px rgba(33,150,243,.15),
+      0 0 50px rgba(0,225,193,.1),
+      inset 0 0 24px rgba(0,225,193,.04);
+    z-index:2;
+    transform:translateZ(0);
+  }
+  .phone::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+    background:
+      linear-gradient(135deg,rgba(33,150,243,.08) 0%,transparent 50%),
+      linear-gradient(225deg,rgba(0,225,193,.06) 0%,transparent 50%);
+    z-index:1;pointer-events:none
+  }
+  .spider-logo{
+    position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    font-size:18px;z-index:2;opacity:.22;font-weight:700;
+    color:rgba(33,150,243,.2);letter-spacing:2px
+  }
+  .header{
+    padding:28px 20px 24px;text-align:center;
+    background:linear-gradient(145deg,rgba(33,150,243,.18),rgba(0,225,193,.08));
+    position:relative;z-index:2;
+    border-bottom:2px solid var(--blue)
+  }
+  .header h1{
+    font-size:22px;font-weight:800;letter-spacing:4px;text-transform:uppercase;
+    background:linear-gradient(90deg,var(--blue),var(--c),var(--red),var(--blue));
+    background-size:300% 300%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    animation:gradient-shift 4s ease-in-out infinite
+  }
+  @keyframes gradient-shift{0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}}
+  .header p{font-size:12px;color:var(--c4);margin-top:3px;text-shadow:0 0 8px rgba(255,152,0,.4)}
+  .content{
+    padding:20px 16px 24px;
+    display:flex;flex-direction:column;gap:14px;
+    background:linear-gradient(180deg,rgba(5,3,9,.88),rgba(5,3,9,.84));
+    position:relative;z-index:2;
+  }
+  .card{
+    background:rgba(18,10,26,.76);
+    border:1px solid var(--border);
+    border-left:4px solid var(--c);
+    border-right:4px solid var(--c);
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 6px 16px rgba(0,0,0,.4);
+    transition:all .32s ease
+  }
+  .card.reveal,.card.parallax{transform:translateZ(0)}
+  .card:hover{
+    box-shadow:0 8px 24px rgba(0,0,0,.55),0 0 20px rgba(33,150,243,.15),0 0 18px rgba(0,225,193,.1);
+    border-left-width:6px;border-right-width:6px;border-left-color:var(--c2);border-right-color:var(--c2)
+  }
+  .card::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+    background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 60%);
+    opacity:0;transition:opacity .4s
+  }
+  .card:hover::before{opacity:.8}
+  .ring-wrap{position:relative;width:130px;height:130px;margin:0 auto}
+  .card-ring svg{width:100%;height:auto;transform:rotate(-90deg)}
+  .card-ring circle{fill:none;stroke-linecap:round}
+  .pulse-dot{box-shadow:0 0 0 0 rgba(0,255,136,.0);animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,255,136,.0)} 50%{box-shadow:0 0 0 8px rgba(0,255,136,0)} 100%{box-shadow:0 0 0 0 rgba(0,255,136,.0)}}
+  .card-value{
+    font-size:25px;font-weight:700;color:#fff;margin:6px 0;
+    text-shadow:0 0 10px rgba(33,150,243,.35),0 0 16px rgba(255,64,129,.2)
+  }
+  .card-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.5px}
+  .card-title{
+    font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:600;
+    background:linear-gradient(90deg,var(--c),var(--c2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent
+  }
+  .progress-bar{height:6px;background:rgba(0,0,0,.5);border-radius:10px;overflow:hidden;margin:10px 0;border:1px solid rgba(0,0,0,.4)}
+  .progress-fill{height:100%;border-radius:0;background:linear-gradient(90deg,var(--c),var(--c2));box-shadow:0 0 10px var(--c)}
+  .ip-tag{
+    display:inline-block;background:rgba(0,225,193,.1);border:1px solid rgba(0,225,193,.25);
+    border-radius:50px;padding:4px 10px;font-size:9px;color:var(--c);
+    margin:2px;box-shadow:0 0 5px rgba(0,225,193,.15)
+  }
+  .buttons{display:flex;gap:12px;margin-top:10px}
+  .btn{
+    flex:1;padding:14px 10px;border:none;border-radius:14px;
+    font-size:13.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .25s ease
+  }
+  .btn:active{transform:scale(.94)}
+  .btn-a{
+    background:linear-gradient(135deg,var(--blue),var(--c));color:#fff;
+    box-shadow:0 0 16px rgba(33,150,243,.32)
+  }
+  .btn-b{
+    background:transparent;color:var(--c);
+    border:1px solid var(--c);
+    box-shadow:0 0 8px rgba(0,225,193,.18)
+  }
+  .btn-b:hover{
+    background:var(--c);color:#0a0a10;
+    box-shadow:0 0 16px rgba(0,225,193,.38)
+  }
+  .btn span{font-size:15px}
+  .cfg-text{
+    font-size:9px;font-family:'SF Mono',monospace;color:var(--c3);
+    margin-top:6px;word-break:break-all;
+    background:rgba(0,0,0,.55);padding:8px;border-radius:8px;
+    border:1px solid rgba(0,0,0,.4);overflow-x:auto;text-align:left;direction:ltr
+  }
+  .toast{
+    position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+    background:rgba(18,10,26,.9);border:1px solid var(--border);
+    color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;z-index:50;opacity:0;
+    transition:opacity .3s;box-shadow:0 0 12px rgba(33,150,243,.2)
+  }
+  .toast.show{opacity:1}
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.12);border-top-color:var(--c);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .en-only,.fa-only{display:inline}
+  html[lang="fa"] .en-only{display:none}html[lang="fa"] .fa-only{display:inline}
+</style>
+<script>
+(function(){
+  var uname = (new URLSearchParams(location.search)).get('u') || location.hash.slice(1) || location.pathname.split('/').pop() || 'guest';
+  var apiUrl='/api/sub/'+encodeURIComponent(uname);var subUrl=window.location.origin+'/sub/'+uname;var state={data:null};
+  function fmtBytes(b){if(!b||b<1)return'0 B';var u=['B','KB','MB','GB','TB'],i=0;while(b>=1024&&i<u.length-1){b/=1024;i++}return b.toFixed(i?2:0)+' '+u[i]}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
+  function copyText(t){if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('COPIED!')},function(){toast('COPY FAIL')})}else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('COPIED!')}catch(e){toast('COPY FAIL')}document.body.removeChild(a)}}
+  function ring(d,m){
+    var r=44,c=2*Math.PI*r,pct=m>0?Math.min(1,d/m):1,off=c*(1-pct);var num=d==null||d===undefined?'∞':String(d);
+    return'<div class="ring-wrap"><svg viewBox="0 0 120 120"><circle class="stroke-white/10" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-width="6"></circle><circle class="stroke-[#00ffff] progress-ring__circle" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-dasharray="'+c.toFixed(3)+'" stroke-dashoffset="'+off.toFixed(3)+'" stroke-linecap="round" stroke-width="6" style="filter:drop-shadow(0 0 6px rgba(0,255,255,.6))"></circle></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="font-bold text-xl" style="color:#fff">'+num+'</span><span class="text-[9px]" style="color:var(--muted)">DAYS</span></div></div>'
+  }
+  function render(d){
+    state.data=d;var used=d.traffic_used_bytes||0;var limit=d.traffic_limit_bytes||0;
+    var pct=limit>0?Math.min(100,used/limit*100):0;var days=(d.expire_days===null||d.expire_days===undefined)?null:d.expire_days;
+    var active=d.is_active!==false&&d.status==='active';var cfg=d.config||d.vless_link||'';
+    var cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(cfg?[cfg]:[]);var r=d.proxy_ips||[];
+    var html='';
+    html+='<div class="card reveal glow-cyan glow-blue"><div class="specular"></div><div class="text-center">'+ring(days,30)+'<div class="mt-3 flex items-center justify-center gap-2"><span class="w-2 h-2 rounded-full bg-[#00e676] pulse-dot"></span><span style="font-size:11px;color:var(--muted)">'+esc(active?'ONLINE':'OFFLINE')+'</span></div></div></div>';
+    html+='<div class="card reveal glow-blue"><div class="card-title">Traffic</div><div class="flex justify-between"><span style="font-size:11px;color:var(--muted)">'+esc(fmtBytes(used))+'</span><span style="font-size:11px;color:var(--muted)">'+(limit>0?esc(fmtBytes(limit)):'∞')+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct.toFixed(1)+'%"></div></div><div class="card-sub">'+pct.toFixed(1)+'%</div></div>';
+    html+='<div class="card reveal glow-pink"><div class="card-title">Protocol</div><div style="font-size:18px;font-weight:700;background:linear-gradient(90deg,var(--c),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent">'+esc((d.protocol||'vless').toUpperCase())+'</div><div class="card-sub">'+esc(r.length>0?'Multi-node':'Standard')+'</div></div>';
+    var usedIps=d.used_ips!=null?esc(String(d.used_ips)):'∞';var maxIps=d.max_ip_per_user!=null?esc(String(d.max_ip_per_user)):'∞';
+    html+='<div class="card reveal glow-green"><div class="card-title">Nodes</div><div style="font-size:18px;font-weight:700">'+usedIps+' / '+maxIps+'</div>'+(r.length?'<div class="flex flex-wrap justify-center mt-2 gap:2px">'+r.slice(0,6).map(function(ip){return'<span class="ip-tag">'+esc(ip)+'</span>'}).join('')+'</div>':'')+'</div>';
+    html+='<div class="card reveal"><div class="card-title">Config</div>'+(cfg?'<div class="cfg-text" dir="ltr" title="'+esc(cfg)+')">'+esc(cfg)+'</div>':'')+'<div class="buttons"><button class="btn btn-a" onclick="copyCfg()">COPY</button><button class="btn btn-b" onclick="importSub()">SWING</button></div></div>';
+    document.getElementById('app').innerHTML=html;document.title='SPiDER | '+(d.username||uname);
+    setTimeout(function(){if(window.FX)FX.revealAll()},50)
+  }
+  function renderError(m){var a=document.getElementById('app');a.innerHTML='<div class="card reveal"><div style="text-align:center"><span style="font-size:28px">⚠️</span><h2 style="margin:10px 0">'+esc(uname)+'</h2><p style="color:var(--muted)">'+esc(m)+'</p></div></div>';setTimeout(function(){if(window.FX)FX.revealAll()},50)}
+  async function load(){try{var r=await fetch(apiUrl);if(!r.ok){if(r.status===404)throw new Error('NOT FOUND');throw new Error('SERVER ERR')}var d=await r.json();state.data=d;window.__cfg=d.config||d.vless_link||'';window.__cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(window.__cfg?[window.__cfg]:[]);render(d)}catch(e){renderError(e.message)}}
+  window.copyCfg=function(){var c=window.__cfg||(window.__cfgs&&window.__cfgs[0]);if(c)copyText(c)};
+  window.copySub=function(){copyText(subUrl)};
+  window.importSub=function(){window.open('v2rayng://install-sub?url='+encodeURIComponent(subUrl),'_blank')};
+  load();
+})();
+</script>
+<body><div class="glitch"></div><div class="phone glow-blue">
+<span class="spider-logo">🕷</span>
+<div class="header"><h1>SPIDER</h1><p>Gotham Network</p></div>
+<main class="flex-1 flex flex-col gap-4" style="padding:0 18px 22px">
+<div id="app" style="display:flex;flex-direction:column;gap:14px">
+  <div style="text-align:center;padding:50px 20px"><span class="spinner"></span><p style="margin-top:18px;color:var(--muted)">Initialising dark mode...</p></div>
+</div></main></main>
+</div>
+<div id="toast" class="toast"></div>
+</body>
+</html>

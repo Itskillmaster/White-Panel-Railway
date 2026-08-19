@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SPiDER — Dark Glass</title>
+<style>
+  :root{
+    --c:#00e1c1;
+    --c2:#5ac8fa;
+    --c3:#00e676;
+    --bg:#020202;
+    --panel:rgba(8,12,16,.62);
+    --panel-border:rgba(255,255,255,.05);
+    --txt:#e2e2e2;
+    --muted:#7a7a7a;
+    --surface-container-high:rgba(3,3,5,.64);
+    --surface-dim:#000000;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden}
+  body{
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 600px at 25% 20%,rgba(0,225,193,.07) 0%,transparent 70%),
+      radial-gradient(ellipse 700px 500px at 75% 15%,rgba(64,120,255,.05) 0%,transparent 60%),
+      radial-gradient(ellipse 600px 400px at 60% 75%,rgba(139,92,246,.04) 0%,transparent 60%),
+      var(--bg);
+  }
+  .bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(0,225,193,.024) 1px,transparent 1px),linear-gradient(90deg,rgba(0,225,193,.024) 1px,transparent 1px);background-size:40px 40px;opacity:.6}
+  .phone{
+    width:100%;max-width:390px;
+    background:var(--panel);
+    border-radius:30px;
+    overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.06);
+    backdrop-filter:blur(50px) saturate(180%);
+    -webkit-backdrop-filter:blur(50px) saturate(180%);
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .phone::before{
+    content:'';position:absolute;top:16px;left:50%;transform:translateX(-50%);
+    width:70px;height:4px;border-radius:3px;
+    background:linear-gradient(90deg,var(--c2),var(--c3));box-shadow:0 0 6px var(--c2);z-index:2
+  }
+  .header{
+    padding:28px 20px 22px;text-align:center;
+    background:rgba(4,6,10,.4);
+    border-bottom:1px solid var(--panel-border);
+    position:relative;
+  }
+  .header h1{
+    font-size:22px;font-weight:700;
+    background:linear-gradient(120deg,var(--c),var(--c2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    letter-spacing:2px
+  }
+  .header p{font-size:12px;color:var(--muted);margin-top:3px}
+  .content{padding:22px 16px 26px;display:flex;flex-direction:column;gap:14px;background:var(--surface-container-high)}
+  .card{
+    background:rgba(10,14,20,.58);
+    border:1px solid var(--panel-border);
+    border-radius:22px;
+    padding:18px 16px;
+    text-align:center;
+    backdrop-filter:blur(24px) saturate(170%);
+    -webkit-backdrop-filter:blur(24px) saturate(170%);
+    box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04);
+    transition:all .35s cubic-bezier(.22,1,.36,1);
+    position:relative;overflow:hidden;
+  }
+  .card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 16px 40px rgba(0,0,0,.65),0 0 20px rgba(0,225,193,.08);
+    border-color:rgba(0,225,193,.12)
+  }
+  .card::before{
+    content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+    background:radial-gradient(circle,rgba(255,255,255,.06) 0%,transparent 60%);
+    opacity:0;transition:opacity .5s
+  }
+  .card:hover::before{opacity:.7}
+  .ring-wrap{position:relative;width:140px;height:140px;margin:0 auto}
+  .card-ring svg{width:100%;height:auto;transform:rotate(-90deg)}
+  .card-ring circle{fill:none;stroke-linecap:round}
+  .progress-container{width:100%;height:6px;background:rgba(0,0,0,.4);border-radius:12px;overflow:hidden;margin:10px 0;border:1px solid rgba(0,0,0,.3)}
+  .progress-fill{height:100%;border-radius:12px;background:linear-gradient(90deg,var(--c),var(--c2));box-shadow:0 0 10px var(--c);transition:width .5s ease}
+  .card-value{
+    font-size:26px;font-weight:700;color:#fff;margin:6px 0;
+    text-shadow:0 0 12px rgba(0,225,193,.2);
+    font-variant-numeric:tabular-nums
+  }
+  .card-sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .card-title{font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:600;color:var(--c2);opacity:.85}
+  .cfg-glass{
+    background:linear-gradient(165deg,rgba(0,0,0,.3),rgba(0,0,0,.2));
+    border:1px solid var(--panel-border);border-radius:12px;
+    padding:8px 12px;margin:6px 0;font-size:9.5px;font-family:'SF Mono',monospace;
+    color:var(--c3);word-break:break-all;overflow-x:auto;direction:ltr;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.4)
+  }
+  .btn{
+    flex:1;padding:14px 10px;border:none;border-radius:16px;
+    font-size:13px;font-weight:600;color:#03070d;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .25s ease;
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px)
+  }
+  .btn:active{transform:scale(.96)}
+  .btn-a{
+    background:linear-gradient(135deg,var(--c),var(--c2));
+    box-shadow:0 0 16px rgba(0,225,193,.35)
+  }
+  .btn-b{
+    background:rgba(255,255,255,.85);
+    box-shadow:0 6px 16px rgba(0,0,0,.25)
+  }
+  .toast{
+    position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+    background:rgba(10,14,20,.8);border:1px solid var(--panel-border);
+    color:#fff;padding:10px 20px;border-radius:16px;font-size:13px;z-index:50;opacity:0;
+    transition:opacity .3s;backdrop-filter:blur(12px)
+  }
+  .toast.show{opacity:1}
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.12);border-top-color:var(--c);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pulse-dot{box-shadow:0 0 0 0 rgba(0,225,193,.0);animation:pulse 2.2s ease-in-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,225,193,.0)} 50%{box-shadow:0 0 0 8px rgba(0,225,193,0)} 100%{box-shadow:0 0 0 0 rgba(0,225,193,.0)}}
+</style>
+<script src="fx.js"></script>
+<script>
+(function(){
+  var uname = (new URLSearchParams(location.search)).get('u') || location.hash.slice(1) || location.pathname.split('/').pop() || 'guest';
+  var apiUrl='/api/sub/'+encodeURIComponent(uname);var subUrl=window.location.origin+'/sub/'+uname;var state={data:null};
+  function fmtBytes(b){if(!b||b<1)return'0 B';var u=['B','KB','MB','GB','TB'],i=0;while(b>=1024&&i<u.length-1){b/=1024;i++}return b.toFixed(i?2:0)+' '+u[i]}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function toast(m){var t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
+  function copyText(t){if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('Copied!')},function(){toast('Copy failed')})}else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Copied!')}catch(e){toast('Copy failed')}document.body.removeChild(a)}}
+  function ring(d,m){
+    var r=54,c=2*Math.PI*r,pct=m>0?Math.min(1,d/m):1,off=c*(1-pct);var num=d==null||d===undefined?'∞':String(d);
+    return'<div class="ring-wrap"><svg viewBox="0 0 120 120"><circle class="stroke-white/10" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-width="8"></circle><circle class="stroke-[#00e1c1] progress-ring__circle" cx="60" cy="60" fill="transparent" r="'+r+'" stroke-dasharray="'+c.toFixed(3)+'" stroke-dashoffset="'+off.toFixed(3)+'" stroke-linecap="round" stroke-width="8" style="filter:drop-shadow(0 0 6px rgba(0,225,193,.5))"></circle></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="font-bold text-2xl" style="color:#fff">'+num+'</span><span class="text-[10px]" style="color:var(--muted)">DAYS</span></div></div>'
+  }
+  function render(d){
+    state.data=d;var used=d.traffic_used_bytes||0;var limit=d.traffic_limit_bytes||0;
+    var pct=limit>0?Math.min(100,used/limit*100):0;var days=(d.expire_days===null||d.expire_days===undefined)?null:d.expire_days;
+    var active=d.is_active!==false&&d.status==='active';var cfg=d.config||d.vless_link||'';
+    var cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(cfg?[cfg]:[]);var r=d.proxy_ips||[];
+    var html='';
+    html+='<div class="card glow-cyan" reveal><div class="specular"></div><div class="text-center">'+ring(days,30)+'<div class="mt-3 flex items-center justify-center gap-2"><span class="pulse-dot w-2 h-2 rounded-full"></span><span style="font-size:11px;color:var(--muted)">'+esc(active?'Active':'Inactive')+'</span></div></div></div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Traffic used</div><div class="flex justify-between"><span style="font-size:12px;color:var(--muted)">'+esc(fmtBytes(used))+'</span><span style="font-size:12px;color:var(--muted)">'+(limit>0?esc(fmtBytes(limit)):'∞')+'</span></div><div class="progress-container"><div class="progress-fill" style="width:'+pct.toFixed(1)+'%"></div></div><div class="card-sub" reveal>'+pct.toFixed(1)+'% of limit</div></div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Protocol</div><div style="font-size:19px;font-weight:700;background:linear-gradient(90deg,var(--c),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent">'+esc((d.protocol||'vless').toUpperCase())+'</div><div class="card-sub" reveal>'+esc(r.length>0?'Multi-hop':'Standard')+'</div></div>';
+    var usedIps=d.used_ips!=null?esc(String(d.used_ips)):'∞';var maxIps=d.max_ip_per_user!=null?esc(String(d.max_ip_per_user)):'∞';
+    html+='<div class="card" reveal><div class="card-title" reveal>IP devices</div><div style="font-size:25px;font-weight:700;background:linear-gradient(90deg,var(--c),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent">'+usedIps+' / '+maxIps+'</div>'+(r.length?'<div class="flex flex-wrap justify-center mt-2 gap:2px">'+r.slice(0,6).map(function(ip){return'<span class="cfg-glass" dir="ltr">'+esc(ip)+'</span>'}).join('')+'</div>':'')+'</div>';
+    html+='<div class="card" reveal><div class="card-title" reveal>Configuration</div>'+(cfg?'<div class="cfg-glass" dir="ltr" title="'+esc(cfg)+'">'+esc(cfg)+'</div>':'')+'<div class="buttons"><button class="btn btn-a" onclick="copyCfg()">Copy config</button><button class="btn btn-b" onclick="importSub()">Import</button></div></div>';
+    document.getElementById('app').innerHTML=html; setTimeout(function(){if(window.FX)FX.revealAll()},50)document.title='SPiDER | '+(d.username||uname)
+  }
+  function renderError(m){var a=document.getElementById('app');a.innerHTML='<div class="card" reveal><div style="text-align:center"><span style="font-size:32px">⚠️</span><h2 style="margin:12px 0">'+esc(uname)+'</h2><p style="color:var(--muted)">'+esc(m)+'</p></div></div>'}
+  async function load(){try{var r=await fetch(apiUrl);if(!r.ok){if(r.status===404)throw new Error('User not found');throw new Error('Server error')}var d=await r.json();state.data=d;window.__cfg=d.config||d.vless_link||'';window.__cfgs=Array.isArray(d.configs)?d.configs.filter(function(c){return c&&c.indexOf('%F0%9F%93%8A')===-1;}):(window.__cfg?[window.__cfg]:[]);render(d)}catch(e){renderError(e.message)}}
+  window.copyCfg=function(){var c=window.__cfg||(window.__cfgs&&window.__cfgs[0]);if(c)copyText(c)};
+  window.copySub=function(){copyText(subUrl)};
+  window.importSub=function(){window.open('v2rayng://install-sub?url='+encodeURIComponent(subUrl),'_blank')};
+  load();
+})();
+</script>
+<body><div class="bg-grid"></div><div class="phone glow-cyan" reveal parallax><div class="header"><h1>SPiDER</h1><p>Dark Glass UI</p></div><div id="app"><div style="text-align:center;padding:60px"><span class="spinner"></span><p style="margin-top:20px;color:var(--muted)">Loading...</p></div></div></div><div id="toast" class="toast"></div></body>
+</html>
