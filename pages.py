@@ -8,7 +8,7 @@ LOGIN_HTML = r"""<!DOCTYPE html>
 <title>ورود · White Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 :root{
@@ -23,7 +23,7 @@ LOGIN_HTML = r"""<!DOCTYPE html>
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
-body{font-family:'Vazirmatn',sans-serif;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;transition:background .5s ease}
+body{font-family:'Estedad',sans-serif;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;transition:background .5s ease}
 
 /* === Animated Mesh Gradient Background === */
 .bg-layer{position:fixed;inset:0;z-index:0;overflow:hidden;background:linear-gradient(135deg,#eef2ff 0%,#f5f3ff 50%,#fef2f2 100%)}
@@ -151,7 +151,7 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);display:flex;align-
   width:100%;padding:14px 48px 14px 48px;border-radius:var(--radius);
   border:1.5px solid var(--border);
   background:rgba(255,255,255,.5);backdrop-filter:blur(10px);
-  color:var(--text-primary);font-family:'Vazirmatn',sans-serif;font-size:14px;
+  color:var(--text-primary);font-family:'Estedad',sans-serif;font-size:14px;
   outline:none;transition:all .3s ease;
 }
 [data-theme="dark"] .input-wrap input{background:rgba(15,23,42,.55)}
@@ -173,7 +173,7 @@ input:focus ~ .input-icon{color:var(--wp-blue)}
 /* === Submit Button === */
 .login-btn{
   width:100%;height:60px;border:none;border-radius:var(--radius);cursor:pointer;
-  position:relative;z-index:2;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;
+  position:relative;z-index:2;font-family:'Estedad',sans-serif;font-size:15px;font-weight:700;
   color:#fff;overflow:hidden;transition:all .35s ease;
   display:flex;align-items:center;justify-content:center;gap:8px;
   background:linear-gradient(135deg,var(--wp-blue),var(--wp-purple),var(--wp-red));
@@ -314,7 +314,7 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
 <title>White Panel · داشبورد</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 /* ============ CSS VARIABLES ============ */
@@ -344,7 +344,7 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
 /* ============ RESET ============ */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
-body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;font-size:14px;transition:background var(--transition),color var(--transition);overflow-x:hidden}
+body{font-family:'Estedad',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;font-size:14px;transition:background var(--transition),color var(--transition);overflow-x:hidden}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(99,102,241,.2);border-radius:10px}
@@ -410,7 +410,7 @@ a{color:inherit;text-decoration:none}
 .bell-btn::after{content:'';position:absolute;top:8px;left:8px;width:7px;height:7px;border-radius:50%;background:var(--wp-red);border:2px solid var(--surface)}
 
 /* ============ BUTTONS ============ */
-.btn{font-family:'Vazirmatn',sans-serif;font-size:12px;font-weight:600;border-radius:var(--radius);padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap}
+.btn{font-family:'Estedad',sans-serif;font-size:12px;font-weight:600;border-radius:var(--radius);padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap}
 .btn i{font-size:13px}
 .btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(99,102,241,.3);position:relative;overflow:hidden}
 .btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:left .5s}
@@ -1754,7 +1754,7 @@ def get_public_page_html(uuid_key: str) -> str:
 <title>White Panel · اشتراک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 :root{{
@@ -1775,7 +1775,7 @@ def get_public_page_html(uuid_key: str) -> str:
   --shadow-lg:0 16px 48px rgba(0,0,0,.4);
 }}
 *{{margin:0;padding:0;box-sizing:border-box}}
-html,body{{min-height:100%;background:var(--bg);font-family:'Vazirmatn',sans-serif;color:var(--text-primary);font-size:14px;transition:background .4s,color .4s}}
+html,body{{min-height:100%;background:var(--bg);font-family:'Estedad',sans-serif;color:var(--text-primary);font-size:14px;transition:background .4s,color .4s}}
 .bg-glow{{position:fixed;inset:0;z-index:0;pointer-events:none}}
 .bg-orb{{position:absolute;border-radius:50%;filter:blur(120px);opacity:.15;animation:float 14s ease-in-out infinite}}
 .bg-orb:nth-child(1){{width:450px;height:450px;background:var(--wp-blue);top:-150px;left:-100px}}
@@ -1811,7 +1811,7 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Vazirmatn',sans-ser
 .cfg-code{{background:rgba(15,23,42,.05);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-family:'Inter',monospace;font-size:10px;color:var(--wp-blue);word-break:break-all;line-height:1.7;margin-bottom:10px;max-height:80px;overflow-y:auto}}
 [data-theme="dark"] .cfg-code{{background:rgba(0,0,0,.2);color:#60A5FA}}
 .cfg-actions{{display:flex;gap:7px;flex-wrap:wrap}}
-.btn{{font-family:'Vazirmatn',sans-serif;font-size:11.5px;font-weight:700;border-radius:var(--radius);padding:8px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .2s;white-space:nowrap}}
+.btn{{font-family:'Estedad',sans-serif;font-size:11.5px;font-weight:700;border-radius:var(--radius);padding:8px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .2s;white-space:nowrap}}
 .btn i{{font-size:13px}}
 .btn-p{{background:linear-gradient(90deg,var(--wp-blue),var(--wp-purple));color:#fff;box-shadow:0 4px 14px rgba(43,127,255,.25)}}
 .btn-p:hover{{transform:translateY(-1px);box-shadow:0 6px 20px rgba(43,127,255,.35)}}

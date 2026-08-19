@@ -8,6 +8,7 @@
 <title>White Panel</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <style>
@@ -115,14 +116,14 @@
 body{
   /* iOS system font stack — SF Pro on Apple devices, graceful fallbacks
      elsewhere; RTL Persian text uses the system Arabic UI font on iOS. */
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',system-ui,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  font-family:'Estedad',-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',system-ui,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   background:var(--bg);color:var(--txt);overflow-x:hidden;
   min-height:100vh;line-height:1.6;
   transition:background .4s ease,color .4s ease;
 }
 /* Persian: iOS uses the built-in system Arabic font for RTL text */
 html[lang="fa"] body{
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI','Tahoma',system-ui,sans-serif;
+  font-family:'Estedad',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI','Tahoma',system-ui,sans-serif;
 }
 /* Dark mode: ultra-white text */
 [data-theme="dark"] body{
@@ -548,7 +549,7 @@ input,select,button,textarea{font-family:inherit}
 .content{min-width:0;padding:20px 24px;flex:1;overflow-x:hidden;overflow-y:auto;position:relative;z-index:1}
 
 /* LTR (English) adjustments — iOS system font */
-html[lang="en"] body, html[lang="en"] .sidebar, html[lang="en"] .panel, html[lang="en"] .btn { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif; }
+html[lang="en"] body, html[lang="en"] .sidebar, html[lang="en"] .panel, html[lang="en"] .btn { font-family: 'Estedad', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif; }
 
 /* Cards - solid */
 .panel{
