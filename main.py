@@ -3532,8 +3532,21 @@ async def set_global_settings(request: Request, _=Depends(require_auth)):
         if "domain" in body:
             domain_val = str(body["domain"]).strip()
             if domain_val:
+                old_domain = SETTINGS.get("domain", "")
                 SETTINGS["domain"] = domain_val
-                # update domain history in reality too
+                
+                # اعمال اتوماتیک دامنه جدید روی تمام اینباندهای موجود
+                async with INBOUNDS_LOCK:
+                    for ib in INBOUNDS.values():
+                        # اگر دامنه قبلی را داشت یا خالی بود، با دامنه جدید آپدیت شود
+                        if ib.get("external_domain") == old_domain or not ib.get("external_domain"):
+                            ib["external_domain"] = domain_val
+                        if ib.get("domain") == old_domain or not ib.get("domain"):
+                            ib["domain"] = domain_val
+                        if ib.get("sni") == old_domain or not ib.get("sni"):
+                            ib["sni"] = domain_val
+
+                # آپدیت تاریخچه دامنه‌ها برای Reality
                 reality = SETTINGS.get("reality", {})
                 history = reality.get("domain_history", [])
                 if domain_val in history:
@@ -3541,6 +3554,7 @@ async def set_global_settings(request: Request, _=Depends(require_auth)):
                 history.insert(0, domain_val)
                 reality["domain_history"] = history[:20]
                 SETTINGS["reality"] = reality
+                
         if "default_path" in body:
             SETTINGS["default_path"] = str(body["default_path"]).strip()
         if "default_transport" in body:
@@ -3561,10 +3575,10 @@ async def set_global_settings(request: Request, _=Depends(require_auth)):
             SETTINGS["custom_sub_default"] = str(body["custom_sub_default"]).strip()
         if "show_status_config" in body:
             SETTINGS["show_status_config"] = bool(body["show_status_config"])
+            
     asyncio.create_task(save_state())
     log_activity("settings", "تنظیمات کلی ذخیره شد", "ok")
     return {"ok": True}
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SUB-SYNC endpoints (Flask-style sub config serving)
