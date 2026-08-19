@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import secrets
 import time
 import uuid
+import aiosqlite
 import aiofiles
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -71,10 +72,86 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Persistence ───────────────────────────────────────────────────────────────
+# ── Persistence (async SQLite key-value store) ────────────────────────────────
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
-DATA_FILE = DATA_DIR / "white_state.json"
+DATA_FILE = DATA_DIR / "white_state.json"   # legacy JSON state (auto-migrated → .json.bak)
+DB_PATH = DATA_DIR / "white_state.db"        # async SQLite key-value store
+KV_TABLE = "kv_store"                        # CREATE TABLE kv_store (key TEXT PRIMARY KEY, value TEXT)
 SAVE_LOCK = asyncio.Lock()
+
+
+async def init_db():
+    """Create the kv_store table if it doesn't exist."""
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(f"""
+            CREATE TABLE IF NOT EXISTS {KV_TABLE} (
+                key TEXT PRIMARY KEY,
+                value TEXT
+            )
+        """)
+        await db.commit()
+
+
+async def _kv_get(key: str, default=None):
+    """Fetch one key from the kv_store (values are JSON-encoded strings)."""
+    try:
+        async with aiosqlite.connect(DB_PATH) as db:
+            async with db.execute(f"SELECT value FROM {KV_TABLE} WHERE key = ?", (key,)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    return json.loads(row[0])
+    except Exception as e:
+        logger.warning(f"_kv_get({key}) failed: {e}")
+    return default
+
+
+async def _kv_set(key: str, value):
+    """Insert (or replace) one key in the kv_store."""
+    try:
+        async with aiosqlite.connect(DB_PATH) as db:
+            await db.execute(
+                f"INSERT OR REPLACE INTO {KV_TABLE} (key, value) VALUES (?, ?)",
+                (key, json.dumps(value, ensure_ascii=False)),
+            )
+            await db.commit()
+    except Exception as e:
+        logger.warning(f"_kv_set({key}) failed: {e}")
+
+
+async def _kv_delete(key: str):
+    """Remove one key from the kv_store."""
+    try:
+        async with aiosqlite.connect(DB_PATH) as db:
+            await db.execute(f"DELETE FROM {KV_TABLE} WHERE key = ?", (key,))
+            await db.commit()
+    except Exception as e:
+        logger.warning(f"_kv_delete({key}) failed: {e}")
+
+
+async def _migrate_from_json():
+    """Auto-migration: if white_state.json exists, copy every top-level key into
+    the SQLite kv_store, then rename the JSON file to white_state.json.bak."""
+    if not DATA_FILE.exists():
+        return
+    try:
+        async with aiofiles.open(DATA_FILE, "r", encoding="utf-8") as f:
+            raw = await f.read()
+        data = json.loads(raw)
+        async with aiosqlite.connect(DB_PATH) as db:
+            for key, value in data.items():
+                await db.execute(
+                    f"INSERT OR REPLACE INTO {KV_TABLE} (key, value) VALUES (?, ?)",
+                    (key, json.dumps(value, ensure_ascii=False)),
+                )
+            await db.commit()
+        DATA_FILE.rename(DATA_FILE.with_suffix(".json.bak"))
+        logger.info(f"Migrated JSON state → SQLite: {len(data)} keys ({DATA_FILE.name} → white_state.json.bak)")
+    except Exception as e:
+        logger.warning(f"Migration from JSON failed: {e}")
 
 # ── IP scanner live-saved files (first 10 working IPs per source) ─────────────
 SCANNED_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "scanned"
@@ -156,34 +233,36 @@ def _save_scanned_ips(ctype: str, entries: list, replace: bool = False) -> list:
 
 async def load_state():
     global LINKS, AUTH, SUBS, USERS, SETTINGS, GROUPS, IP_POOL, IP_BLACKLIST, INBOUNDS
+    await init_db()
+    # Auto-migrate the legacy JSON file into SQLite (then rename it to .json.bak).
+    await _migrate_from_json()
     try:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        if DATA_FILE.exists():
-            async with aiofiles.open(DATA_FILE, "r", encoding="utf-8") as f:
-                raw = await f.read()
-            data = json.loads(raw)
-            LINKS.update(data.get("links", {}))
-            SUBS.update(data.get("subs", {}))
-            USERS.update(data.get("users", {}))
-            # Always load saved password hash (no secret-key guard — causes password reset bugs)
-            if "password_hash" in data:
-                AUTH["password_hash"] = data["password_hash"]
-            # Also store saved_secret so future saves remain consistent
-            if "saved_secret" in data:
-                CONFIG["secret"] = data["saved_secret"]
-            if "settings" in data:
-                SETTINGS.update(data["settings"])
-            GROUPS.update(data.get("groups", {}))
-            INBOUNDS.update(data.get("inbounds", {}))
-            IP_POOL.clear()
-            IP_POOL.extend(data.get("ip_pool", []))
-            IP_BLACKLIST.clear()
-            IP_BLACKLIST.update(data.get("ip_blacklist", []))
-            if isinstance(data.get("worker"), dict):
-                WORKER.update(data["worker"])
-            logger.info(f"State loaded: {len(LINKS)} links, {len(SUBS)} subs, {len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, {len(INBOUNDS)} inbounds")
+        LINKS.update(await _kv_get("links") or {})
+        SUBS.update(await _kv_get("subs") or {})
+        USERS.update(await _kv_get("users") or {})
+        # Always load saved password hash (no secret-key guard — causes password reset bugs)
+        _pw = await _kv_get("password_hash")
+        if _pw:
+            AUTH["password_hash"] = _pw
+        # Also store saved_secret so future saves remain consistent
+        _saved_secret = await _kv_get("saved_secret")
+        if _saved_secret:
+            CONFIG["secret"] = _saved_secret
+        _settings = await _kv_get("settings") or {}
+        if isinstance(_settings, dict):
+            SETTINGS.update(_settings)
+        GROUPS.update(await _kv_get("groups") or {})
+        INBOUNDS.update(await _kv_get("inbounds") or {})
+        IP_POOL.clear()
+        IP_POOL.extend(await _kv_get("ip_pool") or [])
+        IP_BLACKLIST.clear()
+        IP_BLACKLIST.update(await _kv_get("ip_blacklist") or [])
+        _worker_data = await _kv_get("worker")
+        if isinstance(_worker_data, dict):
+            WORKER.update(_worker_data)
+        logger.info(f"State loaded: {len(LINKS)} links, {len(SUBS)} subs, {len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, {len(INBOUNDS)} inbounds")
     except Exception as e:
-        logger.warning(f"Could not load state: {e}")
+        logger.warning(f"Could not load state from SQLite: {e}")
     # Rebuild path index from all users and links
     _rebuild_path_index()
     # Migrate: auto-create links for users that have config_uuid but no link
@@ -293,25 +372,19 @@ def _rebuild_path_index():
 async def save_state():
     async with SAVE_LOCK:
         try:
-            DATA_DIR.mkdir(parents=True, exist_ok=True)
-            data = {
-                "links": dict(LINKS),
-                "users": dict(USERS),
-                "subs": dict(SUBS),
-                "settings": dict(SETTINGS),
-                "groups": dict(GROUPS),
-                "inbounds": dict(INBOUNDS),
-                "ip_pool": list(IP_POOL),
-                "ip_blacklist": list(IP_BLACKLIST),
-                "worker": dict(WORKER),
-                "password_hash": AUTH["password_hash"],
-                "saved_secret": CONFIG["secret"],
-                "saved_at": datetime.now().isoformat(),
-            }
-            tmp = DATA_FILE.with_suffix(".tmp")
-            async with aiofiles.open(tmp, "w", encoding="utf-8") as f:
-                await f.write(json.dumps(data, ensure_ascii=False, indent=2))
-            tmp.replace(DATA_FILE)
+            await init_db()
+            await _kv_set("links", dict(LINKS))
+            await _kv_set("users", dict(USERS))
+            await _kv_set("subs", dict(SUBS))
+            await _kv_set("settings", dict(SETTINGS))
+            await _kv_set("groups", dict(GROUPS))
+            await _kv_set("inbounds", dict(INBOUNDS))
+            await _kv_set("ip_pool", list(IP_POOL))
+            await _kv_set("ip_blacklist", list(IP_BLACKLIST))
+            await _kv_set("worker", dict(WORKER))
+            await _kv_set("password_hash", AUTH["password_hash"])
+            await _kv_set("saved_secret", CONFIG["secret"])
+            await _kv_set("saved_at", datetime.now().isoformat())
         except Exception as e:
             logger.warning(f"Could not save state: {e}")
 
@@ -350,6 +423,8 @@ SETTINGS = {
     "bg_login": "",
     "bg_dashboard": "",
     "bg_sub": "",
+    # Show the status config as the FIRST entry in subscription links
+    "show_status_config": True,
     # Panel audio (uploaded by admin)
     "panel_audio": "",
     "panel_audio_enabled": False,
@@ -690,6 +765,7 @@ async def startup():
                 "reality_settings": {},
                 "xhttp_settings": {},
                 "created_at": datetime.now().isoformat(),
+                "naming_format": "White-{username}",
             }
             asyncio.create_task(save_state())
             log_activity("inbound", "اینباند پیش‌فرض VLESS+WS ساخته شد", "ok")
@@ -722,6 +798,7 @@ async def startup():
                     "scMaxEachPostBytes": "1000000",
                 },
                 "created_at": datetime.now().isoformat(),
+                "naming_format": "White-{username}",
             }
             asyncio.create_task(save_state())
             log_activity("inbound", "اینباند پیش‌فرض Reality+XHTTP ساخته شد", "ok")
@@ -747,6 +824,7 @@ async def startup():
                 "ws_settings": {"path": "/route/{uuid}"},
                 "grpc_settings": {},
                 "created_at": datetime.now().isoformat(),
+                "naming_format": "White-{username}",
             }
             asyncio.create_task(save_state())
             log_activity("inbound", "اینباند پیش‌فرض Worker ساخته شد", "ok")
@@ -786,6 +864,17 @@ async def startup():
                 _changed = True
     if _changed:
         asyncio.create_task(save_state())
+        logger.info("Backfilled placeholder domains on existing inbounds")
+
+    # Backfill naming_format on pre-existing inbounds (defaults to "White-{username}").
+    _nf_changed = False
+    for _ib in INBOUNDS.values():
+        if "naming_format" not in _ib or not str(_ib.get("naming_format") or "").strip():
+            _ib["naming_format"] = "White-{username}"
+            _nf_changed = True
+    if _nf_changed:
+        asyncio.create_task(save_state())
+        logger.info("Backfilled missing naming_format in inbounds")
         logger.info("Backfilled placeholder inbound domains with %s", _real)
 
     # Deduplicate inbound ports: on Railway each inbound must listen on its own
@@ -1117,6 +1206,20 @@ def generate_short_id() -> str:
     """Generate a shorter ID for user management."""
     return secrets.token_hex(6)
 
+def _inbound_remark(inbound: dict, username: str, remark_tag: str = None) -> str:
+    """Build a config remark from the inbound's naming_format.
+
+    Supports the {username} and {inbound_name} placeholders. Falls back to the
+    legacy "White-{username}" format when the inbound has no naming_format.
+    """
+    fmt = (inbound or {}).get("naming_format") or "White-{username}"
+    inbound_name = (inbound or {}).get("name", "")
+    rem = fmt.replace("{username}", username or "").replace("{inbound_name}", inbound_name or "")
+    if remark_tag:
+        rem = f"{rem} {remark_tag}"
+    return rem
+
+
 def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr: str = None, remark_tag: str = None) -> str:
     """Build a VLESS config string for one inbound of a user.
 
@@ -1140,9 +1243,7 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
 
     config_uuid = user.get("config_uuid", "") or user_id
     username = user.get("username", user_id)
-    rem = f"White-{username}"
-    if remark_tag:
-        rem = f"{rem} {remark_tag}"
+    rem = _inbound_remark(inbound, username, remark_tag)
     remark = quote(rem)
 
     # Optional custom-IP address override (only the connect address changes).
@@ -2214,6 +2315,7 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
     xhttp_settings = body.get("xhttp_settings", {}) if isinstance(body.get("xhttp_settings"), dict) else {}
     ws_settings = body.get("ws_settings", {}) if isinstance(body.get("ws_settings"), dict) else {}
     grpc_settings = body.get("grpc_settings", {}) if isinstance(body.get("grpc_settings"), dict) else {}
+    naming_format = str(body.get("naming_format", "White-{username}") or "White-{username}").strip()[:100]
 
     # Auto-generate Reality keys (x25519 pbk/priv + short_id + mldsa65 seed)
     # fresh for every reality inbound. SNI target is fixed.
@@ -2264,6 +2366,7 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
             "ws_settings": ws_settings,
             "grpc_settings": grpc_settings,
             "created_at": datetime.now().isoformat(),
+            "naming_format": naming_format,
         }
     if protocol == "reality" and network == "xhttp" and not xhttp_settings.get("path"):
         xhttp_settings["path"] = "/"
@@ -2346,6 +2449,8 @@ async def update_inbound(inbound_id: str, request: Request, _=Depends(require_au
             ib["ws_settings"] = body["ws_settings"]
         if "grpc_settings" in body and isinstance(body["grpc_settings"], dict):
             ib["grpc_settings"] = body["grpc_settings"]
+        if "naming_format" in body:
+            ib["naming_format"] = str(body["naming_format"]).strip()[:100]
     await save_state()
     log_activity("inbound", f"اینباند «{ib.get('name', inbound_id)}» ویرایش شد", "info")
     asyncio.create_task(_xray_apply())
@@ -3192,7 +3297,7 @@ async def api_user_sub(username: str):
                     if not str(ib.get("external_domain") or "").strip() or not str(ib.get("external_port") or "").strip():
                         continue
                 if ib and _p == "worker":
-                    configs.extend(_worker_configs(uid_, user, ib, stored_path_user, f"White-{user.get('username', uid_)}"))
+                    configs.extend(_worker_configs(uid_, user, ib, stored_path_user, _inbound_remark(ib, user.get('username', uid_))))
                 else:
                     configs.append(generate_user_config(uid_, user, iid_))
             except Exception:
@@ -3223,8 +3328,11 @@ async def api_user_sub(username: str):
             configs = configs + sni_spoof_cfgs
 
     # Generate a status config (config-status) with fake random stats
-    # This config is always the FIRST one in the list so clients show it as "status"
-    status_config = generate_status_config(user, configs)
+    # This config is always the FIRST one in the list so clients show it as "status".
+    # It can be disabled globally via SETTINGS["show_status_config"].
+    status_config = None
+    if SETTINGS.get("show_status_config", True):
+        status_config = generate_status_config(user, configs)
 
     # Insert status config at the beginning
     if status_config:
@@ -3413,6 +3521,7 @@ async def get_global_settings(_=Depends(require_auth)):
         "panel_audio": SETTINGS.get("panel_audio", ""),
         "panel_audio_enabled": SETTINGS.get("panel_audio_enabled", False),
         "custom_sub_default": SETTINGS.get("custom_sub_default", ""),
+        "show_status_config": SETTINGS.get("show_status_config", True),
     }
 
 @app.post("/api/tools/settings")
@@ -3450,6 +3559,8 @@ async def set_global_settings(request: Request, _=Depends(require_auth)):
                 SETTINGS["default_connection_mode"] = val
         if "custom_sub_default" in body:
             SETTINGS["custom_sub_default"] = str(body["custom_sub_default"]).strip()
+        if "show_status_config" in body:
+            SETTINGS["show_status_config"] = bool(body["show_status_config"])
     asyncio.create_task(save_state())
     log_activity("settings", "تنظیمات کلی ذخیره شد", "ok")
     return {"ok": True}
