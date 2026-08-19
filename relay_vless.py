@@ -9,8 +9,8 @@ from datetime import datetime, timezone, timedelta
 
 from fastapi import WebSocket, WebSocketDisconnect
 
-# ── Shared state (used directly; main.py populates these) ──
-# Variables are accessed directly from main module to prevent state desync
+# اضافه شدن مجدد RELAY_BUF برای جلوگیری از کرش کردن main.py
+RELAY_BUF = 256 * 1024
 RELAY_BUF_LOCAL = 256 * 1024
 
 logger = logging.getLogger("White-Panel")
