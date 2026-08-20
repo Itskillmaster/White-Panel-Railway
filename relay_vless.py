@@ -6,12 +6,17 @@ import asyncio
 import secrets
 import logging
 from datetime import datetime, timezone, timedelta
+from urllib.parse import unquote
 
 from fastapi import WebSocket, WebSocketDisconnect
 
+# ── Local Variables to prevent ImportError and server crash ──
+RELAY_BUF = 256 * 1024
+RELAY_BUF_LOCAL = 256 * 1024
+
 from shared import (
     atomic_check_and_use, redis_get_link, connections, redis_client,
-    IRAN_TZ, now_ir, RELAY_BUF_LOCAL, stats, error_logs,
+    IRAN_TZ, now_ir, stats, error_logs,
 )
 
 logger = logging.getLogger("White-Panel")
@@ -126,7 +131,6 @@ async def relay_tcp_to_ws(ws: WebSocket, reader: asyncio.StreamReader, conn_id: 
 async def websocket_tunnel(ws: WebSocket, uuid: str, proxy_override: str = None):
     if proxy_override:
         try:
-            from urllib.parse import unquote
             proxy_override = unquote(proxy_override)
         except Exception:
             pass
