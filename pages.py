@@ -1745,8 +1745,18 @@ document.addEventListener('DOMContentLoaded',async function(){
 </body></html>"""
 
 
-def get_public_page_html(uuid_key: str) -> str:
-    """صفحه پابلیک سابسکریپشن با تم White Panel"""
+def get_public_page_html(uuid_key: str, sub_url: str = "", announcement: str = "") -> str:
+    """Public subscription group page with OS detection, One-Click Import, and Announcements."""
+    ann_html = ""
+    if announcement:
+        from html import escape as _esc
+        ann_html = (
+            '<div class="announcement-bar" id="announcement-bar">'
+            '<i class="ti ti-broadcast"></i>'
+            f'<span id="ann-text">{_esc(announcement)}</span>'
+            '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:16px;padding:0 4px">&times;</button>'
+            '</div>'
+        )
     return f"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -1890,6 +1900,7 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad',sans-serif
 <div class="bg-glow"><div class="bg-orb"></div><div class="bg-orb"></div></div>
 <div class="toast" id="toast"></div>
 <div class="wrap">
+  {ann_html}
   <div class="top-bar">
     <div class="brand">
       <svg width="38" height="38" viewBox="0 0 100 100"><defs><linearGradient id="bgg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="50%" style="stop-color:#8b5cf6"/><stop offset="100%" style="stop-color:#a78bfa"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#bgg)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
@@ -1901,7 +1912,7 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad',sans-serif
   <div class="footer">White Panel</div>
 </div>
 <script>
-var UUID_KEY='{uuid_key}',savedPw='',currentData=null;
+var UUID_KEY='{uuid_key}',SUB_URL='{sub_url}',savedPw='',currentData=null;
 var isDark=localStorage.getItem('wp-pub-theme')==='dark';
 function applyTheme(d){{document.documentElement.setAttribute('data-theme',d?'dark':'light');document.getElementById('theme-icon').className='ti '+(d?'ti-sun':'ti-moon')}}
 function toggleTheme(){{isDark=!isDark;localStorage.setItem('wp-pub-theme',isDark?'dark':'light');applyTheme(isDark)}}
@@ -1911,15 +1922,57 @@ function esc(s){{return String(s||'').replace(/[&<>"']/g,function(c){{return{{'&
 function fmtB(b){{if(!b)return'0 B';if(b<1024)return b+' B';if(b<1024**2)return(b/1024).toFixed(1)+' KB';if(b<1024**3)return(b/1024**2).toFixed(2)+' MB';return(b/1024**3).toFixed(2)+' GB'}}
 function toFa(n){{return String(n).replace(/\\d/g,function(d){{return'۰۱۲۳۴۵۶۷۸۹'[d]}})}}
 
+/* ── OS Detection & One-Click Import ──────────────────────────────────── */
+function detectOS() {{
+  var ua = navigator.userAgent || '';
+  if (/android/i.test(ua)) return 'android';
+  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Win\\d/.test(ua)) return 'windows';
+  if (/Macintosh|Mac OS X/.test(ua)) return 'macos';
+  return 'other';
+}}
+function getImportApps() {{
+  var os = detectOS();
+  var apps = [];
+  if (os === 'android') {{
+    apps.push({{name:'v2rayNG', cls:'ico-android', icon:'ti ti-brand-android', href:'v2rayng://install-sub?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify', cls:'ico-android', icon:'ti ti-shield', href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'V2Box', cls:'ico-android', icon:'ti ti-box', href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
+  }} else if (os === 'ios') {{
+    apps.push({{name:'V2Box', cls:'ico-ios', icon:'ti ti-box', href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify', cls:'ico-ios', icon:'ti ti-shield', href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Streisand', cls:'ico-ios', icon:'ti ti-bolt', href:'streisand://import?url='+encodeURIComponent(SUB_URL)}});
+  }} else if (os === 'windows') {{
+    apps.push({{name:'v2rayN', cls:'ico-windows', icon:'ti ti-brand-windows', href:'v2rayn://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify', cls:'ico-windows', icon:'ti ti-shield', href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+  }} else if (os === 'macos') {{
+    apps.push({{name:'V2rayU', cls:'ico-macos', icon:'ti ti-brand-apple', href:'v2rayu://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify', cls:'ico-macos', icon:'ti ti-shield', href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+  }}
+  return apps;
+}}
+function buildImportHtml() {{
+  var apps = getImportApps();
+  if (!apps.length) return '';
+  var h = '<div class="import-section"><div class="import-title"><i class="ti ti-download"></i> وارد کردن سریع</div><div class="import-grid">';
+  apps.forEach(function(a) {{
+    h += '<a class="import-btn" href="'+esc(a.href)+'"><div class="ico '+a.cls+'"><i class="ti '+a.icon+'"></i></div><div><div>'+esc(a.name)+'</div><div class="lbl">یک کلیک</div></div></a>';
+  }});
+  h += '</div></div>';
+  return h;
+}}
+
 async function loadData(pw){{var u='/api/public/sub/'+UUID_KEY+(pw?'?pw='+encodeURIComponent(pw):'');var r=await fetch(u);return r.json()}}
 
 function renderLock(name,err){{document.getElementById('root').innerHTML='<div class="lock-page"><div class="lock-card"><div class="lock-icon"><i class="ti ti-shield-lock"></i></div><div class="lock-title">'+esc(name)+'</div><div class="lock-sub">این گروه با رمز محافظت می‌شود</div><div class="lock-err" id="lock-err">'+(err?'<i class="ti ti-alert-circle"></i> '+esc(err):'')+'</div><div class="lock-field"><i class="ti ti-lock lock-icon-left"></i><input class="lock-input" type="password" id="lock-pw" placeholder="••••••••" autofocus></div><button class="btn btn-p" style="width:100%;justify-content:center;padding:12px" onclick="submitLock()"><i class="ti ti-lock-open"></i> ورود</button></div></div>';document.getElementById('lock-pw').addEventListener('keydown',function(e){{if(e.key==='Enter')submitLock()}})}}
 
 async function submitLock(){{var pw=document.getElementById('lock-pw').value;var d=await loadData(pw);if(d.locked){{renderLock(d.name,'رمز اشتباه است');return}}savedPw=pw;renderContent(d)}}
 
-function renderContent(d){{currentData=d;var active=d.links.filter(function(l){{return l.active}}).length;var subUrl=d.sub_url||(location.protocol+'//'+location.host+'/sub-group/'+UUID_KEY);subUrl+=savedPw?'?pw='+encodeURIComponent(savedPw):'';
+function renderContent(d){{currentData=d;var active=d.links.filter(function(l){{return l.active}}).length;var subUrl=d.sub_url||SUB_URL;subUrl+=savedPw?'?pw='+encodeURIComponent(savedPw):'';
+var importHtml=buildImportHtml();
 document.getElementById('root').innerHTML='<div class="info-card"><div class="info-name">'+esc(d.name)+'</div>'+(d.desc?'<div class="info-desc">'+esc(d.desc)+'</div>':'')+
 '<div class="info-stats"><div class="info-stat"><div class="info-s-val">'+toFa(active)+'</div><div class="info-s-label">کانفیگ فعال</div></div><div class="info-stat"><div class="info-s-val">'+toFa(d.links.length)+'</div><div class="info-s-label">کل کانفیگ‌ها</div></div><div class="info-stat"><div class="info-s-val">'+esc(d.total_used_fmt||'0')+'</div><div class="info-s-label">مصرف</div></div></div></div>'+
+importHtml+
 '<div class="section-title"><i class="ti ti-link"></i> کانفیگ‌ها ('+toFa(d.links.length)+' عدد)</div>'+
 (d.links.length?d.links.map(function(l){{return'<div class="cfg-card"><div class="cfg-head"><div class="cfg-name">'+esc(l.label)+'</div><span class="cfg-status '+(l.active?'ok':'no')+'">'+(l.active?'<i class="ti ti-circle-check"></i> فعال':'<i class="ti ti-circle-x"></i> غیرفعال')+'</span></div><div class="cfg-code">'+esc(l.vless_link)+'</div><div class="cfg-actions"><button class="btn btn-p" onclick="navigator.clipboard.writeText(\''+esc(l.vless_link).replace(/'/g,"\\'")+'\').then(function(){{toast(\'کپی شد ✓\',\'ok\')}})"><i class="ti ti-copy"></i> کپی لینک</button><button class="btn btn-ghost" onclick="window.open(\'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(l.vless_link)+'\',\'_blank\')"><i class="ti ti-qrcode"></i> QR Code</button></div></div>'}}).join(''):'<div class="empty"><i class="ti ti-link-off"></i><p>کانفیگی در این گروه وجود ندارد</p></div>')+
 '<div style="margin-top:16px;text-align:center"><button class="btn btn-ghost" style="justify-content:center" onclick="location.reload()"><i class="ti ti-refresh"></i> بروزرسانی</button></div>';

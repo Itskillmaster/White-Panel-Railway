@@ -9,3 +9,4 @@ pillow==10.4.0
 psutil
 cryptography
 aiosqlite
+redis[hiredis]==5.0.1

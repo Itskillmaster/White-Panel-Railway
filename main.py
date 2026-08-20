@@ -42,6 +42,20 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import httpx
 
+# Enterprise Redis-backed shared state
+from shared import (
+    init_redis, close_redis, redis_client as _redis,
+    redis_get_state, redis_set_state, redis_delete_state, STATE_PREFIX,
+    redis_get_link, redis_set_link, redis_delete_link,
+    redis_get_user, redis_set_user,
+    redis_get_stats, redis_incr_stats, redis_get_hourly_traffic,
+    redis_ip_add, redis_ip_remove, redis_ip_count,
+    redis_create_session, redis_is_valid_session, redis_destroy_session,
+    redis_get_announcement, redis_set_announcement,
+    atomic_check_and_use, now_ir as shared_now_ir,
+    IRAN_TZ as SHARED_IRAN_TZ, connections as shared_connections,
+)
+
 # Import xhttp_siz10 router (must come after app is created)
 # xhttp_siz10 does `from main import ...`. When run as `python main.py` this
 # module is named `__main__`; alias ourselves as `main` so submodule imports
@@ -232,19 +246,102 @@ def _save_scanned_ips(ctype: str, entries: list, replace: bool = False) -> list:
     return merged
 
 async def load_state():
+    """Load state from Redis (primary) with SQLite fallback on first boot.
+
+    On fresh installs Redis is empty so we load from SQLite. Once Redis has
+    data it becomes the single source of truth.
+    """
     global LINKS, AUTH, SUBS, USERS, SETTINGS, GROUPS, IP_POOL, IP_BLACKLIST, INBOUNDS
+
+    # Initialize Redis (non-blocking — if Redis is down, we continue with SQLite)
+    redis_ok = await init_redis()
+
+    # Always init SQLite for migration / fallback
     await init_db()
-    # Auto-migrate the legacy JSON file into SQLite (then rename it to .json.bak).
     await _migrate_from_json()
+
+    if redis_ok:
+        # ── Redis-first path ────────────────────────────────────────────
+        try:
+            r_links = await redis_get_state("links") or {}
+            r_users = await redis_get_state("users") or {}
+            r_subs = await redis_get_state("subs") or {}
+            r_groups = await redis_get_state("groups") or {}
+            r_inbounds = await redis_get_state("inbounds") or {}
+            r_settings = await redis_get_state("settings") or {}
+            r_ip_pool = await redis_get_state("ip_pool") or []
+            r_ip_blacklist = await redis_get_state("ip_blacklist") or []
+            r_worker = await redis_get_state("worker") or {}
+            r_pw = await redis_get_state("password_hash")
+            r_secret = await redis_get_state("saved_secret")
+
+            # If Redis is empty (first boot after Redis install), bootstrap from SQLite
+            if not r_links and not r_users:
+                logger.info("Redis empty — bootstrapping from SQLite...")
+                await _bootstrap_redis_from_sqlite()
+                # Re-fetch after bootstrap
+                r_links = await redis_get_state("links") or {}
+                r_users = await redis_get_state("users") or {}
+                r_subs = await redis_get_state("subs") or {}
+                r_groups = await redis_get_state("groups") or {}
+                r_inbounds = await redis_get_state("inbounds") or {}
+                r_settings = await redis_get_state("settings") or {}
+                r_ip_pool = await redis_get_state("ip_pool") or []
+                r_ip_blacklist = await redis_get_state("ip_blacklist") or []
+                r_worker = await redis_get_state("worker") or {}
+                r_pw = await redis_get_state("password_hash")
+                r_secret = await redis_get_state("saved_secret")
+
+            LINKS.update(r_links)
+            USERS.update(r_users)
+            SUBS.update(r_subs)
+            GROUPS.update(r_groups)
+            INBOUNDS.update(r_inbounds)
+            if isinstance(r_settings, dict):
+                SETTINGS.update(r_settings)
+            IP_POOL.clear()
+            IP_POOL.extend(r_ip_pool)
+            IP_BLACKLIST.clear()
+            IP_BLACKLIST.update(r_ip_blacklist)
+            if isinstance(r_worker, dict):
+                WORKER.update(r_worker)
+            if r_pw:
+                AUTH["password_hash"] = r_pw
+            if r_secret:
+                CONFIG["secret"] = r_secret
+
+            # Sync global stats from Redis
+            r_stats = await redis_get_stats()
+            stats["total_bytes"] = r_stats.get("total_bytes", 0)
+            stats["total_requests"] = r_stats.get("total_requests", 0)
+
+            logger.info(f"State loaded from Redis: {len(LINKS)} links, {len(SUBS)} subs, "
+                        f"{len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, "
+                        f"{len(INBOUNDS)} inbounds")
+        except Exception as e:
+            logger.warning(f"Could not load state from Redis, falling back to SQLite: {e}")
+            await _load_state_from_sqlite()
+    else:
+        # ── SQLite-only path (Redis unavailable) ────────────────────────
+        await _load_state_from_sqlite()
+
+    # Common post-load tasks
+    _rebuild_path_index()
+    _migrate_user_links()
+    _migrate_user_uuids()
+    _rebuild_path_index()
+
+
+async def _load_state_from_sqlite():
+    """Load all state from the local SQLite KV store (fallback path)."""
+    global LINKS, AUTH, SUBS, USERS, SETTINGS, GROUPS, IP_POOL, IP_BLACKLIST, INBOUNDS, WORKER
     try:
         LINKS.update(await _kv_get("links") or {})
         SUBS.update(await _kv_get("subs") or {})
         USERS.update(await _kv_get("users") or {})
-        # Always load saved password hash (no secret-key guard — causes password reset bugs)
         _pw = await _kv_get("password_hash")
         if _pw:
             AUTH["password_hash"] = _pw
-        # Also store saved_secret so future saves remain consistent
         _saved_secret = await _kv_get("saved_secret")
         if _saved_secret:
             CONFIG["secret"] = _saved_secret
@@ -260,17 +357,27 @@ async def load_state():
         _worker_data = await _kv_get("worker")
         if isinstance(_worker_data, dict):
             WORKER.update(_worker_data)
-        logger.info(f"State loaded: {len(LINKS)} links, {len(SUBS)} subs, {len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, {len(INBOUNDS)} inbounds")
+        logger.info(f"State loaded from SQLite: {len(LINKS)} links, {len(SUBS)} subs, "
+                     f"{len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, "
+                     f"{len(INBOUNDS)} inbounds")
     except Exception as e:
         logger.warning(f"Could not load state from SQLite: {e}")
-    # Rebuild path index from all users and links
-    _rebuild_path_index()
-    # Migrate: auto-create links for users that have config_uuid but no link
-    _migrate_user_links()
-    # Migrate: legacy bare-hex config UUIDs → proper hyphenated UUIDs
-    _migrate_user_uuids()
-    # Rebuild again so the re-keyed links/paths are indexed.
-    _rebuild_path_index()
+
+
+async def _bootstrap_redis_from_sqlite():
+    """One-time migration: copy SQLite state into Redis, then keep Redis as
+    the single source of truth. Called only when Redis is empty."""
+    try:
+        data = {}
+        async with aiosqlite.connect(DB_PATH) as db:
+            async with db.execute(f"SELECT key, value FROM {KV_TABLE}") as cursor:
+                async for row in cursor:
+                    data[row[0]] = json.loads(row[1])
+        for key, value in data.items():
+            await redis_set_state(key, value)
+        logger.info(f"Bootstrapped Redis from SQLite: {len(data)} keys")
+    except Exception as e:
+        logger.warning(f"Redis bootstrap from SQLite failed: {e}")
 
 
 def _migrate_user_links():
@@ -370,8 +477,44 @@ def _rebuild_path_index():
     logger.info(f"PATH_INDEX rebuilt: {len(PATH_INDEX)} entries")
 
 async def save_state():
+    """Persist all in-memory state to Redis (primary) and SQLite (backup).
+
+    Redis writes are atomic via pipeline. SQLite writes are serialized via
+    SAVE_LOCK to prevent corruption. If Redis is unavailable, only SQLite
+    is updated.
+    """
     async with SAVE_LOCK:
         try:
+            # ── Redis write (primary) ───────────────────────────────────
+            if _redis is not None:
+                pipe = _redis.pipeline(transaction=True)
+                pipe.set(f"{STATE_PREFIX}links", json.dumps(dict(LINKS), ensure_ascii=False))
+                pipe.set(f"{STATE_PREFIX}users", json.dumps(dict(USERS), ensure_ascii=False))
+                pipe.set(f"{STATE_PREFIX}subs", json.dumps(dict(SUBS), ensure_ascii=False))
+                pipe.set(f"{STATE_PREFIX}settings", json.dumps(dict(SETTINGS), ensure_ascii=False))
+                pipe.set(f"{STATE_PREFIX}groups", json.dumps(dict(GROUPS), ensure_ascii=False))
+                pipe.set(f"{STATE_PREFIX}inbounds", json.dumps(dict(INBOUNDS), ensure_ascii=False))
+                pipe.set(f"{STATE_PREFIX}ip_pool", json.dumps(list(IP_POOL)))
+                pipe.set(f"{STATE_PREFIX}ip_blacklist", json.dumps(list(IP_BLACKLIST)))
+                pipe.set(f"{STATE_PREFIX}worker", json.dumps(dict(WORKER), ensure_ascii=False))
+                pipe.set(f"{STATE_PREFIX}password_hash", AUTH["password_hash"])
+                pipe.set(f"{STATE_PREFIX}saved_secret", CONFIG["secret"])
+                pipe.set(f"{STATE_PREFIX}saved_at", datetime.now().isoformat())
+                await pipe.execute()
+
+                # Also update individual link hashes for atomic Lua accounting
+                for uuid, link in LINKS.items():
+                    flat = {}
+                    for k, v in link.items():
+                        if isinstance(v, bool):
+                            flat[k] = "1" if v else "0"
+                        elif v is None:
+                            flat[k] = ""
+                        else:
+                            flat[k] = str(v)
+                    await _redis.hset(f"link:{uuid}:meta", mapping=flat)
+
+            # ── SQLite backup (secondary) ───────────────────────────────
             await init_db()
             await _kv_set("links", dict(LINKS))
             await _kv_set("users", dict(USERS))
@@ -530,31 +673,25 @@ def hash_password(pw: str) -> str:
 AUTH = {"password_hash": hash_password(os.environ.get("ADMIN_PASSWORD", "admin"))}
 SESSIONS: dict = {}
 SESSIONS_LOCK = asyncio.Lock()
-
 async def create_session() -> str:
+    """Create a session — Redis-backed (survives restarts)."""
     token = secrets.token_urlsafe(32)
-    async with SESSIONS_LOCK:
-        SESSIONS[token] = time.time() + SESSION_TTL
+    await redis_create_session(token)
     return token
 
+
 async def is_valid_session(token: str | None) -> bool:
+    """Validate session — Redis-backed."""
     if not token:
         return False
-    async with SESSIONS_LOCK:
-        exp = SESSIONS.get(token)
-        if exp is None:
-            return False
-        if exp < time.time():
-            SESSIONS.pop(token, None)
-            return False
-        return True
+    return await redis_is_valid_session(token)
+
 
 async def destroy_session(token: str | None):
+    """Destroy session — Redis-backed."""
     if not token:
         return
-    async with SESSIONS_LOCK:
-        SESSIONS.pop(token, None)
-
+    await redis_destroy_session(token)
 async def require_auth(request: Request):
     token = request.cookies.get(SESSION_COOKIE)
     if not await is_valid_session(token):
@@ -1010,18 +1147,46 @@ async def startup():
         except Exception as e:
             logger.warning(f"Xray apply on boot failed: {e}")
     log_activity("system", "سرور راه‌اندازی شد", "ok")
-    logger.info(f"White Panel v9.2 (commit 24d7594) started on port {CONFIG['port']}")
+    logger.info(f"White Panel v10.0 (Enterprise Redis) started on port {CONFIG['port']}")
     # Include XHTTP router for xhttp-siz10 endpoints (globals are now defined)
     global xhttp_router
     from xhttp_siz10 import router as xhttp_router
     app.include_router(xhttp_router)
     asyncio.create_task(_worker_proxy_sync_loop())
     asyncio.create_task(_xray_client_audit_loop())
+    # Start Sing-box for Hysteria2/SS-2022 inbounds (non-blocking)
+    try:
+        from core_singbox import apply_singbox
+        asyncio.create_task(_singbox_start_loop(apply_singbox))
+    except ImportError:
+        logger.info("core_singbox not available — Sing-box protocols disabled")
+    except Exception as e:
+        logger.warning(f"Sing-box startup failed: {e}")
 
 # Worker proxy source sync — hourly pull from the daily GitHub list and push to
 # the deployed Cloudflare Worker (Railway is the control plane; the Worker gets
 # a fresh country → proxy map without the user doing anything).
 WORKER_SYNC_INTERVAL = int(os.environ.get("WORKER_SYNC_INTERVAL", 3600))  # seconds
+
+
+async def _singbox_start_loop(apply_fn):
+    """Background loop: apply Sing-box config every 60s if Hysteria2/SS inbounds exist."""
+    await asyncio.sleep(5)  # let Xray start first
+    while True:
+        try:
+            has_singbox_proto = any(
+                (ib.get("protocol") or "").lower() in ("hysteria2", "shadowsocks-2022")
+                for ib in INBOUNDS.values()
+            )
+            if has_singbox_proto:
+                async with INBOUNDS_LOCK:
+                    inbounds_copy = dict(INBOUNDS)
+                async with USERS_LOCK:
+                    users_copy = dict(USERS)
+                await apply_fn(inbounds_copy, users_copy)
+        except Exception as e:
+            logger.warning(f"Sing-box apply loop error: {e}")
+        await asyncio.sleep(60)
 
 
 async def _worker_proxy_sync_loop():
@@ -1044,6 +1209,15 @@ async def shutdown():
     await save_state()
     if http_client:
         await http_client.aclose()
+    # Stop Sing-box process
+    try:
+        from core_singbox import _singbox_proc
+        if _singbox_proc and _singbox_proc.returncode is None:
+            _singbox_proc.terminate()
+    except Exception:
+        pass
+    # Close Redis connection
+    await close_redis()
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def get_host() -> str:
@@ -3096,11 +3270,17 @@ async def get_user_subscription(user_id: str, _=Depends(require_auth)):
 @app.get("/p/{uuid_key}", response_class=HTMLResponse)
 async def public_sub_page(uuid_key: str, request: Request):
     from pages import get_public_page_html
+    sub = None
     async with SUBS_LOCK:
         sub = next(({"sub_id": sid, **s} for sid, s in SUBS.items() if s.get("uuid_key") == uuid_key), None)
     if not sub:
         return HTMLResponse("<h2 style='font-family:sans-serif;padding:40px'>گروه پیدا نشد</h2>", status_code=404)
-    return HTMLResponse(content=get_public_page_html(uuid_key))
+    # Fetch announcement from Redis
+    announcement = await redis_get_announcement()
+    # Build the public sub URL for deep-link imports
+    host = request.headers.get("host", CONFIG.get("host", "localhost"))
+    sub_url = f"{request.url.scheme}://{host}/sub-group/{uuid_key}"
+    return HTMLResponse(content=get_public_page_html(uuid_key, sub_url=sub_url, announcement=announcement))
 
 @app.get("/api/public/sub/{uuid_key}")
 async def public_sub_data(uuid_key: str, request: Request):
@@ -3498,6 +3678,25 @@ async def set_reality_settings(request: Request, _=Depends(require_auth)):
     asyncio.create_task(save_state())
     log_activity("settings", "تنظیمات Reality ذخیره شد", "ok")
     return {"ok": True, "reality": reality}
+
+
+# ── Announcements (global broadcast) ────────────────────────────────────────
+@app.get("/api/announcements")
+async def get_announcement(_=Depends(require_auth)):
+    """Get the current global announcement."""
+    message = await redis_get_announcement()
+    return {"ok": True, "message": message}
+
+
+@app.post("/api/announcements")
+async def set_announcement(request: Request, _=Depends(require_auth)):
+    """Set or clear the global announcement (displayed on user subscription pages)."""
+    body = await request.json()
+    message = str(body.get("message") or "").strip()
+    await redis_set_announcement(message)
+    log_activity("announcement", f"اعلان بروزرسانی شد: {message[:50]}..." if message else "اعلان پاک شد", "ok")
+    return {"ok": True, "message": message}
+
 
 @app.get("/api/tools/settings")
 async def get_global_settings(_=Depends(require_auth)):
