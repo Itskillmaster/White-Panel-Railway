@@ -1,11 +1,13 @@
-# pages.py â€” White Panel Enterprise Theme
+# pages.py — White Panel Enterprise Theme (Persian Fixed)
 # Exports: LOGIN_HTML, DASHBOARD_HTML, get_public_page_html()
+
+import json
 
 LOGIN_HTML = r"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ÙˆØ±ÙˆØ¯ Â· White Panel</title>
+<title>ورود · White Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -249,26 +251,26 @@ input:focus ~ .input-icon{color:var(--wp-blue)}
     <div class="login-title">
       <span class="gradient-text">WHITE PANEL</span>
     </div>
-    <div class="login-sub">Ø¨Ù‡ Ù¾Ù†Ù„ Ù…Ø¯ÛŒØ±ÛŒØª Ø®ÙˆØ´ Ø¢Ù…Ø¯ÛŒØ¯<br>Ø¨Ø±Ø§ÛŒ Ø§Ø¯Ø§Ù…Ù‡ Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù†ÛŒØ¯</div>
+    <div class="login-sub">به پنل مدیریت خوش آمدید<br>برای ادامه رمز عبور را وارد کنید</div>
     <div class="error-msg" id="err"><i class="ti ti-alert-circle"></i><span id="err-text"></span></div>
     <div class="login-hint">
-      <span class="hint-label"><i class="ti ti-key"></i> Ø±Ù…Ø² Ù¾ÛŒØ´â€ŒÙØ±Ø¶</span>
+      <span class="hint-label"><i class="ti ti-key"></i> رمز پیش‌فرض</span>
       <span class="hint-value" onclick="document.getElementById('pw').value='123456';document.getElementById('pw').focus()">123456</span>
     </div>
     <form id="form">
       <div class="field-group">
-        <div class="field-label"><i class="ti ti-lock"></i> Ø±Ù…Ø² Ø¹Ø¨ÙˆØ±</div>
+        <div class="field-label"><i class="ti ti-lock"></i> رمز عبور</div>
         <div class="input-wrap">
-          <input type="password" id="pw" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autofocus required>
+          <input type="password" id="pw" placeholder="••••••••" autofocus required>
           <i class="ti ti-lock input-icon"></i>
-          <button type="button" class="eye-toggle" id="eye-btn" title="Ù†Ù…Ø§ÛŒØ´ Ø±Ù…Ø²">
+          <button type="button" class="eye-toggle" id="eye-btn" title="نمایش رمز">
             <i class="ti ti-eye"></i>
           </button>
         </div>
       </div>
       <button type="submit" class="login-btn" id="btn">
         <span class="spinner"></span>
-        <span class="btn-text"><i class="ti ti-login-2"></i> ÙˆØ±ÙˆØ¯ Ø¨Ù‡ Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</span>
+        <span class="btn-text"><i class="ti ti-login-2"></i> ورود به داشبورد</span>
       </button>
     </form>
     <div class="login-footer">
@@ -295,7 +297,7 @@ input:focus ~ .input-icon{color:var(--wp-blue)}
     err.classList.remove('show');btn.disabled=true;btn.classList.add('btn-loading');
     try{
       var r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw.value})});
-      if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'Ø®Ø·Ø§ Ø¯Ø± ÙˆØ±ÙˆØ¯');}
+      if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'خطا در ورود');}
       location.href='/dashboard';
     }catch(ex){
       et.textContent=ex.message;err.classList.add('show');
@@ -306,24 +308,17 @@ input:focus ~ .input-icon{color:var(--wp-blue)}
 </script>
 </body></html>"""
 
-
-
 DASHBOARD_HTML = r"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>White Panel Â· Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</title>
+<title>White Panel · داشبورد</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   WHITE PANEL ENTERPRISE â€” HYPER-GLASSMORPHISM DESIGN SYSTEM
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-
-/* â”€â”€ CSS VARIABLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 :root{
   --neon-cyan:#06b6d4;--neon-purple:#a855f7;--neon-emerald:#10b981;
   --neon-blue:#6366f1;--neon-pink:#ec4899;--neon-amber:#f59e0b;
@@ -351,7 +346,6 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
   --shadow-lg:0 12px 40px rgba(0,0,0,.08);--shadow-hover:0 8px 30px rgba(99,102,241,.08);
 }
 
-/* â”€â”€ RESET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{font-family:'Estedad','Inter',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;font-size:14px;transition:background var(--transition),color var(--transition);overflow-x:hidden}
@@ -362,11 +356,9 @@ body{font-family:'Estedad','Inter',sans-serif;background:var(--bg);color:var(--t
 *{scrollbar-width:thin;scrollbar-color:rgba(6,182,212,.15) transparent}
 a{color:inherit;text-decoration:none}
 
-/* â”€â”€ WEBGL CANVAS BACKGROUND â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 #bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6}
 [data-theme="light"] #bg-canvas{opacity:.3}
 
-/* â”€â”€ FLOATING DOCK SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .sidebar{
   width:var(--sidebar-w);min-height:100vh;
   background:rgba(6,182,212,.02);
@@ -410,7 +402,6 @@ a{color:inherit;text-decoration:none}
 .logout-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border:none;border-radius:var(--radius-sm);background:rgba(239,68,68,.05);color:var(--wp-red);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .25s;margin-top:5px;border:1px solid rgba(239,68,68,.08)}
 .logout-btn:hover{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.15)}
 
-/* â”€â”€ MOBILE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .mobile-top{display:none;position:fixed;top:0;right:0;left:0;height:52px;background:rgba(0,0,0,.8);backdrop-filter:blur(30px) saturate(200%);border-bottom:1px solid var(--border);z-index:150;align-items:center;justify-content:space-between;padding:0 14px}
 [data-theme="light"] .mobile-top{background:rgba(255,255,255,.7)}
 .mobile-brand{display:flex;align-items:center;gap:8px}
@@ -422,13 +413,11 @@ a{color:inherit;text-decoration:none}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190;backdrop-filter:blur(8px)}
 .overlay.show{display:block}
 
-/* â”€â”€ MAIN CONTENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .main{margin-right:var(--sidebar-w);flex:1;padding:22px 26px 40px;min-width:0;transition:margin var(--transition);position:relative;z-index:1}
 .page{display:none;animation:pageIn .4s cubic-bezier(.4,0,.2,1)}
 .page.active{display:block}
 @keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
-/* â”€â”€ TOPBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
 .topbar-title{font-size:20px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;letter-spacing:-.03em}
 .topbar-title i{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:22px}
@@ -439,7 +428,6 @@ a{color:inherit;text-decoration:none}
 .bell-btn:hover{background:rgba(6,182,212,.08);color:var(--neon-cyan);border-color:rgba(6,182,212,.15);box-shadow:0 0 16px rgba(6,182,212,.08)}
 .bell-btn::after{content:'';position:absolute;top:7px;left:7px;width:6px;height:6px;border-radius:50%;background:var(--neon-pink);border:2px solid var(--bg);box-shadow:0 0 6px var(--neon-pink)}
 
-/* â”€â”€ BUTTONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .btn{font-family:'Estedad','Inter',sans-serif;font-size:11.5px;font-weight:600;border-radius:var(--radius);padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;border:none;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap}
 .btn i{font-size:12px}
 .btn-primary{background:linear-gradient(135deg,#06b6d4,#a855f7);color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.25);position:relative;overflow:hidden}
@@ -458,7 +446,6 @@ a{color:inherit;text-decoration:none}
 .btn-success{background:rgba(16,185,129,.06);color:var(--neon-emerald);border:1px solid rgba(16,185,129,.1)}
 .btn-success:hover{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.2)}
 
-/* â”€â”€ BADGES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .badge{font-size:9px;padding:3px 9px;border-radius:20px;font-weight:700;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .badge-blue{background:rgba(6,182,212,.1);color:var(--neon-cyan)}
 .badge-green{background:rgba(16,185,129,.1);color:var(--neon-emerald)}
@@ -472,7 +459,6 @@ a{color:inherit;text-decoration:none}
 .pulse{animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
 
-/* â”€â”€ STAT CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
 .stat-card{
   background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
@@ -502,7 +488,6 @@ a{color:inherit;text-decoration:none}
 .stat-sub{font-size:9.5px;color:var(--text-secondary);margin-top:6px;display:flex;align-items:center;gap:4px}
 .stat-sub.up{color:var(--neon-emerald)}
 
-/* â”€â”€ QUICK ACTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 .qa-btn{
   display:flex;align-items:center;gap:9px;padding:12px 14px;
@@ -518,7 +503,6 @@ a{color:inherit;text-decoration:none}
 .qa-btn i{font-size:16px;transition:transform .3s;color:var(--neon-cyan)}
 .qa-btn:hover i{transform:scale(1.1)}
 
-/* â”€â”€ SERVER PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .server-panel{
   background:var(--surface-glass);backdrop-filter:blur(24px);border:1px solid var(--border);
   border-radius:var(--radius-lg);padding:20px 22px 18px;margin-bottom:20px;
@@ -543,7 +527,6 @@ a{color:inherit;text-decoration:none}
 .srv-bar-fill.green{background:linear-gradient(90deg,#10b981,#34d399)}
 @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
 
-/* â”€â”€ TABLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .table-wrap{
   background:var(--surface-glass);backdrop-filter:blur(24px);border:1px solid var(--border);
   border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);position:relative;
@@ -580,7 +563,6 @@ a{color:inherit;text-decoration:none}
 .exp-bad{background:rgba(239,68,68,.08);color:var(--wp-red)}
 .action-btns{display:flex;gap:3px}
 
-/* â”€â”€ MODALS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px}
 .modal-overlay.open{display:flex}
 .modal-card{
@@ -623,7 +605,6 @@ a{color:inherit;text-decoration:none}
 .toggle-switch.on::after{right:21px}
 .toggle-label{font-size:11px;color:var(--text-secondary);font-weight:600}
 
-/* â”€â”€ CONFIG CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .cfg-card-item{
   background:var(--surface-glass);backdrop-filter:blur(20px);border:1px solid var(--border);
@@ -641,7 +622,6 @@ a{color:inherit;text-decoration:none}
 [data-theme="light"] .cfg-code{background:rgba(0,0,0,.03);color:var(--neon-blue)}
 .cfg-card-actions{display:flex;gap:5px;flex-wrap:wrap;padding:0 16px 12px}
 
-/* â”€â”€ LOG TIMELINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .log-list{display:flex;flex-direction:column}
 .log-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);animation:staggerIn .3s cubic-bezier(.4,0,.2,1) both}
 .log-row:last-child{border-bottom:none}
@@ -654,7 +634,6 @@ a{color:inherit;text-decoration:none}
 .log-msg{font-size:12px;color:var(--text-primary);line-height:1.6}
 .log-time{font-size:9px;color:var(--text-secondary);margin-top:2px;display:flex;align-items:center;gap:4px;font-family:'Inter',sans-serif}
 
-/* â”€â”€ TOAST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);
   background:rgba(10,15,30,.9);backdrop-filter:blur(30px) saturate(200%);
@@ -669,12 +648,10 @@ a{color:inherit;text-decoration:none}
 .toast.ok{border-color:rgba(16,185,129,.2);color:var(--neon-emerald);box-shadow:0 12px 40px rgba(16,185,129,.08)}
 .toast.err{border-color:rgba(239,68,68,.2);color:var(--wp-red);box-shadow:0 12px 40px rgba(239,68,68,.08)}
 
-/* â”€â”€ EMPTY STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .empty-state{text-align:center;padding:50px 20px;color:var(--text-secondary)}
 .empty-state i{font-size:40px;opacity:.2;display:block;margin-bottom:12px}
 .empty-state p{font-size:12px}
 
-/* â”€â”€ TRAFFIC CHART â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .chart-card{
   background:var(--surface-glass);backdrop-filter:blur(24px);border:1px solid var(--border);
   border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:20px;
@@ -686,12 +663,10 @@ a{color:inherit;text-decoration:none}
 .chart-title i{font-size:15px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .chart-canvas-wrap{position:relative;height:280px}
 
-/* â”€â”€ SKELETON LOADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .skeleton{background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(255,255,255,.06) 50%,rgba(255,255,255,.03) 75%);background-size:200% 100%;animation:skeletonShimmer 1.5s infinite;border-radius:6px}
 [data-theme="light"] .skeleton{background:linear-gradient(90deg,rgba(0,0,0,.04) 25%,rgba(0,0,0,.07) 50%,rgba(0,0,0,.04) 75%);background-size:200% 100%}
 @keyframes skeletonShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* â”€â”€ RESPONSIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media(max-width:1100px){
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .server-bars{grid-template-columns:repeat(2,1fr)}
@@ -723,41 +698,41 @@ a{color:inherit;text-decoration:none}
 <div class="modal-overlay" id="modal-create-user">
   <div class="modal-card">
     <div class="modal-head">
-      <div class="modal-title"><i class="ti ti-user-plus"></i> Ø§ÛŒØ¬Ø§Ø¯ Ú©Ø§Ø±Ø¨Ø± Ø¬Ø¯ÛŒØ¯</div>
+      <div class="modal-title"><i class="ti ti-user-plus"></i> ایجاد کاربر جدید</div>
       <button class="modal-close" onclick="closeModal('modal-create-user')"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
       <form id="create-user-form">
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-user"></i> Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ</label><input class="form-input" id="cu-username" placeholder="username" required></div>
-          <div class="form-field"><label><i class="ti ti-lock"></i> Ø±Ù…Ø² Ø¹Ø¨ÙˆØ±</label><input class="form-input" id="cu-password" type="password" placeholder="â€¢â€¢â€¢â€¢" required></div>
+          <div class="form-field"><label><i class="ti ti-user"></i> نام کاربری</label><input class="form-input" id="cu-username" placeholder="username" required></div>
+          <div class="form-field"><label><i class="ti ti-lock"></i> رمز عبور</label><input class="form-input" id="cu-password" type="password" placeholder="••••" required></div>
         </div>
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-plug-connected"></i> Ù¾Ø±ÙˆØªÚ©Ù„</label><select class="form-select" id="cu-protocol"><option value="vless">VLESS</option><option value="vmess">VMess</option><option value="trojan">Trojan</option><option value="shadowsocks">Shadowsocks</option><option value="wireguard">WireGuard</option></select></div>
-          <div class="form-field"><label><i class="ti ti-server"></i> Ø³Ø±ÙˆØ±</label><select class="form-select" id="cu-server"><option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ø³Ø±ÙˆØ±...</option></select></div>
+          <div class="form-field"><label><i class="ti ti-plug-connected"></i> پروتکل</label><select class="form-select" id="cu-protocol"><option value="vless">VLESS</option><option value="vmess">VMess</option><option value="trojan">Trojan</option><option value="shadowsocks">Shadowsocks</option><option value="wireguard">WireGuard</option></select></div>
+          <div class="form-field"><label><i class="ti ti-server"></i> سرور</label><select class="form-select" id="cu-server"><option value="">انتخاب سرور...</option></select></div>
         </div>
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-gauge"></i> Ù…Ø­Ø¯ÙˆØ¯ÛŒØª ØªØ±Ø§ÙÛŒÚ©</label><input class="form-input" id="cu-traffic" type="number" min="0" step="0.1" placeholder="Ù…Ù‚Ø¯Ø§Ø±"></div>
-          <div class="form-field"><label>ÙˆØ§Ø­Ø¯</label><select class="form-select" id="cu-traffic-unit"><option value="GB">GB</option><option value="MB">MB</option><option value="TB">TB</option><option value="unlimited">Ù†Ø§Ù…Ø­Ø¯ÙˆØ¯</option></select></div>
+          <div class="form-field"><label><i class="ti ti-gauge"></i> محدودیت ترافیک</label><input class="form-input" id="cu-traffic" type="number" min="0" step="0.1" placeholder="مقدار"></div>
+          <div class="form-field"><label>واحد</label><select class="form-select" id="cu-traffic-unit"><option value="GB">GB</option><option value="MB">MB</option><option value="TB">TB</option><option value="unlimited">نامحدود</option></select></div>
         </div>
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-calendar"></i> Ø±ÙˆØ²Ù‡Ø§ÛŒ Ø§Ù†Ù‚Ø¶Ø§</label><input class="form-input" id="cu-expire" type="number" min="0" placeholder="0 = Ù†Ø§Ù…Ø­Ø¯ÙˆØ¯"></div>
-          <div class="form-field"><label><i class="ti ti-users"></i> Ø§ØªØµØ§Ù„ Ù‡Ù…Ø²Ù…Ø§Ù†</label><input class="form-input" id="cu-concurrent" type="number" min="1" value="1"></div>
+          <div class="form-field"><label><i class="ti ti-calendar"></i> روزهای انقضا</label><input class="form-input" id="cu-expire" type="number" min="0" placeholder="0 = نامحدود"></div>
+          <div class="form-field"><label><i class="ti ti-users"></i> اتصال همزمان</label><input class="form-input" id="cu-concurrent" type="number" min="1" value="1"></div>
         </div>
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-route"></i> Ø§ÛŒÙ†Ø¨Ø§Ù†Ø¯</label><select class="form-select" id="cu-inbound"><option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ø§ÛŒÙ†Ø¨Ø§Ù†Ø¯...</option></select></div>
-          <div class="form-field" id="cu-worker-country-wrap" style="display:none"><label><i class="ti ti-map-pin"></i> Ú©Ø´ÙˆØ± ÙˆØ±Ú©Ø±</label><select class="form-select" id="cu-worker-country"><option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ø´ÙˆØ±...</option></select></div>
+          <div class="form-field"><label><i class="ti ti-route"></i> اینباند</label><select class="form-select" id="cu-inbound"><option value="">انتخاب اینباند...</option></select></div>
+          <div class="form-field" id="cu-worker-country-wrap" style="display:none"><label><i class="ti ti-map-pin"></i> کشور ورکر</label><select class="form-select" id="cu-worker-country"><option value="">انتخاب کشور...</option></select></div>
         </div>
-        <div class="form-field"><label><i class="ti ti-notes"></i> ÛŒØ§Ø¯Ø¯Ø§Ø´Øª</label><textarea class="form-textarea" id="cu-notes" placeholder="ÛŒØ§Ø¯Ø¯Ø§Ø´Øª Ø§Ø®ØªÛŒØ§Ø±ÛŒ..."></textarea></div>
+        <div class="form-field"><label><i class="ti ti-notes"></i> یادداشت</label><textarea class="form-textarea" id="cu-notes" placeholder="یادداشت اختیاری..."></textarea></div>
         <div class="toggle-wrap">
           <button type="button" class="toggle-switch on" id="cu-active-toggle" onclick="this.classList.toggle('on')"></button>
-          <span class="toggle-label">ÙØ¹Ø§Ù„</span>
+          <span class="toggle-label">فعال</span>
         </div>
       </form>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-create-user')">Ø§Ù†ØµØ±Ø§Ù</button>
-      <button class="btn btn-primary" onclick="createUser()"><i class="ti ti-user-plus"></i> Ø§ÛŒØ¬Ø§Ø¯ Ú©Ø§Ø±Ø¨Ø±</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-create-user')">انصراف</button>
+      <button class="btn btn-primary" onclick="createUser()"><i class="ti ti-user-plus"></i> ایجاد کاربر</button>
     </div>
   </div>
 </div>
@@ -765,13 +740,13 @@ a{color:inherit;text-decoration:none}
 <div class="modal-overlay" id="modal-config">
   <div class="modal-card" style="max-width:440px">
     <div class="modal-head">
-      <div class="modal-title"><i class="ti ti-link"></i> Ú©Ø§Ù†ÙÛŒÚ¯</div>
+      <div class="modal-title"><i class="ti ti-link"></i> کانفیگ</div>
       <button class="modal-close" onclick="closeModal('modal-config')"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
       <div class="cfg-code" style="max-height:none;font-size:10.5px" id="config-text"></div>
       <div style="margin-top:12px;display:flex;gap:6px">
-        <button class="btn btn-primary" onclick="copyConfigText()"><i class="ti ti-copy"></i> Ú©Ù¾ÛŒ</button>
+        <button class="btn btn-primary" onclick="copyConfigText()"><i class="ti ti-copy"></i> کپی</button>
         <button class="btn btn-ghost" onclick="showQRCode()"><i class="ti ti-qrcode"></i> QR Code</button>
       </div>
       <div id="config-qr" style="margin-top:12px;text-align:center;display:none">
@@ -800,29 +775,29 @@ a{color:inherit;text-decoration:none}
     <div><div class="sidebar-logo-text">White Panel</div><div class="sidebar-logo-sub">ENTERPRISE</div></div>
   </div>
   <div class="sidebar-nav">
-    <div class="nav-section">Ù…Ù†ÙˆÛŒ Ø§ØµÙ„ÛŒ</div>
-    <div class="nav-item active" data-page="dash"><i class="ti ti-layout-dashboard"></i> Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</div>
-    <div class="nav-item" data-page="users"><i class="ti ti-users"></i> Ú©Ø§Ø±Ø¨Ø±Ø§Ù† <span class="nav-badge" id="users-count">0</span></div>
-    <div class="nav-item" data-page="configs"><i class="ti ti-link-plus"></i> Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§ <span class="nav-badge" id="configs-count">0</span></div>
-    <div class="nav-item" data-page="servers"><i class="ti ti-server-2"></i> Ø³Ø±ÙˆØ±Ù‡Ø§</div>
-    <div class="nav-item" data-page="plans"><i class="ti ti-receipt-2"></i> Ù¾Ù„Ù†â€ŒÙ‡Ø§</div>
-    <div class="nav-item" data-page="groups"><i class="ti ti-folders"></i> Ú¯Ø±ÙˆÙ‡â€ŒÙ‡Ø§</div>
-    <div class="nav-item" data-page="traffic"><i class="ti ti-chart-area"></i> ØªØ±Ø§ÙÛŒÚ©</div>
-    <div class="nav-item" data-page="logs"><i class="ti ti-history"></i> Ù„Ø§Ú¯â€ŒÙ‡Ø§</div>
-    <div class="nav-section">Ø³ÛŒØ³ØªÙ…</div>
+    <div class="nav-section">منوی اصلی</div>
+    <div class="nav-item active" data-page="dash"><i class="ti ti-layout-dashboard"></i> داشبورد</div>
+    <div class="nav-item" data-page="users"><i class="ti ti-users"></i> کاربران <span class="nav-badge" id="users-count">0</span></div>
+    <div class="nav-item" data-page="configs"><i class="ti ti-link-plus"></i> کانفیگ‌ها <span class="nav-badge" id="configs-count">0</span></div>
+    <div class="nav-item" data-page="servers"><i class="ti ti-server-2"></i> سرورها</div>
+    <div class="nav-item" data-page="plans"><i class="ti ti-receipt-2"></i> پلن‌ها</div>
+    <div class="nav-item" data-page="groups"><i class="ti ti-folders"></i> گروه‌ها</div>
+    <div class="nav-item" data-page="traffic"><i class="ti ti-chart-area"></i> ترافیک</div>
+    <div class="nav-item" data-page="logs"><i class="ti ti-history"></i> لاگ‌ها</div>
+    <div class="nav-section">سیستم</div>
     <div class="nav-item" data-page="worker"><i class="ti ti-cloud"></i> Cloudflare Worker</div>
     <div class="nav-item" data-page="api"><i class="ti ti-api"></i> API</div>
-    <div class="nav-item" data-page="tools"><i class="ti ti-tools"></i> Ø§Ø¨Ø²Ø§Ø±Ù‡Ø§</div>
-    <div class="nav-item" data-page="settings"><i class="ti ti-settings"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª</div>
-    <div class="nav-item" data-page="logout" style="color:var(--wp-red)"><i class="ti ti-logout"></i> Ø®Ø±ÙˆØ¬</div>
+    <div class="nav-item" data-page="tools"><i class="ti ti-tools"></i> ابزارها</div>
+    <div class="nav-item" data-page="settings"><i class="ti ti-settings"></i> تنظیمات</div>
+    <div class="nav-item" data-page="logout" style="color:var(--wp-red)"><i class="ti ti-logout"></i> خروج</div>
   </div>
   <div class="sidebar-footer">
     <div class="sidebar-user">
       <div class="sidebar-avatar"><i class="ti ti-user"></i></div>
-      <div><div class="sidebar-user-name">Ø§Ø¯Ù…ÛŒÙ†</div><div class="sidebar-user-role">Ù…Ø¯ÛŒØ± Ø³ÛŒØ³ØªÙ…</div></div>
+      <div><div class="sidebar-user-name">ادمین</div><div class="sidebar-user-role">مدیر سیستم</div></div>
     </div>
-    <button class="theme-btn" onclick="toggleTheme()"><i class="ti ti-moon" id="theme-icon"></i> <span id="theme-label">ØªÙ… ØªØ§Ø±ÛŒÚ©</span></button>
-    <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> Ø®Ø±ÙˆØ¬ Ø§Ø² Ø­Ø³Ø§Ø¨</button>
+    <button class="theme-btn" onclick="toggleTheme()"><i class="ti ti-moon" id="theme-icon"></i> <span id="theme-label">تم تاریک</span></button>
+    <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> خروج از حساب</button>
   </div>
 </aside>
 
@@ -831,38 +806,38 @@ a{color:inherit;text-decoration:none}
   <!-- DASHBOARD PAGE -->
   <section class="page active" id="page-dash">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-layout-dashboard"></i> Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</div><div class="topbar-sub" id="last-updated">Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ...</div></div>
+      <div><div class="topbar-title"><i class="ti ti-layout-dashboard"></i> داشبورد</div><div class="topbar-sub" id="last-updated">در حال بارگذاری...</div></div>
       <div class="topbar-right">
-        <span class="welcome-text">Ø³Ù„Ø§Ù… Ø§Ø¯Ù…ÛŒÙ† <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11a2 2 0 0 0 0-4H7.5a2.5 2.5 0 0 1 0-5h.5a3.5 3.5 0 1 1 0 7"/><path d="M22 9a6 6 0 0 1-6 6"/></svg></span>
-        <button class="bell-btn" title="Ø§Ø¹Ù„Ø§Ù†â€ŒÙ‡Ø§"><i class="ti ti-bell"></i></button>
-        <button class="btn btn-primary" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> Ø§ÛŒØ¬Ø§Ø¯ Ú©Ø§Ø±Ø¨Ø± Ø¬Ø¯ÛŒØ¯</button>
+        <span class="welcome-text">سلام ادمین <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11a2 2 0 0 0 0-4H7.5a2.5 2.5 0 0 1 0-5h.5a3.5 3.5 0 1 1 0 7"/><path d="M22 9a6 6 0 0 1-6 6"/></svg></span>
+        <button class="bell-btn" title="اعلان‌ها"><i class="ti ti-bell"></i></button>
+        <button class="btn btn-primary" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> ایجاد کاربر جدید</button>
       </div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon blue"><i class="ti ti-users"></i></div><div class="stat-label">Ú©Ø§Ø±Ø¨Ø±Ø§Ù† ÙØ¹Ø§Ù„</div><div class="stat-value" id="s-active-users">â€”</div><div class="stat-sub up" id="s-users-trend"><i class="ti ti-trending-up"></i> â€”</div></div>
-      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-link"></i></div><div class="stat-label">Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§ÛŒ ÙØ¹Ø§Ù„</div><div class="stat-value" id="s-active-configs">â€”</div></div>
-      <div class="stat-card"><div class="stat-icon purple"><i class="ti ti-transfer"></i></div><div class="stat-label">Ù…ØµØ±Ù ØªØ±Ø§ÙÛŒÚ©</div><div class="stat-value" id="s-traffic">â€”<span style="font-size:13px;font-weight:500;color:var(--text-secondary)">GB</span></div></div>
-      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-server-2"></i></div><div class="stat-label">Ø³Ø±ÙˆØ±Ù‡Ø§ÛŒ Ø¢Ù†Ù„Ø§ÛŒÙ†</div><div class="stat-value" id="s-online-servers">â€”</div><div class="stat-sub"><span class="dot dot-green pulse"></span> Ø¢Ù†Ù„Ø§ÛŒÙ†</div></div>
+      <div class="stat-card"><div class="stat-icon blue"><i class="ti ti-users"></i></div><div class="stat-label">کاربران فعال</div><div class="stat-value" id="s-active-users">—</div><div class="stat-sub up" id="s-users-trend"><i class="ti ti-trending-up"></i> —</div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-link"></i></div><div class="stat-label">کانفیگ‌های فعال</div><div class="stat-value" id="s-active-configs">—</div></div>
+      <div class="stat-card"><div class="stat-icon purple"><i class="ti ti-transfer"></i></div><div class="stat-label">مصرف ترافیک</div><div class="stat-value" id="s-traffic">—<span style="font-size:13px;font-weight:500;color:var(--text-secondary)">GB</span></div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-server-2"></i></div><div class="stat-label">سرورهای آنلاین</div><div class="stat-value" id="s-online-servers">—</div><div class="stat-sub"><span class="dot dot-green pulse"></span> آنلاین</div></div>
     </div>
     <div class="quick-actions">
-      <button class="qa-btn" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> Ø§ÙØ²ÙˆØ¯Ù† Ú©Ø§Ø±Ø¨Ø±</button>
-      <button class="qa-btn" onclick="switchPage('configs')"><i class="ti ti-link-plus"></i> Ø³Ø§Ø®Øª Ú©Ø§Ù†ÙÛŒÚ¯</button>
-      <button class="qa-btn" onclick="switchPage('traffic')"><i class="ti ti-chart-bar"></i> Ú¯Ø²Ø§Ø±Ø´ ØªØ±Ø§ÙÛŒÚ©</button>
-      <button class="qa-btn"><i class="ti ti-database"></i> Ø¨Ú©Ø§Ù¾</button>
+      <button class="qa-btn" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> افزودن کاربر</button>
+      <button class="qa-btn" onclick="switchPage('configs')"><i class="ti ti-link-plus"></i> ساخت کانفیگ</button>
+      <button class="qa-btn" onclick="switchPage('traffic')"><i class="ti ti-chart-bar"></i> گزارش ترافیک</button>
+      <button class="qa-btn"><i class="ti ti-database"></i> بکاپ</button>
     </div>
     <div class="server-panel">
-      <div class="server-title"><i class="ti ti-activity"></i> ÙˆØ¶Ø¹ÛŒØª Ø³Ø±ÙˆØ±</div>
+      <div class="server-title"><i class="ti ti-activity"></i> وضعیت سرور</div>
       <div class="server-bars">
-        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">CPU</span><span class="srv-bar-pct" id="srv-cpu">â€”%</span></div><div class="srv-bar-track"><div class="srv-bar-fill blue" id="srv-cpu-bar" style="width:0%"></div></div></div>
-        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">RAM</span><span class="srv-bar-pct" id="srv-ram">â€”%</span></div><div class="srv-bar-track"><div class="srv-bar-fill purple" id="srv-ram-bar" style="width:0%"></div></div></div>
-        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">Disk</span><span class="srv-bar-pct" id="srv-disk">â€”%</span></div><div class="srv-bar-track"><div class="srv-bar-fill amber" id="srv-disk-bar" style="width:0%"></div></div></div>
-        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">Network</span><span class="srv-bar-pct" id="srv-net">â€” MB/s</span></div><div class="srv-bar-track"><div class="srv-bar-fill green" id="srv-net-bar" style="width:0%"></div></div></div>
+        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">CPU</span><span class="srv-bar-pct" id="srv-cpu">—%</span></div><div class="srv-bar-track"><div class="srv-bar-fill blue" id="srv-cpu-bar" style="width:0%"></div></div></div>
+        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">RAM</span><span class="srv-bar-pct" id="srv-ram">—%</span></div><div class="srv-bar-track"><div class="srv-bar-fill purple" id="srv-ram-bar" style="width:0%"></div></div></div>
+        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">Disk</span><span class="srv-bar-pct" id="srv-disk">—%</span></div><div class="srv-bar-track"><div class="srv-bar-fill amber" id="srv-disk-bar" style="width:0%"></div></div></div>
+        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">Network</span><span class="srv-bar-pct" id="srv-net">— MB/s</span></div><div class="srv-bar-track"><div class="srv-bar-fill green" id="srv-net-bar" style="width:0%"></div></div></div>
       </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ</th><th>Ù¾Ø±ÙˆØªÚ©Ù„</th><th>Ù…ØµØ±Ù</th><th>Ø§Ù†Ù‚Ø¶Ø§</th><th>ÙˆØ¶Ø¹ÛŒØª</th><th>Ø¹Ù…Ù„ÛŒØ§Øª</th></tr></thead>
-        <tbody id="dash-users-table"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-secondary)">Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ...</td></tr></tbody>
+        <thead><tr><th>نام کاربری</th><th>پروتکل</th><th>مصرف</th><th>انقضا</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody id="dash-users-table"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-secondary)">در حال بارگذاری...</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -870,15 +845,15 @@ a{color:inherit;text-decoration:none}
   <!-- USERS PAGE -->
   <section class="page" id="page-users">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-users"></i> Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ú©Ø§Ø±Ø¨Ø±Ø§Ù† Ùˆ Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§</div></div>
+      <div><div class="topbar-title"><i class="ti ti-users"></i> کاربران</div><div class="topbar-sub">مدیریت کاربران و کانفیگ‌ها</div></div>
       <div class="topbar-right">
-        <button class="btn btn-primary" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> Ø§ÛŒØ¬Ø§Ø¯ Ú©Ø§Ø±Ø¨Ø± Ø¬Ø¯ÛŒØ¯</button>
+        <button class="btn btn-primary" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> ایجاد کاربر جدید</button>
       </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ</th><th>Ù¾Ø±ÙˆØªÚ©Ù„</th><th>Ù…ØµØ±Ù</th><th>Ø§Ù†Ù‚Ø¶Ø§</th><th>ÙˆØ¶Ø¹ÛŒØª</th><th>Ø¹Ù…Ù„ÛŒØ§Øª</th></tr></thead>
-        <tbody id="users-table"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-secondary)">Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ...</td></tr></tbody>
+        <thead><tr><th>نام کاربری</th><th>پروتکل</th><th>مصرف</th><th>انقضا</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody id="users-table"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-secondary)">در حال بارگذاری...</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -886,80 +861,80 @@ a{color:inherit;text-decoration:none}
   <!-- CONFIGS PAGE -->
   <section class="page" id="page-configs">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-link-plus"></i> Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§ÛŒ Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</div></div>
-      <div class="topbar-right"><span class="badge badge-blue" id="cfg-total">Û° Ú©Ø§Ù†ÙÛŒÚ¯</span></div>
+      <div><div class="topbar-title"><i class="ti ti-link-plus"></i> کانفیگ‌ها</div><div class="topbar-sub">مدیریت کانفیگ‌های کاربران</div></div>
+      <div class="topbar-right"><span class="badge badge-blue" id="cfg-total">۰ کانفیگ</span></div>
     </div>
     <div class="cfg-grid" id="configs-grid"></div>
-    <div class="empty-state" id="configs-empty" style="display:none"><i class="ti ti-link-off"></i><p>Ù‡Ù†ÙˆØ² Ú©Ø§Ù†ÙÛŒÚ¯ÛŒ ÙˆØ¬ÙˆØ¯ Ù†Ø¯Ø§Ø±Ø¯</p></div>
+    <div class="empty-state" id="configs-empty" style="display:none"><i class="ti ti-link-off"></i><p>هنوز کانفیگی وجود ندارد</p></div>
   </section>
 
   <!-- TRAFFIC PAGE -->
   <section class="page" id="page-traffic">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-chart-area"></i> ØªØ±Ø§ÙÛŒÚ©</div><div class="topbar-sub">Ø¢Ù…Ø§Ø± Ù…ØµØ±Ù Ù¾Ù‡Ù†Ø§ÛŒ Ø¨Ø§Ù†Ø¯</div></div>
-      <div class="topbar-right"><button class="btn btn-ghost" onclick="refreshAll()"><i class="ti ti-refresh"></i> Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ</button></div>
+      <div><div class="topbar-title"><i class="ti ti-chart-area"></i> ترافیک</div><div class="topbar-sub">آمار مصرف پهنای باند</div></div>
+      <div class="topbar-right"><button class="btn btn-ghost" onclick="refreshAll()"><i class="ti ti-refresh"></i> بروزرسانی</button></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title"><i class="ti ti-chart-line"></i> Ù†Ù…ÙˆØ¯Ø§Ø± ØªØ±Ø§ÙÛŒÚ©</div>
+      <div class="chart-title"><i class="ti ti-chart-line"></i> نمودار ترافیک</div>
       <div class="chart-canvas-wrap"><canvas id="traffic-chart"></canvas></div>
     </div>
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-      <div class="stat-card"><div class="stat-icon blue"><i class="ti ti-clock"></i></div><div class="stat-label">Ù…ÛŒØ§Ù†Ú¯ÛŒÙ† Ø³Ø§Ø¹ØªÛŒ</div><div class="stat-value" id="t-avg">â€”</div></div>
-      <div class="stat-card"><div class="stat-icon purple"><i class="ti ti-trending-up"></i></div><div class="stat-label">Ø§ÙˆØ¬ Ù…ØµØ±Ù</div><div class="stat-value" id="t-peak">â€”</div></div>
-      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-database"></i></div><div class="stat-label">Ú©Ù„ ØªØ±Ø§ÙÛŒÚ©</div><div class="stat-value" id="t-total">â€”</div></div>
+      <div class="stat-card"><div class="stat-icon blue"><i class="ti ti-clock"></i></div><div class="stat-label">میانگین ساعتی</div><div class="stat-value" id="t-avg">—</div></div>
+      <div class="stat-card"><div class="stat-icon purple"><i class="ti ti-trending-up"></i></div><div class="stat-label">اوج مصرف</div><div class="stat-value" id="t-peak">—</div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-database"></i></div><div class="stat-label">کل ترافیک</div><div class="stat-value" id="t-total">—</div></div>
     </div>
   </section>
 
   <!-- LOGS PAGE -->
   <section class="page" id="page-logs">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-history"></i> Ù„Ø§Ú¯â€ŒÙ‡Ø§</div><div class="topbar-sub">ØªØ§Ø±ÛŒØ®Ú†Ù‡ ÙØ¹Ø§Ù„ÛŒØªâ€ŒÙ‡Ø§</div></div>
-      <div class="topbar-right"><button class="btn btn-ghost" onclick="loadLogs()"><i class="ti ti-refresh"></i> Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ</button></div>
+      <div><div class="topbar-title"><i class="ti ti-history"></i> لاگ‌ها</div><div class="topbar-sub">تاریخچه فعالیت‌ها</div></div>
+      <div class="topbar-right"><button class="btn btn-ghost" onclick="loadLogs()"><i class="ti ti-refresh"></i> بروزرسانی</button></div>
     </div>
     <div class="table-wrap" style="padding:16px">
-      <div class="log-list" id="logs-list"><div class="empty-state"><i class="ti ti-history-toggle"></i><p>Ù‡Ù†ÙˆØ² Ù„Ø§Ú¯ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡</p></div></div>
+      <div class="log-list" id="logs-list"><div class="empty-state"><i class="ti ti-history-toggle"></i><p>هنوز لاگی ثبت نشده</p></div></div>
     </div>
   </section>
 
   <!-- SERVERS PAGE -->
   <section class="page" id="page-servers">
-    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-server-2"></i> Ø³Ø±ÙˆØ±Ù‡Ø§</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ø³Ø±ÙˆØ±Ù‡Ø§</div></div></div>
-    <div class="empty-state"><i class="ti ti-server-2"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-server-2"></i> سرورها</div><div class="topbar-sub">مدیریت سرورها</div></div></div>
+    <div class="empty-state"><i class="ti ti-server-2"></i><p>به زودی...</p></div>
   </section>
 
   <!-- PLANS PAGE -->
   <section class="page" id="page-plans">
-    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-receipt-2"></i> Ù¾Ù„Ù†â€ŒÙ‡Ø§</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ù¾Ù„Ù†â€ŒÙ‡Ø§</div></div></div>
-    <div class="empty-state"><i class="ti ti-receipt-2"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-receipt-2"></i> پلن‌ها</div><div class="topbar-sub">مدیریت پلن‌ها</div></div></div>
+    <div class="empty-state"><i class="ti ti-receipt-2"></i><p>به زودی...</p></div>
   </section>
 
   <!-- GROUPS PAGE -->
   <section class="page" id="page-groups">
-    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-folders"></i> Ú¯Ø±ÙˆÙ‡â€ŒÙ‡Ø§</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ú¯Ø±ÙˆÙ‡â€ŒÙ‡Ø§</div></div></div>
-    <div class="empty-state"><i class="ti ti-folders"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-folders"></i> گروه‌ها</div><div class="topbar-sub">مدیریت گروه‌ها</div></div></div>
+    <div class="empty-state"><i class="ti ti-folders"></i><p>به زودی...</p></div>
   </section>
 
   <!-- SETTINGS PAGE -->
   <section class="page" id="page-settings">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-settings"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª</div><div class="topbar-sub">Ù¾ÛŒÚ©Ø±Ø¨Ù†Ø¯ÛŒ Ù¾Ù†Ù„</div></div>
-      <div class="topbar-right"><button class="btn btn-primary" onclick="saveSettings()"><i class="ti ti-device-floppy"></i> Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª</button></div>
+      <div><div class="topbar-title"><i class="ti ti-settings"></i> تنظیمات</div><div class="topbar-sub">پیکربندی پنل</div></div>
+      <div class="topbar-right"><button class="btn btn-primary" onclick="saveSettings()"><i class="ti ti-device-floppy"></i> ذخیره تنظیمات</button></div>
     </div>
     <div class="server-panel" style="animation:none">
-      <div class="server-title"><i class="ti ti-world"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø¹Ù…ÙˆÙ…ÛŒ</div>
+      <div class="server-title"><i class="ti ti-world"></i> تنظیمات عمومی</div>
       <div class="form-row">
-        <div class="form-field"><label><i class="ti ti-world"></i> Ø¯Ø§Ù…Ù†Ù‡ Ø§ØµÙ„ÛŒ</label><input class="form-input" id="set-domain" placeholder="example.com"></div>
+        <div class="form-field"><label><i class="ti ti-world"></i> دامنه اصلی</label><input class="form-input" id="set-domain" placeholder="example.com"></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label><i class="ti ti-route"></i> ØªØ±Ù†Ø²Ù¾ÙˆØ±Øª Ù¾ÛŒØ´â€ŒÙØ±Ø¶</label>
+        <div class="form-field"><label><i class="ti ti-route"></i> ترنزپورت پیش‌فرض</label>
           <select class="form-select" id="set-transport"><option value="ws">WebSocket</option><option value="xhttp">XHTTP</option><option value="grpc">gRPC</option><option value="tcp">TCP</option></select>
         </div>
-        <div class="form-field"><label><i class="ti ti-settings-2"></i> Ø­Ø§Ù„Øª Ø§ØªØµØ§Ù„</label>
+        <div class="form-field"><label><i class="ti ti-settings-2"></i> حالت اتصال</label>
           <select class="form-select" id="set-conn-mode"><option value="ws">WebSocket</option><option value="xhttp">XHTTP</option><option value="tcp">TCP</option></select>
         </div>
       </div>
       <div style="margin-top:10px">
-        <label style="font-size:10px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:8px">Ù¾Ø±ÙˆØªÚ©Ù„â€ŒÙ‡Ø§ÛŒ ÙØ¹Ø§Ù„</label>
+        <label style="font-size:10px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:8px">پروتکل‌های فعال</label>
         <div style="display:flex;gap:14px;flex-wrap:wrap">
           <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-primary);cursor:pointer"><input type="checkbox" id="set-proto-vless" style="accent-color:var(--neon-cyan)"> VLESS</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-primary);cursor:pointer"><input type="checkbox" id="set-proto-vmess" style="accent-color:var(--neon-purple)"> VMess</label>
@@ -974,10 +949,10 @@ a{color:inherit;text-decoration:none}
     </div>
 
     <div class="server-panel" style="animation:none">
-      <div class="server-title"><i class="ti ti-shield-lock"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª Reality</div>
+      <div class="server-title"><i class="ti ti-shield-lock"></i> تنظیمات Reality</div>
       <div class="form-row">
-        <div class="form-field"><label><i class="ti ti-plug"></i> Ù¾ÙˆØ±Øª</label><input class="form-input" id="set-real-port" type="number"></div>
-        <div class="form-field"><label><i class="ti ti-target"></i> Ù…Ù‚ØµØ¯</label><input class="form-input" id="set-real-dest" placeholder="google.com:443"></div>
+        <div class="form-field"><label><i class="ti ti-plug"></i> پورت</label><input class="form-input" id="set-real-port" type="number"></div>
+        <div class="form-field"><label><i class="ti ti-target"></i> مقصد</label><input class="form-input" id="set-real-dest" placeholder="google.com:443"></div>
       </div>
       <div class="form-row">
         <div class="form-field"><label><i class="ti ti-key"></i> Public Key</label><input class="form-input" id="set-real-pbk" style="font-family:'JetBrains Mono',monospace;font-size:11px"></div>
@@ -988,20 +963,20 @@ a{color:inherit;text-decoration:none}
         <div class="form-field"><label><i class="ti ti-letter-s"></i> SNI</label><input class="form-input" id="set-real-sni"></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label><i class="ti ti-world"></i> Ø¯Ø§Ù…Ù†Ù‡ Ø®Ø§Ø±Ø¬ÛŒ</label><input class="form-input" id="set-real-ext-domain"></div>
-        <div class="form-field"><label><i class="ti ti-plug-connected"></i> Ù¾ÙˆØ±Øª Ø®Ø§Ø±Ø¬ÛŒ</label><input class="form-input" id="set-real-ext-port" type="number"></div>
+        <div class="form-field"><label><i class="ti ti-world"></i> دامنه خارجی</label><input class="form-input" id="set-real-ext-domain"></div>
+        <div class="form-field"><label><i class="ti ti-plug-connected"></i> پورت خارجی</label><input class="form-input" id="set-real-ext-port" type="number"></div>
       </div>
       <div style="margin-top:12px;display:flex;gap:8px">
-        <button class="btn btn-purple" onclick="generateRealityKeys()"><i class="ti ti-key"></i> ØªÙˆÙ„ÛŒØ¯ Ú©Ù„ÛŒØ¯ Ø¬Ø¯ÛŒØ¯</button>
-        <button class="btn btn-primary" onclick="saveRealitySettings()"><i class="ti ti-device-floppy"></i> Ø°Ø®ÛŒØ±Ù‡</button>
+        <button class="btn btn-purple" onclick="generateRealityKeys()"><i class="ti ti-key"></i> تولید کلید جدید</button>
+        <button class="btn btn-primary" onclick="saveRealitySettings()"><i class="ti ti-device-floppy"></i> ذخیره</button>
       </div>
     </div>
 
     <div class="server-panel" style="animation:none">
-      <div class="server-title"><i class="ti ti-palette"></i> ØµÙØ­Ù‡ Ø§Ø´ØªØ±Ø§Ú© Ø³ÙØ§Ø±Ø´ÛŒ</div>
+      <div class="server-title"><i class="ti ti-palette"></i> صفحه اشتراک سفارشی</div>
       <div class="custom-sub-dropdown-wrap" id="custom-sub-dropdown-wrap">
         <div class="custom-sub-dropdown" id="custom-sub-dropdown" onclick="toggleCustomSubMenu()">
-          <span id="custom-sub-selected-label">Ù¾ÛŒØ´â€ŒÙØ±Ø¶</span>
+          <span id="custom-sub-selected-label">پیش‌فرض</span>
           <i class="ti ti-chevron-down" id="custom-sub-chevron"></i>
         </div>
         <input type="hidden" id="set-custom-sub-default" value="">
@@ -1014,81 +989,78 @@ a{color:inherit;text-decoration:none}
   <!-- WORKER PAGE -->
   <section class="page" id="page-worker">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-cloud"></i> Cloudflare Worker</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª ÙˆØ±Ú©Ø± Ú©Ù„ÙˆØ¯ÙÙ„Ø±</div></div>
-      <div class="topbar-right"><button class="btn btn-primary" id="worker-sync-btn" onclick="syncWorkerProxies()" style="display:none"><i class="ti ti-refresh"></i> Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ù¾Ø±ÙˆÚ©Ø³ÛŒâ€ŒÙ‡Ø§</button></div>
+      <div><div class="topbar-title"><i class="ti ti-cloud"></i> Cloudflare Worker</div><div class="topbar-sub">مدیریت ورکر کلودفلر</div></div>
+      <div class="topbar-right"><button class="btn btn-primary" id="worker-sync-btn" onclick="syncWorkerProxies()" style="display:none"><i class="ti ti-refresh"></i> همگام‌سازی پروکسی‌ها</button></div>
     </div>
 
     <div class="server-panel" id="worker-connect-form" style="animation:none">
-      <div class="server-title"><i class="ti ti-cloud-upload"></i> Ø§ØªØµØ§Ù„ ÙˆØ±Ú©Ø±</div>
+      <div class="server-title"><i class="ti ti-cloud-upload"></i> اتصال ورکر</div>
       <div class="form-row">
         <div class="form-field"><label><i class="ti ti-key"></i> Cloudflare API Token</label><input class="form-input" id="worker-token" type="password" placeholder="API Token"></div>
-        <div class="form-field"><label><i class="ti ti-mail"></i> Ø§ÛŒÙ…ÛŒÙ„ Cloudflare</label><input class="form-input" id="worker-email" type="email" placeholder="email@example.com"></div>
+        <div class="form-field"><label><i class="ti ti-mail"></i> ایمیل Cloudflare</label><input class="form-input" id="worker-email" type="email" placeholder="email@example.com"></div>
       </div>
       <div class="form-row">
         <div class="form-field"><label><i class="ti ti-id"></i> Account ID</label><input class="form-input" id="worker-account-id" placeholder="Account ID"></div>
-        <div class="form-field"><label><i class="ti ti-cloud"></i> Ù†Ø§Ù… ÙˆØ±Ú©Ø±</label><input class="form-input" id="worker-name" value="white-proxy"></div>
+        <div class="form-field"><label><i class="ti ti-cloud"></i> نام ورکر</label><input class="form-input" id="worker-name" value="white-proxy"></div>
       </div>
-      <div style="margin-top:10px"><button class="btn btn-primary" onclick="connectWorker()"><i class="ti ti-cloud-upload"></i> Ø§ØªØµØ§Ù„ Ùˆ Ø§Ø³ØªÙ‚Ø±Ø§Ø±</button></div>
+      <div style="margin-top:10px"><button class="btn btn-primary" onclick="connectWorker()"><i class="ti ti-cloud-upload"></i> اتصال و استقرار</button></div>
     </div>
 
     <div class="server-panel" id="worker-connected-info" style="display:none;animation:none">
-      <div class="server-title"><i class="ti ti-cloud-check"></i> ÙˆØ±Ú©Ø± Ù…ØªØµÙ„</div>
-      <button class="btn btn-danger" id="worker-disconnect-btn" onclick="disconnectWorker()" style="margin-bottom:12px"><i class="ti ti-cloud-off"></i> Ù‚Ø·Ø¹ Ø§ØªØµØ§Ù„</button>
+      <div class="server-title"><i class="ti ti-cloud-check"></i> ورکر متصل</div>
+      <button class="btn btn-danger" id="worker-disconnect-btn" onclick="disconnectWorker()" style="margin-bottom:12px"><i class="ti ti-cloud-off"></i> قطع اتصال</button>
       <div class="form-row">
-        <div class="form-field"><label>Ø¯Ø§Ù…Ù†Ù‡ ÙˆØ±Ú©Ø±</label><input class="form-input" id="worker-domain-display" readonly></div>
+        <div class="form-field"><label>دامنه ورکر</label><input class="form-input" id="worker-domain-display" readonly></div>
         <div class="form-field"><label>Account ID</label><input class="form-input" id="worker-account-display" readonly></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label>Ù†Ø§Ù… ÙˆØ±Ú©Ø±</label><input class="form-input" id="worker-name-display" readonly></div>
-        <div class="form-field"><label>ØªÙˆÚ©Ù† Ú©Ù†ØªØ±Ù„</label><input class="form-input" id="worker-control-token-display" readonly></div>
+        <div class="form-field"><label>نام ورکر</label><input class="form-input" id="worker-name-display" readonly></div>
+        <div class="form-field"><label>توکن کنترل</label><input class="form-input" id="worker-control-token-display" readonly></div>
       </div>
       <div style="margin-top:10px;display:flex;gap:8px">
-        <button class="btn btn-primary" onclick="syncWorkerProxies()"><i class="ti ti-refresh"></i> Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ</button>
-        <button class="btn btn-ghost" onclick="deployWorker()"><i class="ti ti-cloud-upload"></i> Ø¨Ø§Ø²Ø§Ø³ØªÙ‚Ø±Ø§Ø±</button>
+        <button class="btn btn-primary" onclick="syncWorkerProxies()"><i class="ti ti-refresh"></i> همگام‌سازی</button>
+        <button class="btn btn-ghost" onclick="deployWorker()"><i class="ti ti-cloud-upload"></i> بازاستقرار</button>
       </div>
     </div>
 
     <div class="server-panel" style="animation:none">
-      <div class="server-title"><i class="ti ti-settings"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª ÙˆØ±Ú©Ø±</div>
+      <div class="server-title"><i class="ti ti-settings"></i> تنظیمات ورکر</div>
       <div class="form-row">
-        <div class="form-field"><label><i class="ti ti-link"></i> Ù„ÛŒÙ†Ú© Ù…Ù†Ø¨Ø¹ Ù¾Ø±ÙˆÚ©Ø³ÛŒâ€ŒÙ‡Ø§</label><input class="form-input" id="worker-source-url" placeholder="https://..."></div>
+        <div class="form-field"><label><i class="ti ti-link"></i> لینک منبع پروکسی‌ها</label><input class="form-input" id="worker-source-url" placeholder="https://..."></div>
       </div>
       <div style="margin-top:8px;display:flex;gap:12px;align-items:center">
-        <div class="toggle-wrap"><button type="button" class="toggle-switch on" id="worker-auto-sync" onclick="this.classList.toggle('on')"></button><span class="toggle-label">Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ø®ÙˆØ¯Ú©Ø§Ø±</span></div>
-        <button class="btn btn-primary btn-sm" onclick="saveWorkerSettings()"><i class="ti ti-device-floppy"></i> Ø°Ø®ÛŒØ±Ù‡</button>
+        <div class="toggle-wrap"><button type="button" class="toggle-switch on" id="worker-auto-sync" onclick="this.classList.toggle('on')"></button><span class="toggle-label">همگام‌سازی خودکار</span></div>
+        <button class="btn btn-primary btn-sm" onclick="saveWorkerSettings()"><i class="ti ti-device-floppy"></i> ذخیره</button>
       </div>
     </div>
 
     <div class="table-wrap" id="worker-proxies-section">
       <table>
-        <thead><tr><th>Ú©Ø¯ Ú©Ø´ÙˆØ±</th><th>Ú©Ø´ÙˆØ±</th><th>Ù¾Ø±ÙˆÚ©Ø³ÛŒ</th><th>Ù¾ÙˆØ±Øª</th><th>Ø¹Ù…Ù„ÛŒØ§Øª</th></tr></thead>
-        <tbody id="worker-proxies-table"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">Ù‡Ù†ÙˆØ² Ù¾Ø±ÙˆÚ©Ø³ÛŒâ€ŒØ§ÛŒ Ø§Ø¶Ø§ÙÙ‡ Ù†Ø´Ø¯Ù‡</td></tr></tbody>
+        <thead><tr><th>کد کشور</th><th>کشور</th><th>پروکسی</th><th>پورت</th><th>عملیات</th></tr></thead>
+        <tbody id="worker-proxies-table"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">هنوز پروکسی‌ای اضافه نشده</td></tr></tbody>
       </table>
-      <div style="padding:12px"><button class="btn btn-ghost" onclick="openAddProxyModal()"><i class="ti ti-plus"></i> Ø§ÙØ²ÙˆØ¯Ù† Ù¾Ø±ÙˆÚ©Ø³ÛŒ</button></div>
+      <div style="padding:12px"><button class="btn btn-ghost" onclick="openAddProxyModal()"><i class="ti ti-plus"></i> افزودن پروکسی</button></div>
     </div>
 
     <div class="table-wrap" id="worker-last-sync" style="margin-top:14px">
-      <div style="padding:16px"><div class="server-title" style="margin-bottom:8px"><i class="ti ti-clock"></i> Ø¢Ø®Ø±ÛŒÙ† Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ</div><div id="worker-last-sync-info" style="font-size:12px;color:var(--text-secondary)">Ù‡Ù†ÙˆØ² Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯Ù‡</div></div>
+      <div style="padding:16px"><div class="server-title" style="margin-bottom:8px"><i class="ti ti-clock"></i> آخرین همگام‌سازی</div><div id="worker-last-sync-info" style="font-size:12px;color:var(--text-secondary)">هنوز همگام‌سازی انجام نشده</div></div>
     </div>
   </section>
 
   <!-- API PAGE -->
   <section class="page" id="page-api">
-    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-api"></i> API</div><div class="topbar-sub">Ù…Ø³ØªÙ†Ø¯Ø§Øª API Ù¾Ù†Ù„</div></div></div>
-    <div class="empty-state"><i class="ti ti-api"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-api"></i> API</div><div class="topbar-sub">مستندات API پنل</div></div></div>
+    <div class="empty-state"><i class="ti ti-api"></i><p>به زودی...</p></div>
   </section>
 
   <!-- TOOLS PAGE -->
   <section class="page" id="page-tools">
-    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-tools"></i> Ø§Ø¨Ø²Ø§Ø±Ù‡Ø§</div><div class="topbar-sub">Ø§Ø¨Ø²Ø§Ø±Ù‡Ø§ÛŒ Ù…Ø¯ÛŒØ±ÛŒØªÛŒ</div></div></div>
-    <div class="empty-state"><i class="ti ti-tools"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-tools"></i> ابزارها</div><div class="topbar-sub">ابزارهای مدیریتی</div></div></div>
+    <div class="empty-state"><i class="ti ti-tools"></i><p>به زودی...</p></div>
   </section>
 </main>
 
 <script>
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   WEBGL FLUID MESH BACKGROUND
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 (function(){
   var c=document.getElementById('bg-canvas');
   if(!c)return;
@@ -1123,11 +1095,6 @@ a{color:inherit;text-decoration:none}
   requestAnimationFrame(draw);
 })();
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   APPLICATION LOGIC (PRESERVED IDENTICALLY)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-
-/* ============ GLOBALS ============ */
 var isDark=localStorage.getItem('wp-theme')==='dark';
 var currentPage='dash';
 var currentConfigText='';
@@ -1138,12 +1105,11 @@ function applyTheme(dark){
   var ti=document.getElementById('theme-icon'),tm=document.getElementById('theme-icon-mob'),tl=document.getElementById('theme-label');
   if(ti)ti.className='ti '+(dark?'ti-sun':'ti-moon');
   if(tm)tm.className='ti '+(dark?'ti-sun':'ti-moon');
-  if(tl)tl.textContent=dark?'ØªÙ… Ø±ÙˆØ´Ù†':'ØªÙ… ØªØ§Ø±ÛŒÚ©';
+  if(tl)tl.textContent=dark?'تم روشن':'تم تاریک';
 }
 function toggleTheme(){isDark=!isDark;localStorage.setItem('wp-theme',isDark?'dark':'light');applyTheme(isDark)}
 applyTheme(isDark);
 
-/* ============ TOAST ============ */
 function toast(msg,type){
   var t=document.getElementById('toast');
   t.textContent=msg;t.className='toast show'+(type?' '+type:'');
@@ -1151,9 +1117,8 @@ function toast(msg,type){
 }
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function fmtB(b){if(!b||b===0)return '0 B';if(b<1024)return b+' B';if(b<1024**2)return (b/1024).toFixed(1)+' KB';if(b<1024**3)return (b/1024**2).toFixed(2)+' MB';return (b/1024**3).toFixed(2)+' GB'}
-function toFa(n){return String(n).replace(/\d/g,function(d){return'Û°Û±Û²Û³Û´ÛµÛ¶Û·Û¸Û¹'[d]})}
+function toFa(n){return String(n).replace(/\d/g,function(d){return'۰۱۲۳۴۵۶۷۸۹'[d]})}
 
-/* ============ AUTH ============ */
 async function authFetch(url,opts){
   var r=await fetch(url,opts);
   if(r.status===401){location.href='/login';throw new Error('unauthorized')}
@@ -1167,7 +1132,6 @@ async function doLogout(){
   location.href='/login';
 }
 
-/* ============ SIDEBAR ============ */
 function toggleSidebar(){
   var sb=document.getElementById('sidebar'),ov=document.getElementById('overlay');
   sb.classList.toggle('open');ov.classList.toggle('show');
@@ -1186,7 +1150,6 @@ function switchPage(name){
 }
 document.querySelectorAll('.nav-item').forEach(function(el){el.onclick=function(){switchPage(el.dataset.page)}});
 
-/* ============ MODALS ============ */
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id === 'modal-create-user'){
@@ -1196,7 +1159,6 @@ function openModal(id){
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open')})});
 
-/* ============ LOAD INBOUNDS FOR CREATE USER ============ */
 async function loadInbounds(){
   try{
     var r=await authFetch('/api/inbounds'),d=await r.json();
@@ -1206,7 +1168,7 @@ async function loadInbounds(){
     var workerCountrySelect=document.getElementById('cu-worker-country');
     if(!inboundSelect)return;
 
-    inboundSelect.innerHTML = '<option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ø§ÛŒÙ†Ø¨Ø§Ù†Ø¯...</option>' +
+    inboundSelect.innerHTML = '<option value="">انتخاب اینباند...</option>' +
       inbounds.map(function(ib){
         return '<option value="'+esc(ib.inbound_id)+'">'+esc(ib.name)+' ('+esc(ib.protocol)+' '+esc(ib.network)+')</option>';
       }).join('');
@@ -1234,7 +1196,7 @@ async function loadWorkerCountries(inboundId){
 
     var selectedInbound = workerInbounds.find(function(ib){ return ib.inbound_id === inboundId; });
     if(selectedInbound && selectedInbound.countries && selectedInbound.countries.length > 0){
-      workerCountrySelect.innerHTML = '<option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ø´ÙˆØ±...</option>' +
+      workerCountrySelect.innerHTML = '<option value="">انتخاب کشور...</option>' +
         selectedInbound.countries.map(function(c){
           return '<option value="'+esc(c.code)+'">'+esc(c.country)+' ('+esc(c.code)+')</option>';
         }).join('');
@@ -1245,7 +1207,6 @@ async function loadWorkerCountries(inboundId){
   }catch(e){console.error(e)}
 }
 
-/* ============ CREATE USER ============ */
 async function createUser(){
   var form=document.getElementById('create-user-form');
   var traffic=document.getElementById('cu-traffic').value;
@@ -1274,18 +1235,17 @@ async function createUser(){
       body.proxy_countries = [proxyCountry.toLowerCase()];
     }
   }
-  if(!body.label){toast('Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª','err');return}
+  if(!body.label){toast('نام کاربری الزامی است','err');return}
   try{
     var r=await authFetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'Ø®Ø·Ø§')}
-    toast('Ú©Ø§Ø±Ø¨Ø± Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø§ÛŒØ¬Ø§Ø¯ Ø´Ø¯ âœ“','ok');
+    if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'خطا')}
+    toast('کاربر با موفقیت ایجاد شد ✓','ok');
     closeModal('modal-create-user');
     ['cu-username','cu-password','cu-traffic','cu-expire','cu-concurrent','cu-notes'].forEach(function(id){document.getElementById(id).value=''});
     loadUsers();loadConfigs();loadDashboard();
   }catch(e){toast(e.message,'err')}
 }
 
-/* ============ LOAD USERS ============ */
 async function loadUsers(){
   try{
     var r=await authFetch('/api/links'),d=await r.json();
@@ -1297,34 +1257,33 @@ async function loadUsers(){
 
 function renderUsersTable(links,tableId){
   var tbody=document.getElementById(tableId);
-  if(!links.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><i class="ti ti-users-off"></i><p>Ú©Ø§Ø±Ø¨Ø±ÛŒ ÙˆØ¬ÙˆØ¯ Ù†Ø¯Ø§Ø±Ø¯</p></div></td></tr>';return}
+  if(!links.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><i class="ti ti-users-off"></i><p>کاربری وجود ندارد</p></div></td></tr>';return}
   tbody.innerHTML=links.map(function(l){
     var pct=l.limit_bytes===0?0:Math.min(100,l.used_bytes/l.limit_bytes*100);
     var bc=pct>90?'var(--wp-red)':pct>70?'var(--warning)':'var(--neon-cyan)';
-    var lim=l.limit_bytes===0?'âˆž':fmtB(l.limit_bytes);
+    var lim=l.limit_bytes===0?'∞':fmtB(l.limit_bytes);
     var protoClass=l.protocol==='vless'||l.protocol==='vless-ws'?'pb-vless':l.protocol==='vmess'?'pb-vmess':l.protocol==='trojan'?'pb-trojan':l.protocol==='shadowsocks'?'pb-ss':'pb-wg';
     var protoFa=l.protocol==='vless-ws'?'VLESS':l.protocol==='vmess'?'VMess':l.protocol==='trojan'?'Trojan':l.protocol==='shadowsocks'?'Shadowsocks':l.protocol==='wireguard'?'WireGuard':l.protocol||'VLESS';
     var isActive=l.active&&!l.expired;
-    var expText=l.expired?'Ù…Ù†Ù‚Ø¶ÛŒ':l.expires_at?new Date(l.expires_at).toLocaleDateString('fa-IR'):'Ù†Ø§Ù…Ø­Ø¯ÙˆØ¯';
+    var expText=l.expired?'منقضی':l.expires_at?new Date(l.expires_at).toLocaleDateString('fa-IR'):'نامحدود';
     var expCls=l.expired?'exp-bad':l.expires_at?'exp-ok':'exp-ok';
     return '<tr><td style="font-weight:600">'+esc(l.label)+'</td>'+
       '<td><span class="proto-badge '+protoClass+'">'+protoFa+'</span></td>'+
       '<td><div class="usage-bar-wrap"><div class="usage-bar"><div class="usage-fill" style="width:'+pct+'%;background:'+bc+'"></div></div><div class="usage-text"><span>'+fmtB(l.used_bytes)+'</span><span>'+lim+'</span></div></div></td>'+
       '<td><span class="exp-chip '+expCls+'">'+expText+'</span></td>'+
-      '<td><div class="status-dot '+(isActive?'active':'expired')+'"><span class="dot '+(isActive?'dot-green':'dot-red')+' '+(isActive?'pulse':'')+'"></span>'+(isActive?'ÙØ¹Ø§Ù„':'ØºÛŒØ±ÙØ¹Ø§Ù„')+'</div></td>'+
+      '<td><div class="status-dot '+(isActive?'active':'expired')+'"><span class="dot '+(isActive?'dot-green':'dot-red')+' '+(isActive?'pulse':'')+'"></span>'+(isActive?'فعال':'غیرفعال')+'</div></td>'+
       '<td><div class="action-btns">'+
-        '<button class="btn btn-sm btn-ghost btn-icon" onclick="viewConfig(\''+l.uuid+'\')" title="Ù…Ø´Ø§Ù‡Ø¯Ù‡"><i class="ti ti-eye"></i></button>'+
-        '<button class="btn btn-sm btn-ghost btn-icon" onclick="copyLink(\''+l.uuid+'\')" title="Ú©Ù¾ÛŒ"><i class="ti ti-copy"></i></button>'+
-        '<button class="btn btn-sm btn-ghost btn-icon" onclick="toggleUser(\''+l.uuid+'\')" title="ÙØ¹Ø§Ù„/ØºÛŒØ±ÙØ¹Ø§Ù„"><i class="ti ti-toggle-'+(isActive?'right':'left')+'"></i></button>'+
-        '<button class="btn btn-sm btn-danger btn-icon" onclick="deleteUser(\''+l.uuid+'\')" title="Ø­Ø°Ù"><i class="ti ti-trash"></i></button>'+
+        '<button class="btn btn-sm btn-ghost btn-icon" onclick="viewConfig(\''+l.uuid+'\')" title="مشاهده"><i class="ti ti-eye"></i></button>'+
+        '<button class="btn btn-sm btn-ghost btn-icon" onclick="copyLink(\''+l.uuid+'\')" title="کپی"><i class="ti ti-copy"></i></button>'+
+        '<button class="btn btn-sm btn-ghost btn-icon" onclick="toggleUser(\''+l.uuid+'\')" title="فعال/غیرفعال"><i class="ti ti-toggle-'+(isActive?'right':'left')+'"></i></button>'+
+        '<button class="btn btn-sm btn-danger btn-icon" onclick="deleteUser(\''+l.uuid+'\')" title="حذف"><i class="ti ti-trash"></i></button>'+
       '</div></td></tr>';
   }).join('');
 }
 
-/* ============ USER ACTIONS ============ */
 async function viewConfig(uuid){
   var link=allLinks.find(function(l){return l.uuid===uuid});
-  if(!link){toast('Ú©Ø§Ù†ÙÛŒÚ¯ ÛŒØ§ÙØª Ù†Ø´Ø¯','err');return}
+  if(!link){toast('کانفیگ یافت نشد','err');return}
   currentConfigText=link.vless_link||'';
   document.getElementById('config-text').textContent=currentConfigText;
   document.getElementById('config-qr').style.display='none';
@@ -1332,7 +1291,7 @@ async function viewConfig(uuid){
 }
 function copyConfigText(){
   if(!currentConfigText)return;
-  navigator.clipboard.writeText(currentConfigText).then(function(){toast('Ú©Ø§Ù†ÙÛŒÚ¯ Ú©Ù¾ÛŒ Ø´Ø¯ âœ“','ok')});
+  navigator.clipboard.writeText(currentConfigText).then(function(){toast('کانفیگ کپی شد ✓','ok')});
 }
 function showQRCode(){
   if(!currentConfigText)return;
@@ -1343,7 +1302,7 @@ function showQRCode(){
 function copyLink(uuid){
   var link=allLinks.find(function(l){return l.uuid===uuid});
   if(!link||!link.vless_link)return;
-  navigator.clipboard.writeText(link.vless_link).then(function(){toast('Ù„ÛŒÙ†Ú© Ú©Ù¾ÛŒ Ø´Ø¯ âœ“','ok')});
+  navigator.clipboard.writeText(link.vless_link).then(function(){toast('لینک کپی شد ✓','ok')});
 }
 async function toggleUser(uuid){
   var link=allLinks.find(function(l){return l.uuid===uuid});
@@ -1351,25 +1310,24 @@ async function toggleUser(uuid){
   try{
     var r=await authFetch('/api/links/'+uuid,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:!link.active})});
     if(!r.ok)throw new Error();
-    toast('ÙˆØ¶Ø¹ÛŒØª ØªØºÛŒÛŒØ± Ú©Ø±Ø¯ âœ“','ok');loadUsers();loadDashboard();
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± ØªØºÛŒÛŒØ± ÙˆØ¶Ø¹ÛŒØª','err')}
+    toast('وضعیت تغییر کرد ✓','ok');loadUsers();loadDashboard();
+  }catch(e){toast('خطا در تغییر وضعیت','err')}
 }
 async function deleteUser(uuid){
-  if(!confirm('Ø¢ÛŒØ§ Ø§Ø² Ø­Ø°Ù Ø§ÛŒÙ† Ú©Ø§Ø±Ø¨Ø± Ø§Ø·Ù…ÛŒÙ†Ø§Ù† Ø¯Ø§Ø±ÛŒØ¯ØŸ'))return;
+  if(!confirm('آیا از حذف این کاربر اطمینان دارید؟'))return;
   try{
     var r=await authFetch('/api/links/'+uuid,{method:'DELETE'});
     if(!r.ok)throw new Error();
-    toast('Ú©Ø§Ø±Ø¨Ø± Ø­Ø°Ù Ø´Ø¯ âœ“','ok');loadUsers();loadDashboard();loadConfigs();
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø­Ø°Ù','err')}
+    toast('کاربر حذف شد ✓','ok');loadUsers();loadDashboard();loadConfigs();
+  }catch(e){toast('خطا در حذف','err')}
 }
 
-/* ============ CONFIGS PAGE ============ */
 async function loadConfigs(){
   try{
     var r=await authFetch('/api/links'),d=await r.json();
     allLinks=d.links||[];
     document.getElementById('configs-count').textContent=allLinks.length;
-    document.getElementById('cfg-total').textContent=toFa(allLinks.length)+' Ú©Ø§Ù†ÙÛŒÚ¯';
+    document.getElementById('cfg-total').textContent=toFa(allLinks.length)+' کانفیگ';
     var grid=document.getElementById('configs-grid'),empty=document.getElementById('configs-empty');
     if(!allLinks.length){grid.innerHTML='';empty.style.display='block';return}
     empty.style.display='none';
@@ -1379,12 +1337,12 @@ async function loadConfigs(){
       var isActive=l.active&&!l.expired;
       var pct=l.limit_bytes===0?0:Math.min(100,l.used_bytes/l.limit_bytes*100);
       return '<div class="cfg-card-item">'+
-        '<div class="cfg-card-top"><span class="cfg-card-label">'+esc(l.label)+'</span><span class="badge '+(isActive?'badge-green':'badge-red')+'"><span class="dot '+(isActive?'dot-green':'dot-red')+' '+(isActive?'pulse':'')+'"></span> '+(isActive?'ÙØ¹Ø§Ù„':'ØºÛŒØ±ÙØ¹Ø§Ù„')+'</span></div>'+
+        '<div class="cfg-card-top"><span class="cfg-card-label">'+esc(l.label)+'</span><span class="badge '+(isActive?'badge-green':'badge-red')+'"><span class="dot '+(isActive?'dot-green':'dot-red')+' '+(isActive?'pulse':'')+'"></span> '+(isActive?'فعال':'غیرفعال')+'</span></div>'+
         '<div class="cfg-card-body"><span class="proto-badge '+protoClass+'" style="margin-bottom:6px;display:inline-block">'+protoFa+'</span>'+
-        '<div class="usage-bar-wrap" style="margin-bottom:6px"><div class="usage-bar"><div class="usage-fill" style="width:'+pct+'%"></div></div><div class="usage-text"><span>'+fmtB(l.used_bytes)+'</span><span>'+(l.limit_bytes===0?'âˆž':fmtB(l.limit_bytes))+'</span></div></div></div>'+
+        '<div class="usage-bar-wrap" style="margin-bottom:6px"><div class="usage-bar"><div class="usage-fill" style="width:'+pct+'%"></div></div><div class="usage-text"><span>'+fmtB(l.used_bytes)+'</span><span>'+(l.limit_bytes===0?'∞':fmtB(l.limit_bytes))+'</span></div></div></div>'+
         '<div class="cfg-card-actions">'+
-        '<button class="btn btn-sm btn-ghost" onclick="viewConfig(\''+l.uuid+'\')"><i class="ti ti-eye"></i> Ù…Ø´Ø§Ù‡Ø¯Ù‡</button>'+
-        '<button class="btn btn-sm btn-ghost" onclick="copyLink(\''+l.uuid+'\')"><i class="ti ti-copy"></i> Ú©Ù¾ÛŒ</button>'+
+        '<button class="btn btn-sm btn-ghost" onclick="viewConfig(\''+l.uuid+'\')"><i class="ti ti-eye"></i> مشاهده</button>'+
+        '<button class="btn btn-sm btn-ghost" onclick="copyLink(\''+l.uuid+'\')"><i class="ti ti-copy"></i> کپی</button>'+
         '<button class="btn btn-sm btn-ghost btn-icon" onclick="showQRForLink(\''+l.uuid+'\')"><i class="ti ti-qrcode"></i></button>'+
         '</div></div>';
     }).join('');
@@ -1399,7 +1357,6 @@ function showQRForLink(uuid){
   openModal('modal-config');
 }
 
-/* ============ TRAFFIC ============ */
 var trafficChart=null;
 async function loadTraffic(){
   try{
@@ -1432,13 +1389,12 @@ async function loadTraffic(){
   }catch(e){console.error(e)}
 }
 
-/* ============ LOGS ============ */
 async function loadLogs(){
   try{
     var r=await authFetch('/api/activity'),d=await r.json();
     var logs=(d.logs||[]).slice().reverse();
     var el=document.getElementById('logs-list');
-    if(!logs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-history-toggle"></i><p>Ù‡Ù†ÙˆØ² Ù„Ø§Ú¯ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡</p></div>';return}
+    if(!logs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-history-toggle"></i><p>هنوز لاگی ثبت نشده</p></div>';return}
     var icMap={ok:'ti-circle-check ok',err:'ti-circle-x err',warn:'ti-alert-triangle warn',info:'ti-info-circle info'};
     el.innerHTML=logs.map(function(l){
       return '<div class="log-row"><div class="log-icon-s '+(l.level||'info')+'"><i class="ti '+(icMap[l.level]||'ti-info-circle')+'"></i></div><div class="log-content"><div class="log-msg">'+esc(l.message)+'</div><div class="log-time"><i class="ti ti-clock"></i> '+new Date(l.time).toLocaleString('fa-IR')+'</div></div></div>';
@@ -1446,7 +1402,6 @@ async function loadLogs(){
   }catch(e){console.error(e)}
 }
 
-/* ============ DASHBOARD DATA ============ */
 async function loadDashboard(){
   try{
     var r=await authFetch('/stats'),d=await r.json();
@@ -1454,8 +1409,8 @@ async function loadDashboard(){
     document.getElementById('s-active-configs').textContent=d.active_links||'0';
     document.getElementById('s-traffic').innerHTML=d.total_traffic_mb.toFixed(1)+'<span style="font-size:13px;font-weight:500;color:var(--text-secondary)">GB</span>';
     document.getElementById('s-online-servers').textContent='1';
-    document.getElementById('s-users-trend').innerHTML='<i class="ti ti-trending-up"></i> '+toFa(d.active_connections||0)+' Ø§ØªØµØ§Ù„';
-    document.getElementById('last-updated').textContent='Ø¢Ø®Ø±ÛŒÙ† Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ: '+new Date().toLocaleTimeString('fa-IR');
+    document.getElementById('s-users-trend').innerHTML='<i class="ti ti-trending-up"></i> '+toFa(d.active_connections||0)+' اتصال';
+    document.getElementById('last-updated').textContent='آخرین بروزرسانی: '+new Date().toLocaleTimeString('fa-IR');
     document.getElementById('srv-cpu').textContent='32%';document.getElementById('srv-cpu-bar').style.width='32%';
     document.getElementById('srv-ram').textContent='58%';document.getElementById('srv-ram-bar').style.width='58%';
     document.getElementById('srv-disk').textContent='41%';document.getElementById('srv-disk-bar').style.width='41%';
@@ -1467,7 +1422,6 @@ async function loadDashboard(){
   }catch(e){console.error(e)}
 }
 
-/* ============ SETTINGS ============ */
 async function loadSettings(){
   try{
     var r=await authFetch('/api/tools/settings'),d=await r.json();
@@ -1511,7 +1465,7 @@ async function loadCustomSubs(selected){
     input.value=JSON.stringify(opts);
     var html='';
     if(!opts.length){
-      html+='<div class="custom-sub-option" style="color:var(--text-secondary)">Ù‡ÛŒÚ† ØµÙØ­Ù‡â€ŒØ§ÛŒ ÛŒØ§ÙØª Ù†Ø´Ø¯</div>';
+      html+='<div class="custom-sub-option" style="color:var(--text-secondary)">هیچ صفحه‌ای یافت نشد</div>';
     }else{
       html=opts.map(function(o){
         var active=o.file===selected?' active':'';
@@ -1551,8 +1505,8 @@ async function saveSettings(){
   try{
     var r=await authFetch('/api/tools/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error();
-    toast('ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯ âœ“','ok');
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª','err')}
+    toast('تنظیمات ذخیره شد ✓','ok');
+  }catch(e){toast('خطا در ذخیره تنظیمات','err')}
 }
 
 async function saveRealitySettings(){
@@ -1569,8 +1523,8 @@ async function saveRealitySettings(){
   try{
     var r=await authFetch('/api/tools/reality-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error();
-    toast('ØªÙ†Ø¸ÛŒÙ…Ø§Øª Reality Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯ âœ“','ok');
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª Reality','err')}
+    toast('تنظیمات Reality ذخیره شد ✓','ok');
+  }catch(e){toast('خطا در ذخیره تنظیمات Reality','err')}
 }
 
 async function generateRealityKeys(){
@@ -1579,12 +1533,11 @@ async function generateRealityKeys(){
     var d=await r.json();
     if(d.public_key)document.getElementById('set-real-pbk').value=d.public_key;
     if(d.private_key)document.getElementById('set-real-sid').value=d.short_id||'';
-    toast('Ú©Ù„ÛŒØ¯ Reality ØªÙˆÙ„ÛŒØ¯ Ø´Ø¯ âœ“','ok');
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± ØªÙˆÙ„ÛŒØ¯ Ú©Ù„ÛŒØ¯','err')}
+    toast('کلید Reality تولید شد ✓','ok');
+  }catch(e){toast('خطا در تولید کلید','err')}
 }
 function updateProtoCheckboxes(){}
 
-/* ============ WORKER ============ */
 async function loadWorker(){
   try{
     var r=await authFetch('/api/worker'),d=await r.json();
@@ -1606,9 +1559,9 @@ async function loadWorker(){
       if(d.last_sync){
         document.getElementById('worker-last-sync-info').innerHTML=
           '<div style="display:flex;flex-direction:column;gap:4px">'+
-          '<div><span style="color:var(--text-secondary)">Ø²Ù…Ø§Ù†:</span> '+new Date(d.last_sync).toLocaleString('fa-IR')+'</div>'+
-          '<div><span style="color:var(--text-secondary)">ØªØ¹Ø¯Ø§Ø¯:</span> '+toFa(Object.keys(d.proxies||{}).length)+' Ú©Ø´ÙˆØ±</div>'+
-          (d.last_error?'<div style="color:var(--wp-red)"><span>Ø®Ø·Ø§:</span> '+esc(d.last_error)+'</div>':'')+
+          '<div><span style="color:var(--text-secondary)">زمان:</span> '+new Date(d.last_sync).toLocaleString('fa-IR')+'</div>'+
+          '<div><span style="color:var(--text-secondary)">تعداد:</span> '+toFa(Object.keys(d.proxies||{}).length)+' کشور</div>'+
+          (d.last_error?'<div style="color:var(--wp-red)"><span>خطا:</span> '+esc(d.last_error)+'</div>':'')+
           '</div>';
       }
     }else{
@@ -1623,14 +1576,14 @@ async function loadWorker(){
 function renderWorkerProxies(proxies){
   var tbody=document.getElementById('worker-proxies-table');
   var codes=Object.keys(proxies);
-  if(!codes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">Ù‡Ù†ÙˆØ² Ù¾Ø±ÙˆÚ©Ø³ÛŒâ€ŒØ§ÛŒ Ø§Ø¶Ø§ÙÙ‡ Ù†Ø´Ø¯Ù‡</td></tr>';return}
+  if(!codes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">هنوز پروکسی‌ای اضافه نشده</td></tr>';return}
   tbody.innerHTML=codes.map(function(code){
     var p=proxies[code];
     return '<tr><td style="font-weight:600">'+esc(code.toUpperCase())+'</td>'+
       '<td>'+esc(p.country)+'</td>'+
       '<td style="font-family:JetBrains Mono,monospace;font-size:11px">'+esc(p.proxy)+'</td>'+
       '<td>'+esc(p.port)+'</td>'+
-      '<td><button class="btn btn-sm btn-danger btn-icon" onclick="deleteWorkerProxy(\''+esc(code)+'\')" title="Ø­Ø°Ù"><i class="ti ti-trash"></i></button></td></tr>';
+      '<td><button class="btn btn-sm btn-danger btn-icon" onclick="deleteWorkerProxy(\''+esc(code)+'\')" title="حذف"><i class="ti ti-trash"></i></button></td></tr>';
   }).join('');
 }
 
@@ -1641,37 +1594,37 @@ async function connectWorker(){
     account_id:document.getElementById('worker-account-id').value.trim(),
     worker_name:document.getElementById('worker-name').value.trim()||'white-proxy',
   };
-  if(!body.token||!body.email||!body.account_id){toast('Ù‡Ù…Ù‡ ÙÛŒÙ„Ø¯Ù‡Ø§ Ø§Ù„Ø²Ø§Ù…ÛŒ Ù‡Ø³ØªÙ†Ø¯','err');return}
+  if(!body.token||!body.email||!body.account_id){toast('همه فیلدها الزامی هستند','err');return}
   try{
     var r=await authFetch('/api/worker/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'Ø®Ø·Ø§')}
-    toast('ÙˆØ±Ú©Ø± Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ù…ØªØµÙ„ Ø´Ø¯ âœ“','ok');loadWorker();
+    if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'خطا')}
+    toast('ورکر با موفقیت متصل شد ✓','ok');loadWorker();
   }catch(e){toast(e.message,'err')}
 }
 
 async function disconnectWorker(){
-  if(!confirm('Ø¢ÛŒØ§ Ø§Ø² Ù‚Ø·Ø¹ Ø§ØªØµØ§Ù„ ÙˆØ±Ú©Ø± Ø§Ø·Ù…ÛŒÙ†Ø§Ù† Ø¯Ø§Ø±ÛŒØ¯ØŸ'))return;
+  if(!confirm('آیا از قطع اتصال ورکر اطمینان دارید؟'))return;
   try{
     var r=await authFetch('/api/worker',{method:'DELETE'});
     if(!r.ok)throw new Error();
-    toast('ÙˆØ±Ú©Ø± Ù‚Ø·Ø¹ Ø´Ø¯ âœ“','ok');loadWorker();
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ù‚Ø·Ø¹ Ø§ØªØµØ§Ù„','err')}
+    toast('ورکر قطع شد ✓','ok');loadWorker();
+  }catch(e){toast('خطا در قطع اتصال','err')}
 }
 
 async function deployWorker(){
   try{
     var r=await authFetch('/api/worker/sync',{method:'POST'});
     if(!r.ok)throw new Error();
-    toast('ÙˆØ±Ú©Ø± Ø¨Ø§Ø²Ø§Ø³ØªÙ‚Ø±Ø§Ø± Ø´Ø¯ âœ“','ok');
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø§Ø²Ø§Ø³ØªÙ‚Ø±Ø§Ø±','err')}
+    toast('ورکر بازاستقرار شد ✓','ok');
+  }catch(e){toast('خطا در بازاستقرار','err')}
 }
 
 async function syncWorkerProxies(){
   try{
     var r=await authFetch('/api/worker/sync-source',{method:'POST'});
     if(!r.ok)throw new Error();
-    toast('Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯ âœ“','ok');loadWorker();
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ','err')}
+    toast('همگام‌سازی انجام شد ✓','ok');loadWorker();
+  }catch(e){toast('خطا در همگام‌سازی','err')}
 }
 
 async function saveWorkerSettings(){
@@ -1682,44 +1635,42 @@ async function saveWorkerSettings(){
   try{
     var r=await authFetch('/api/worker/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error();
-    toast('ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯ âœ“','ok');
-  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø°Ø®ÛŒØ±Ù‡','err')}
+    toast('تنظیمات ذخیره شد ✓','ok');
+  }catch(e){toast('خطا در ذخیره','err')}
 }
 
 async function deleteWorkerProxy(code){
-  if(!confirm('Ø¢ÛŒØ§ Ø§Ø² Ø­Ø°Ù Ø§ÛŒÙ† Ù¾Ø±ÙˆÚ©Ø³ÛŒ Ø§Ø·Ù…ÛŒÙ†Ø§Ù† Ø¯Ø§Ø±ÛŒØ¯ØŸ'))return;
+  if(!confirm('آیا از حذف این پروکسی اطمینان دارید؟'))return;
   try{
     var r=await authFetch('/api/worker/proxies/'+code,{method:'DELETE'});
     if(!r.ok)throw new Error();
-    toast('Ú©Ø´ÙˆØ± Ø­Ø°Ù Ø´Ø¯ âœ“','ok');loadWorker();
+    toast('کشور حذف شد ✓','ok');loadWorker();
   }catch(e){toast(e.message,'err')}
 }
 
 async function openAddProxyModal(){
-  var code=prompt('Ú©Ø¯ Ú©Ø´ÙˆØ± (Ù…Ø«Ù„Ø§Ù‹: de, us, nl):');
+  var code=prompt('کد کشور (مثلاً: de, us, nl):');
   if(!code)return;
-  var country=prompt('Ù†Ø§Ù… Ú©Ø´ÙˆØ± (Ù…Ø«Ù„Ø§Ù‹: Germany):');
+  var country=prompt('نام کشور (مثلاً: Germany):');
   if(!country)return;
-  var proxy=prompt('Ø¢Ø¯Ø±Ø³ Ù¾Ø±ÙˆÚ©Ø³ÛŒ (IP ÛŒØ§ Ø¯Ø§Ù…Ù†Ù‡):');
+  var proxy=prompt('آدرس پروکسی (IP یا دامنه):');
   if(!proxy)return;
-  var port=prompt('Ù¾ÙˆØ±Øª:', '443');
+  var port=prompt('پورت:', '443');
   if(!port)port='443';
   try{
     var r=await authFetch('/api/worker/proxies',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:code.trim().toLowerCase(),country:country.trim(),proxy:proxy.trim(),port:parseInt(port)})});
     var d=await r.json();
-    if(!d.ok)throw new Error(d.detail||'Ø®Ø·Ø§');
-    toast('Ú©Ø´ÙˆØ± Ø§Ø¶Ø§ÙÙ‡ Ø´Ø¯ âœ“','ok');
+    if(!d.ok)throw new Error(d.detail||'خطا');
+    toast('کشور اضافه شد ✓','ok');
     loadWorker();
   }catch(e){toast(e.message,'err')}
 }
 
-/* ============ REFRESH ============ */
 function refreshAll(){
   loadDashboard();loadUsers();loadConfigs();loadTraffic();loadLogs();loadWorker();
-  toast('Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø´Ø¯ âœ“','ok');
+  toast('بروزرسانی شد ✓','ok');
 }
 
-/* ============ INIT ============ */
 document.addEventListener('DOMContentLoaded',async function(){
   await checkAuth();
   loadDashboard();
@@ -1735,8 +1686,6 @@ document.addEventListener('DOMContentLoaded',async function(){
 });
 </script>
 </body></html>"""
-
-
 
 def get_public_page_html(uuid_key: str, sub_url: str = "", announcement: str = "") -> str:
     """Public subscription group page with OS detection, One-Click Import, and Announcements."""
@@ -1861,162 +1810,4 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sa
 .lock-title{{font-size:18px;font-weight:800;margin-bottom:6px;position:relative;z-index:1}}
 .lock-sub{{font-size:12px;color:var(--text-secondary);margin-bottom:20px;line-height:1.7;position:relative;z-index:1}}
 .lock-field{{position:relative;margin-bottom:14px}}
-.lock-input{{width:100%;padding:13px 44px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.03);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:14px;text-align:center;outline:none;transition:all .25s;letter-spacing:.1em}}
-.lock-input:focus{{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,.08),0 0 16px rgba(6,182,212,.04)}}
-.lock-icon-left{{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:16px;pointer-events:none}}
-.lock-err{{color:var(--wp-red);font-size:11px;margin-bottom:10px;min-height:18px}}
-
-.toast{{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(10,15,30,.9);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.06);color:var(--text-primary);border-radius:var(--radius);padding:10px 20px;font-size:12px;font-weight:500;opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);z-index:999;pointer-events:none;display:flex;align-items:center;gap:7px;box-shadow:0 12px 40px rgba(0,0,0,.4);white-space:nowrap}}
-[data-theme="light"] .toast{{background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.06)}}
-.toast.show{{opacity:1;transform:translateX(-50%) translateY(0)}}
-.toast.ok{{border-color:rgba(16,185,129,.2);color:var(--neon-emerald)}}
-.toast.err{{border-color:rgba(239,68,68,.2);color:var(--wp-red)}}
-
-.empty{{text-align:center;padding:60px 20px;color:var(--text-secondary)}}
-.empty i{{font-size:40px;opacity:.2;display:block;margin-bottom:12px}}
-.footer{{text-align:center;padding-top:30px;font-size:10.5px;color:var(--text-secondary);position:relative;z-index:10}}
-
-@media(max-width:500px){{
-  .info-stats{{grid-template-columns:1fr 1fr}}
-  .wrap{{padding:20px 12px 50px}}
-  .import-grid{{grid-template-columns:1fr}}
-}}
-</style>
-</head>
-<body data-theme="dark">
-<canvas id="bg-canvas"></canvas>
-<div class="toast" id="toast"></div>
-<div class="wrap">
-  {ann_html}
-  <div class="top-bar">
-    <div class="brand">
-      <svg width="38" height="38" viewBox="0 0 100 100"><defs><linearGradient id="bgg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#06b6d4"/><stop offset="50%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#10b981"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#bgg)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
-      <div><div class="brand-name">White Panel</div><div class="brand-sub">ENTERPRISE</div></div>
-    </div>
-    <button class="theme-toggle" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i></button>
-  </div>
-  <div id="root"><div class="empty"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i><p>در حال بارگذاری...</p></div></div>
-  <div class="footer">White Panel</div>
-</div>
-<script>
-(function(){{
-  var c=document.getElementById('bg-canvas');
-  if(!c)return;
-  var gl=c.getContext('webgl')||c.getContext('experimental-webgl');
-  if(!gl)return;
-  var mx=0.5,my=0.5;
-  function resize(){{c.width=window.innerWidth;c.height=window.innerHeight;gl.viewport(0,0,c.width,c.height)}}
-  resize();window.addEventListener('resize',resize);
-  document.addEventListener('mousemove',function(e){{mx=e.clientX/c.width;my=1-e.clientY/c.height}});
-  var vsrc='attribute vec2 p;void main(){{gl_Position=vec4(p,0,1);}}';
-  var fsrc='precision mediump float;uniform float t;uniform vec2 r;uniform vec2 m;'+
-    'void main(){{vec2 uv=gl_FragCoord.xy/r;'+
-    'float d=length(uv-m)*0.8;'+
-    'float v1=sin(uv.x*6.0+t*0.3)*0.5+0.5;'+
-    'float v2=cos(uv.y*5.0+t*0.2)*0.5+0.5;'+
-    'float v3=sin((uv.x+uv.y)*4.0+t*0.25)*0.5+0.5;'+
-    'vec3 c1=vec3(0.024,0.714,0.831);'+
-    'vec3 c2=vec3(0.659,0.333,0.969);'+
-    'vec3 c3=vec3(0.063,0.725,0.506);'+
-    'vec3 col=mix(c1,c2,v1)*v2+mix(c2,c3,v3)*0.3;'+
-    'col*=0.08*(1.0-d*0.5);'+
-    'col+=vec3(0.01)*sin(t*0.5);'+
-    'gl_FragColor=vec4(col,1);}}';
-  function cs(src,type){{var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}}
-  var pg=gl.createProgram();gl.attachShader(pg,cs(vsrc,gl.VERTEX_SHADER));gl.attachShader(pg,cs(fsrc,gl.FRAGMENT_SHADER));gl.linkProgram(pg);gl.useProgram(pg);
-  var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  var pl=gl.getAttribLocation(pg,'p');gl.enableVertexAttribArray(pl);gl.vertexAttribPointer(pl,2,gl.FLOAT,false,0,0);
-  var ut=gl.getUniformLocation(pg,'t'),ur=gl.getUniformLocation(pg,'r'),um=gl.getUniformLocation(pg,'m');
-  function draw(t){{gl.uniform1f(ut,t*0.001);gl.uniform2f(ur,c.width,c.height);gl.uniform2f(um,mx,my);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw)}}
-  requestAnimationFrame(draw);
-}})();
-</script>
-<script>
-var UUID_KEY='{uuid_key}',SUB_URL='{sub_url}',savedPw='',currentData=null;
-var isDark=localStorage.getItem('wp-pub-theme')==='dark';
-function applyTheme(d){{document.documentElement.setAttribute('data-theme',d?'dark':'light');document.getElementById('theme-icon').className='ti '+(d?'ti-sun':'ti-moon')}}
-function toggleTheme(){{isDark=!isDark;localStorage.setItem('wp-pub-theme',isDark?'dark':'light');applyTheme(isDark)}}
-applyTheme(isDark);
-function toast(m,t){{var el=document.getElementById('toast');el.textContent=m;el.className='toast show'+(t?' '+t:'');setTimeout(function(){{el.classList.remove('show')}},2400)}}
-function esc(s){{return String(s||'').replace(/[&<>"']/g,function(c){{return{{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]}})}}
-function fmtB(b){{if(!b)return'0 B';if(b<1024)return b+' B';if(b<1024**2)return(b/1024).toFixed(1)+' KB';if(b<1024**3)return(b/1024**2).toFixed(2)+' MB';return(b/1024**3).toFixed(2)+' GB'}}
-function toFa(n){{return String(n).replace(/\d/g,function(d){{return'\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9'[d]}})}}
-
-function detectOS(){{
-  var ua=navigator.userAgent||'';
-  if(/android/i.test(ua))return'android';
-  if(/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return'ios';
-  if(/Win\d/.test(ua))return'windows';
-  if(/Macintosh|Mac OS X/.test(ua))return'macos';
-  return'other';
-}}
-function getImportApps(){{
-  var os=detectOS(),apps=[];
-  if(os==='android'){{
-    apps.push({{name:'v2rayNG',icon:'ti ti-brand-android',cls:'ico-android',href:'v2rayng://install-sub?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-android',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'V2Box',icon:'ti ti-box',cls:'ico-android',href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
-  }}else if(os==='ios'){{
-    apps.push({{name:'V2Box',icon:'ti ti-box',cls:'ico-ios',href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-ios',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Streisand',icon:'ti ti-bolt',cls:'ico-ios',href:'streisand://import?url='+encodeURIComponent(SUB_URL)}});
-  }}else if(os==='windows'){{
-    apps.push({{name:'v2rayN',icon:'ti ti-brand-windows',cls:'ico-windows',href:'v2rayn://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-windows',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
-  }}else if(os==='macos'){{
-    apps.push({{name:'V2rayU',icon:'ti ti-brand-apple',cls:'ico-macos',href:'v2rayu://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-macos',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
-  }}
-  return apps;
-}}
-function buildImportHtml(){{
-  var apps=getImportApps();
-  if(!apps.length)return'';
-  var h='<div class="import-section"><div class="import-title"><i class="ti ti-download"></i> \u0648\u0627\u0631\u062f \u06a9\u0631\u062f\u0646 \u0633\u0631\u06cc\u0639</div><div class="import-grid">';
-  apps.forEach(function(a){{
-    h+='<a class="import-btn" href="'+esc(a.href)+'"><div class="ico '+a.cls+'"><i class="ti '+a.icon+'"></i></div><div><div>'+esc(a.name)+'</div><div class="lbl">\u06cc\u06a9 \u06a9\u0644\u06cc\u06a9</div></div></a>';
-  }});
-  h+='</div></div>';return h;
-}}
-
-async function loadData(pw){{var u='/api/public/sub/'+UUID_KEY+(pw?'?pw='+encodeURIComponent(pw):'');var r=await fetch(u);return r.json()}}
-
-function renderLock(name,err){{
-  document.getElementById('root').innerHTML='<div class="lock-page"><div class="lock-card"><div class="lock-icon"><i class="ti ti-shield-lock"></i></div><div class="lock-title">'+esc(name)+'</div><div class="lock-sub">\u0627\u06cc\u0646 \u06af\u0631\u0648\u0647 \u0628\u0627 \u0631\u0645\u0632 \u0645\u062d\u0627\u0641\u0638\u062a \u0645\u06cc\u200c\u0634\u0648\u062f</div><div class="lock-err" id="lock-err">'+(err?'<i class="ti ti-alert-circle"></i> '+esc(err):'')+'</div><div class="lock-field"><i class="ti ti-lock lock-icon-left"></i><input class="lock-input" type="password" id="lock-pw" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" autofocus></div><button class="btn btn-p" style="width:100%;justify-content:center;padding:12px" onclick="submitLock()"><i class="ti ti-lock-open"></i> \u0648\u0631\u0648\u062f</button></div></div>';
-  document.getElementById('lock-pw').addEventListener('keydown',function(e){{if(e.key==='Enter')submitLock()}});
-}}
-
-async function submitLock(){{var pw=document.getElementById('lock-pw').value;var d=await loadData(pw);if(d.locked){{renderLock(d.name,'\u0631\u0645\u0632 \u0627\u0634\u062a\u0628\u0627\u0647 \u0627\u0633\u062a');return}}savedPw=pw;renderContent(d)}}
-
-function renderContent(d){{
-  currentData=d;
-  var active=d.links.filter(function(l){{return l.active}}).length;
-  var subUrl=d.sub_url||SUB_URL;
-  subUrl+=savedPw?'?pw='+encodeURIComponent(savedPw):'';
-  var importHtml=buildImportHtml();
-  document.getElementById('root').innerHTML=
-    '<div class="info-card"><div class="info-name">'+esc(d.name)+'</div>'+
-    (d.desc?'<div class="info-desc">'+esc(d.desc)+'</div>':'')+
-    '<div class="info-stats">'+
-    '<div class="info-stat"><div class="info-s-val">'+toFa(active)+'</div><div class="info-s-label">\u06a9\u0627\u0646\u0641\u06cc\u06af \u0641\u0639\u0627\u0644</div></div>'+
-    '<div class="info-stat"><div class="info-s-val">'+toFa(d.links.length)+'</div><div class="info-s-label">\u06a9\u0644 \u06a9\u0627\u0646\u0641\u06cc\u06af\u200c\u0647\u0627</div></div>'+
-    '<div class="info-stat"><div class="info-s-val">'+esc(d.total_used_fmt||'0')+'</div><div class="info-s-label">\u0645\u0635\u0631\u0641</div></div>'+
-    '</div></div>'+
-    importHtml+
-    '<div class="section-title"><i class="ti ti-link"></i> \u06a9\u0627\u0646\u0641\u06cc\u06af\u200c\u0647\u0627 ('+toFa(d.links.length)+' \u0639\u062f\u062f)</div>'+
-    (d.links.length?d.links.map(function(l){{
-      return '<div class="cfg-card"><div class="cfg-head"><div class="cfg-name">'+esc(l.label)+'</div>'+
-        '<span class="cfg-status '+(l.active?'ok':'no')+'">'+(l.active?'<i class="ti ti-circle-check"></i> \u0641\u0639\u0627\u0644':'<i class="ti ti-circle-x"></i> \u063a\u06cc\u0631\u0641\u0639\u0627\u0644')+'</span></div>'+
-        '<div class="cfg-code">'+esc(l.vless_link)+'</div>'+
-        '<div class="cfg-actions">'+
-        '<button class="btn btn-p" onclick="navigator.clipboard.writeText(\''+esc(l.vless_link).replace(/'/g,"\\'")+'\').then(function(){{toast(\'\u06a9\u067e\u06cc \u0634\u062f \u2713\',\'ok\')}})"><i class="ti ti-copy"></i> \u06a9\u067e\u06cc \u0644\u06cc\u0646\u06a9</button>'+
-        '<button class="btn btn-ghost" onclick="window.open(\'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(l.vless_link)+'\',\'_blank\')"><i class="ti ti-qrcode"></i> QR Code</button>'+
-        '</div></div>';
-    }}).join(''):'<div class="empty"><i class="ti ti-link-off"></i><p>\u06a9\u0627\u0646\u0641\u06cc\u06af\u06cc \u062f\u0631 \u0627\u06cc\u0646 \u06af\u0631\u0648\u0647 \u0648\u062c\u0648\u062f \u0646\u062f\u0627\u0631\u062f</p></div>')+
-    '<div style="margin-top:16px;text-align:center"><button class="btn btn-ghost" style="justify-content:center" onclick="location.reload()"><i class="ti ti-refresh"></i> \u0628\u0631\u0648\u0632\u0631\u0633\u0627\u0646\u06cc</button></div>';
-}}
-
-async function init(){{try{{var d=await loadData();if(d.locked){{renderLock(d.name);return}}renderContent(d)}}catch(e){{document.getElementById('root').innerHTML='<div class="empty"><i class="ti ti-alert-circle" style="color:var(--wp-red)"></i><p>\u062e\u0637\u0627 \u062f\u0631 \u0628\u0627\u0631\u06af\u0630\u0627\u0631\u06cc</p></div>'}}}}
-init();
-</script>
-</body></html>"""
+.lock-input{{width:100%;padding:13px 44px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.03);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:14px;text-align:centerبه‌عنوان مدل زبان، برای کمک در این مورد طراحی نشده‌ام.
