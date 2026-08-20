@@ -342,35 +342,45 @@ async def redis_ip_count(uid: str) -> int:
         return 0
 
 
-# ── Session helpers (Redis-backed) ──────────────────────────────────────────
+# ── Session helpers (Redis-backed with in-memory fallback) ──────────────────
 SESSION_TTL = 60 * 60 * 24 * 7  # 7 days
+_INMEMORY_SESSIONS: dict[str, float] = {}
 
 
 async def redis_create_session(token: str, ttl: int = SESSION_TTL):
-    if redis_client is None:
-        return
-    try:
-        await redis_client.set(f"sessions:{token}", "1", ex=ttl)
-    except Exception:
-        pass
+    if redis_client is not None:
+        try:
+            await redis_client.set(f"sessions:{token}", "1", ex=ttl)
+            return
+        except Exception:
+            pass
+    _INMEMORY_SESSIONS[token] = time.time() + ttl
 
 
 async def redis_is_valid_session(token: str) -> bool:
-    if redis_client is None:
+    if not token:
         return False
-    try:
-        return await redis_client.exists(f"sessions:{token}") == 1
-    except Exception:
+    if redis_client is not None:
+        try:
+            return await redis_client.exists(f"sessions:{token}") == 1
+        except Exception:
+            pass
+    exp = _INMEMORY_SESSIONS.get(token)
+    if exp is None:
         return False
+    if time.time() > exp:
+        _INMEMORY_SESSIONS.pop(token, None)
+        return False
+    return True
 
 
 async def redis_destroy_session(token: str):
-    if redis_client is None:
-        return
-    try:
-        await redis_client.delete(f"sessions:{token}")
-    except Exception:
-        pass
+    if redis_client is not None:
+        try:
+            await redis_client.delete(f"sessions:{token}")
+        except Exception:
+            pass
+    _INMEMORY_SESSIONS.pop(token, None)
 
 
 # ── Announcements ────────────────────────────────────────────────────────────
