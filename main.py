@@ -3388,7 +3388,8 @@ async def set_default_sub(request: Request, _=Depends(require_auth)):
 async def login_page(request: Request):
     if await is_valid_session(request.cookies.get(SESSION_COOKIE)):
         return RedirectResponse(url="/white")
-    return FileResponse(_os.path.join(_STATIC_DIR, "login.html"))
+    from pages import LOGIN_HTML
+    return HTMLResponse(content=LOGIN_HTML)
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_redirect(request: Request):
@@ -3399,7 +3400,8 @@ async def white_panel(request: Request):
     if not await is_valid_session(request.cookies.get(SESSION_COOKIE)):
         return RedirectResponse(url="/login")
     await ensure_default_link()
-    return FileResponse(_os.path.join(_STATIC_DIR, "index.html"))
+    from pages import DASHBOARD_HTML
+    return HTMLResponse(content=DASHBOARD_HTML)
 
 @app.get("/test-ws", response_class=HTMLResponse)
 async def test_ws_redirect():
