@@ -1687,6 +1687,8 @@ document.addEventListener('DOMContentLoaded',async function(){
 </script>
 </body></html>"""
 
+
+
 def get_public_page_html(uuid_key: str, sub_url: str = "", announcement: str = "") -> str:
     """Public subscription group page with OS detection, One-Click Import, and Announcements."""
     ann_html = ""
@@ -1740,11 +1742,9 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sa
 @keyframes staggerIn{{from{{opacity:0;transform:translateY(16px) scale(.97)}}to{{opacity:1;transform:none}}}}
 @keyframes spin{{to{{transform:rotate(360deg)}}}}
 @keyframes float{{0%,100%{{transform:translateY(0) scale(1)}}50%{{transform:translateY(-25px) scale(1.04)}}}}
-
 .announcement-bar{{display:flex;align-items:center;gap:10px;padding:12px 18px;background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(168,85,247,.06));backdrop-filter:blur(20px);border:1px solid rgba(6,182,212,.12);border-radius:var(--radius);margin-bottom:16px;font-size:12px;color:var(--neon-cyan);animation:staggerIn .5s cubic-bezier(.4,0,.2,1) both}}
 .announcement-bar i{{font-size:16px;flex-shrink:0}}
 .announcement-bar span{{flex:1;color:var(--text-primary);font-weight:500}}
-
 .wrap{{position:relative;z-index:10;max-width:680px;margin:0 auto;padding:28px 16px 60px}}
 .top-bar{{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:10px}}
 .brand{{display:flex;align-items:center;gap:10px}}
@@ -1753,7 +1753,6 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sa
 .brand-sub{{font-size:8.5px;color:var(--text-secondary);letter-spacing:.04em}}
 .theme-toggle{{width:38px;height:38px;border-radius:var(--radius);background:var(--surface-glass);backdrop-filter:blur(12px);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .25s}}
 .theme-toggle:hover{{background:rgba(6,182,212,.08);color:var(--neon-cyan);border-color:rgba(6,182,212,.15);box-shadow:0 0 16px rgba(6,182,212,.08)}}
-
 .info-card{{background:var(--surface-glass);backdrop-filter:blur(24px) saturate(200%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px 26px 24px;margin-bottom:18px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;animation:staggerIn .5s cubic-bezier(.4,0,.2,1) both}}
 .info-card::before{{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent)}}
 .info-card::after{{content:'';position:absolute;top:0;right:0;width:180px;height:180px;background:radial-gradient(circle,rgba(6,182,212,.04),transparent 70%);pointer-events:none}}
@@ -1764,7 +1763,6 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sa
 .info-stat:hover{{border-color:rgba(6,182,212,.15);box-shadow:0 4px 16px rgba(6,182,212,.06)}}
 .info-s-val{{font-size:18px;font-weight:800;color:var(--text-primary);font-family:'Inter',sans-serif}}
 .info-s-label{{font-size:9px;color:var(--text-secondary);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}}
-
 .import-section{{margin-bottom:20px;animation:staggerIn .5s cubic-bezier(.4,0,.2,1) .1s both}}
 .import-title{{font-size:12px;font-weight:800;color:var(--text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.06em}}
 .import-title i{{font-size:14px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
@@ -1777,7 +1775,6 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sa
 .import-btn .ico.ico-windows{{background:rgba(99,102,241,.1);color:var(--neon-blue)}}
 .import-btn .ico.ico-macos{{background:rgba(16,185,129,.1);color:var(--neon-emerald)}}
 .import-btn .lbl{{font-size:9px;color:var(--text-secondary);margin-top:1px}}
-
 .section-title{{font-size:12.5px;font-weight:800;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.06em}}
 .section-title i{{font-size:15px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
 .cfg-card{{background:var(--surface-glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 20px 18px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;animation:staggerIn .4s cubic-bezier(.4,0,.2,1) both}}
@@ -1792,7 +1789,6 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sa
 .cfg-code{{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-family:'JetBrains Mono','Inter',monospace;font-size:10px;color:var(--neon-cyan);word-break:break-all;line-height:1.7;margin-bottom:10px;max-height:80px;overflow-y:auto}}
 [data-theme="light"] .cfg-code{{background:rgba(0,0,0,.03);color:var(--neon-blue)}}
 .cfg-actions{{display:flex;gap:7px;flex-wrap:wrap}}
-
 .btn{{font-family:'Estedad','Inter',sans-serif;font-size:11.5px;font-weight:700;border-radius:var(--radius);padding:8px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap}}
 .btn i{{font-size:13px}}
 .btn-p{{background:linear-gradient(135deg,#06b6d4,#a855f7);color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.25);position:relative;overflow:hidden}}
@@ -1801,7 +1797,6 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sa
 .btn-p:hover::before{{left:100%}}
 .btn-ghost{{background:rgba(6,182,212,.05);color:var(--neon-cyan);border:1px solid rgba(6,182,212,.1)}}
 .btn-ghost:hover{{background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.2);box-shadow:0 0 12px rgba(6,182,212,.06)}}
-
 .lock-page{{display:flex;align-items:center;justify-content:center;min-height:60vh}}
 .lock-card{{background:var(--surface-glass);backdrop-filter:blur(30px) saturate(200%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:40px 32px 34px;text-align:center;max-width:380px;width:100%;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;animation:staggerIn .5s cubic-bezier(.4,0,.2,1) both}}
 .lock-card::before{{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent)}}
@@ -1810,4 +1805,159 @@ html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sa
 .lock-title{{font-size:18px;font-weight:800;margin-bottom:6px;position:relative;z-index:1}}
 .lock-sub{{font-size:12px;color:var(--text-secondary);margin-bottom:20px;line-height:1.7;position:relative;z-index:1}}
 .lock-field{{position:relative;margin-bottom:14px}}
-.lock-input{{width:100%;padding:13px 44px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.03);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:14px;text-align:centerبه‌عنوان مدل زبان، برای کمک در این مورد طراحی نشده‌ام.
+.lock-input{{width:100%;padding:13px 44px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.03);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:14px;text-align:center;outline:none;transition:all .25s;letter-spacing:.1em}}
+.lock-input:focus{{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,.08),0 0 16px rgba(6,182,212,.04)}}
+.lock-icon-left{{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:16px;pointer-events:none}}
+.lock-err{{color:var(--wp-red);font-size:11px;margin-bottom:10px;min-height:18px}}
+.toast{{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(10,15,30,.9);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.06);color:var(--text-primary);border-radius:var(--radius);padding:10px 20px;font-size:12px;font-weight:500;opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);z-index:999;pointer-events:none;display:flex;align-items:center;gap:7px;box-shadow:0 12px 40px rgba(0,0,0,.4);white-space:nowrap}}
+[data-theme="light"] .toast{{background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.06)}}
+.toast.show{{opacity:1;transform:translateX(-50%) translateY(0)}}
+.toast.ok{{border-color:rgba(16,185,129,.2);color:var(--neon-emerald)}}
+.toast.err{{border-color:rgba(239,68,68,.2);color:var(--wp-red)}}
+.empty{{text-align:center;padding:60px 20px;color:var(--text-secondary)}}
+.empty i{{font-size:40px;opacity:.2;display:block;margin-bottom:12px}}
+.footer{{text-align:center;padding-top:30px;font-size:10.5px;color:var(--text-secondary);position:relative;z-index:10}}
+@media(max-width:500px){{
+  .info-stats{{grid-template-columns:1fr 1fr}}
+  .wrap{{padding:20px 12px 50px}}
+  .import-grid{{grid-template-columns:1fr}}
+}}
+</style>
+</head>
+<body data-theme="dark">
+<canvas id="bg-canvas"></canvas>
+<div class="toast" id="toast"></div>
+<div class="wrap">
+  {ann_html}
+  <div class="top-bar">
+    <div class="brand">
+      <svg width="38" height="38" viewBox="0 0 100 100"><defs><linearGradient id="bgg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#06b6d4"/><stop offset="50%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#10b981"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#bgg)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
+      <div><div class="brand-name">White Panel</div><div class="brand-sub">ENTERPRISE</div></div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i></button>
+  </div>
+  <div id="root"><div class="empty"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i><p>در حال بارگذاری...</p></div></div>
+  <div class="footer">White Panel</div>
+</div>
+<script>
+(function(){{
+  var c=document.getElementById('bg-canvas');
+  if(!c)return;
+  var gl=c.getContext('webgl')||c.getContext('experimental-webgl');
+  if(!gl)return;
+  var mx=0.5,my=0.5;
+  function resize(){{c.width=window.innerWidth;c.height=window.innerHeight;gl.viewport(0,0,c.width,c.height)}}
+  resize();window.addEventListener('resize',resize);
+  document.addEventListener('mousemove',function(e){{mx=e.clientX/c.width;my=1-e.clientY/c.height}});
+  var vsrc='attribute vec2 p;void main(){{gl_Position=vec4(p,0,1);}}';
+  var fsrc='precision mediump float;uniform float t;uniform vec2 r;uniform vec2 m;'+
+    'void main(){{vec2 uv=gl_FragCoord.xy/r;'+
+    'float d=length(uv-m)*0.8;'+
+    'float v1=sin(uv.x*6.0+t*0.3)*0.5+0.5;'+
+    'float v2=cos(uv.y*5.0+t*0.2)*0.5+0.5;'+
+    'float v3=sin((uv.x+uv.y)*4.0+t*0.25)*0.5+0.5;'+
+    'vec3 c1=vec3(0.024,0.714,0.831);'+
+    'vec3 c2=vec3(0.659,0.333,0.969);'+
+    'vec3 c3=vec3(0.063,0.725,0.506);'+
+    'vec3 col=mix(c1,c2,v1)*v2+mix(c2,c3,v3)*0.3;'+
+    'col*=0.08*(1.0-d*0.5);'+
+    'col+=vec3(0.01)*sin(t*0.5);'+
+    'gl_FragColor=vec4(col,1);}}';
+  function cs(src,type){{var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}}
+  var pg=gl.createProgram();gl.attachShader(pg,cs(vsrc,gl.VERTEX_SHADER));gl.attachShader(pg,cs(fsrc,gl.FRAGMENT_SHADER));gl.linkProgram(pg);gl.useProgram(pg);
+  var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  var pl=gl.getAttribLocation(pg,'p');gl.enableVertexAttribArray(pl);gl.vertexAttribPointer(pl,2,gl.FLOAT,false,0,0);
+  var ut=gl.getUniformLocation(pg,'t'),ur=gl.getUniformLocation(pg,'r'),um=gl.getUniformLocation(pg,'m');
+  function draw(t){{gl.uniform1f(ut,t*0.001);gl.uniform2f(ur,c.width,c.height);gl.uniform2f(um,mx,my);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw)}}
+  requestAnimationFrame(draw);
+}})();
+</script>
+<script>
+var UUID_KEY='{uuid_key}',SUB_URL='{sub_url}',savedPw='',currentData=null;
+var isDark=localStorage.getItem('wp-pub-theme')==='dark';
+function applyTheme(d){{document.documentElement.setAttribute('data-theme',d?'dark':'light');document.getElementById('theme-icon').className='ti '+(d?'ti-sun':'ti-moon')}}
+function toggleTheme(){{isDark=!isDark;localStorage.setItem('wp-pub-theme',isDark?'dark':'light');applyTheme(isDark)}}
+applyTheme(isDark);
+function toast(m,t){{var el=document.getElementById('toast');el.textContent=m;el.className='toast show'+(t?' '+t:'');setTimeout(function(){{el.classList.remove('show')}},2400)}}
+function esc(s){{return String(s||'').replace(/[&<>"']/g,function(c){{return{{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]}})}}
+function fmtB(b){{if(!b)return'0 B';if(b<1024)return b+' B';if(b<1024**2)return(b/1024).toFixed(1)+' KB';if(b<1024**3)return(b/1024**2).toFixed(2)+' MB';return(b/1024**3).toFixed(2)+' GB'}}
+function toFa(n){{return String(n).replace(/\d/g,function(d){{return'\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9'[d]}})}}
+
+function detectOS(){{
+  var ua=navigator.userAgent||'';
+  if(/android/i.test(ua))return'android';
+  if(/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return'ios';
+  if(/Win\d/.test(ua))return'windows';
+  if(/Macintosh|Mac OS X/.test(ua))return'macos';
+  return'other';
+}}
+function getImportApps(){{
+  var os=detectOS(),apps=[];
+  if(os==='android'){{
+    apps.push({{name:'v2rayNG',icon:'ti ti-brand-android',cls:'ico-android',href:'v2rayng://install-sub?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-android',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'V2Box',icon:'ti ti-box',cls:'ico-android',href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
+  }}else if(os==='ios'){{
+    apps.push({{name:'V2Box',icon:'ti ti-box',cls:'ico-ios',href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-ios',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Streisand',icon:'ti ti-bolt',cls:'ico-ios',href:'streisand://import?url='+encodeURIComponent(SUB_URL)}});
+  }}else if(os==='windows'){{
+    apps.push({{name:'v2rayN',icon:'ti ti-brand-windows',cls:'ico-windows',href:'v2rayn://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-windows',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+  }}else if(os==='macos'){{
+    apps.push({{name:'V2rayU',icon:'ti ti-brand-apple',cls:'ico-macos',href:'v2rayu://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-macos',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+  }}
+  return apps;
+}}
+function buildImportHtml(){{
+  var apps=getImportApps();
+  if(!apps.length)return'';
+  var h='<div class="import-section"><div class="import-title"><i class="ti ti-download"></i> \u0648\u0627\u0631\u062f \u06a9\u0631\u062f\u0646 \u0633\u0631\u06cc\u0639</div><div class="import-grid">';
+  apps.forEach(function(a){{
+    h+='<a class="import-btn" href="'+esc(a.href)+'"><div class="ico '+a.cls+'"><i class="ti '+a.icon+'"></i></div><div><div>'+esc(a.name)+'</div><div class="lbl">\u06cc\u06a9 \u06a9\u0644\u06cc\u06a9</div></div></a>';
+  }});
+  h+='</div></div>';return h;
+}}
+
+async function loadData(pw){{var u='/api/public/sub/'+UUID_KEY+(pw?'?pw='+encodeURIComponent(pw):'');var r=await fetch(u);return r.json()}}
+
+function renderLock(name,err){{
+  document.getElementById('root').innerHTML='<div class="lock-page"><div class="lock-card"><div class="lock-icon"><i class="ti ti-shield-lock"></i></div><div class="lock-title">'+esc(name)+'</div><div class="lock-sub">\u0627\u06cc\u0646 \u06af\u0631\u0648\u0647 \u0628\u0627 \u0631\u0645\u0632 \u0645\u062d\u0627\u0641\u0638\u062a \u0645\u06cc\u200c\u0634\u0648\u062f</div><div class="lock-err" id="lock-err">'+(err?'<i class="ti ti-alert-circle"></i> '+esc(err):'')+'</div><div class="lock-field"><i class="ti ti-lock lock-icon-left"></i><input class="lock-input" type="password" id="lock-pw" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" autofocus></div><button class="btn btn-p" style="width:100%;justify-content:center;padding:12px" onclick="submitLock()"><i class="ti ti-lock-open"></i> \u0648\u0631\u0648\u062f</button></div></div>';
+  document.getElementById('lock-pw').addEventListener('keydown',function(e){{if(e.key==='Enter')submitLock()}});
+}}
+
+async function submitLock(){{var pw=document.getElementById('lock-pw').value;var d=await loadData(pw);if(d.locked){{renderLock(d.name,'\u0631\u0645\u0632 \u0627\u0634\u062a\u0628\u0627\u0647 \u0627\u0633\u062a');return}}savedPw=pw;renderContent(d)}}
+
+function renderContent(d){{
+  currentData=d;
+  var active=d.links.filter(function(l){{return l.active}}).length;
+  var subUrl=d.sub_url||SUB_URL;
+  subUrl+=savedPw?'?pw='+encodeURIComponent(savedPw):'';
+  var importHtml=buildImportHtml();
+  document.getElementById('root').innerHTML=
+    '<div class="info-card"><div class="info-name">'+esc(d.name)+'</div>'+
+    (d.desc?'<div class="info-desc">'+esc(d.desc)+'</div>':'')+
+    '<div class="info-stats">'+
+    '<div class="info-stat"><div class="info-s-val">'+toFa(active)+'</div><div class="info-s-label">\u06a9\u0627\u0646\u0641\u06cc\u06af \u0641\u0639\u0627\u0644</div></div>'+
+    '<div class="info-stat"><div class="info-s-val">'+toFa(d.links.length)+'</div><div class="info-s-label">\u06a9\u0644 \u06a9\u0627\u0646\u0641\u06cc\u06af\u200c\u0647\u0627</div></div>'+
+    '<div class="info-stat"><div class="info-s-val">'+esc(d.total_used_fmt||'0')+'</div><div class="info-s-label">\u0645\u0635\u0631\u0641</div></div>'+
+    '</div></div>'+
+    importHtml+
+    '<div class="section-title"><i class="ti ti-link"></i> \u06a9\u0627\u0646\u0641\u06cc\u06af\u200c\u0647\u0627 ('+toFa(d.links.length)+' \u0639\u062f\u062f)</div>'+
+    (d.links.length?d.links.map(function(l){{
+      return '<div class="cfg-card"><div class="cfg-head"><div class="cfg-name">'+esc(l.label)+'</div>'+
+        '<span class="cfg-status '+(l.active?'ok':'no')+'">'+(l.active?'<i class="ti ti-circle-check"></i> \u0641\u0639\u0627\u0644':'<i class="ti ti-circle-x"></i> \u063a\u06cc\u0631\u0641\u0639\u0627\u0644')+'</span></div>'+
+        '<div class="cfg-code">'+esc(l.vless_link)+'</div>'+
+        '<div class="cfg-actions">'+
+        '<button class="btn btn-p" onclick="navigator.clipboard.writeText(\''+esc(l.vless_link).replace(/'/g,"\\'")+'\').then(function(){{toast(\'\u06a9\u067e\u06cc \u0634\u062f \u2713\',\'ok\')}})"><i class="ti ti-copy"></i> \u06a9\u067e\u06cc \u0644\u06cc\u0646\u06a9</button>'+
+        '<button class="btn btn-ghost" onclick="window.open(\'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(l.vless_link)+'\',\'_blank\')"><i class="ti ti-qrcode"></i> QR Code</button>'+
+        '</div></div>';
+    }}).join(''):'<div class="empty"><i class="ti ti-link-off"></i><p>\u06a9\u0627\u0646\u0641\u06cc\u06af\u06cc \u062f\u0631 \u0627\u06cc\u0646 \u06af\u0631\u0648\u0647 \u0648\u062c\u0648\u062f \u0646\u062f\u0627\u0631\u062f</p></div>')+
+    '<div style="margin-top:16px;text-align:center"><button class="btn btn-ghost" style="justify-content:center" onclick="location.reload()"><i class="ti ti-refresh"></i> \u0628\u0631\u0648\u0632\u0631\u0633\u0627\u0646\u06cc</button></div>';
+}}
+
+async function init(){{try{{var d=await loadData();if(d.locked){{renderLock(d.name);return}}renderContent(d)}}catch(e){{document.getElementById('root').innerHTML='<div class="empty"><i class="ti ti-alert-circle" style="color:var(--wp-red)"></i><p>\u062e\u0637\u0627 \u062f\u0631 \u0628\u0627\u0631\u06af\u0630\u0627\u0631\u06cc</p></div>'}}}}
+init();
+</script>
+</body></html>"""
