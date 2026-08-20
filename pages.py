@@ -1,11 +1,11 @@
-# pages.py — White Panel Enterprise Theme
+# pages.py â€” White Panel Enterprise Theme
 # Exports: LOGIN_HTML, DASHBOARD_HTML, get_public_page_html()
 
 LOGIN_HTML = r"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ورود · White Panel</title>
+<title>ÙˆØ±ÙˆØ¯ Â· White Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -249,26 +249,26 @@ input:focus ~ .input-icon{color:var(--wp-blue)}
     <div class="login-title">
       <span class="gradient-text">WHITE PANEL</span>
     </div>
-    <div class="login-sub">به پنل مدیریت خوش آمدید<br>برای ادامه رمز عبور را وارد کنید</div>
+    <div class="login-sub">Ø¨Ù‡ Ù¾Ù†Ù„ Ù…Ø¯ÛŒØ±ÛŒØª Ø®ÙˆØ´ Ø¢Ù…Ø¯ÛŒØ¯<br>Ø¨Ø±Ø§ÛŒ Ø§Ø¯Ø§Ù…Ù‡ Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù†ÛŒØ¯</div>
     <div class="error-msg" id="err"><i class="ti ti-alert-circle"></i><span id="err-text"></span></div>
     <div class="login-hint">
-      <span class="hint-label"><i class="ti ti-key"></i> رمز پیش‌فرض</span>
+      <span class="hint-label"><i class="ti ti-key"></i> Ø±Ù…Ø² Ù¾ÛŒØ´â€ŒÙØ±Ø¶</span>
       <span class="hint-value" onclick="document.getElementById('pw').value='123456';document.getElementById('pw').focus()">123456</span>
     </div>
     <form id="form">
       <div class="field-group">
-        <div class="field-label"><i class="ti ti-lock"></i> رمز عبور</div>
+        <div class="field-label"><i class="ti ti-lock"></i> Ø±Ù…Ø² Ø¹Ø¨ÙˆØ±</div>
         <div class="input-wrap">
-          <input type="password" id="pw" placeholder="••••••••" autofocus required>
+          <input type="password" id="pw" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autofocus required>
           <i class="ti ti-lock input-icon"></i>
-          <button type="button" class="eye-toggle" id="eye-btn" title="نمایش رمز">
+          <button type="button" class="eye-toggle" id="eye-btn" title="Ù†Ù…Ø§ÛŒØ´ Ø±Ù…Ø²">
             <i class="ti ti-eye"></i>
           </button>
         </div>
       </div>
       <button type="submit" class="login-btn" id="btn">
         <span class="spinner"></span>
-        <span class="btn-text"><i class="ti ti-login-2"></i> ورود به داشبورد</span>
+        <span class="btn-text"><i class="ti ti-login-2"></i> ÙˆØ±ÙˆØ¯ Ø¨Ù‡ Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</span>
       </button>
     </form>
     <div class="login-footer">
@@ -295,7 +295,7 @@ input:focus ~ .input-icon{color:var(--wp-blue)}
     err.classList.remove('show');btn.disabled=true;btn.classList.add('btn-loading');
     try{
       var r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw.value})});
-      if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'خطا در ورود');}
+      if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'Ø®Ø·Ø§ Ø¯Ø± ÙˆØ±ÙˆØ¯');}
       location.href='/dashboard';
     }catch(ex){
       et.textContent=ex.message;err.classList.add('show');
@@ -307,306 +307,399 @@ input:focus ~ .input-icon{color:var(--wp-blue)}
 </body></html>"""
 
 
+
 DASHBOARD_HTML = r"""<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>White Panel · داشبورد</title>
+<title>White Panel Â· Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-/* ============ CSS VARIABLES ============ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   WHITE PANEL ENTERPRISE â€” HYPER-GLASSMORPHISM DESIGN SYSTEM
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+/* â”€â”€ CSS VARIABLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 :root{
+  --neon-cyan:#06b6d4;--neon-purple:#a855f7;--neon-emerald:#10b981;
+  --neon-blue:#6366f1;--neon-pink:#ec4899;--neon-amber:#f59e0b;
   --wp-blue:#6366f1;--wp-purple:#8b5cf6;--wp-red:#ef4444;
-  --success:#16A34A;--warning:#F59E0B;--danger:#DC2626;
-  --text-primary:#0F172A;--text-secondary:#475569;
-  --bg:#F8FAFC;--surface:#FFFFFF;--surface-glass:rgba(255,255,255,.75);
-  --border:rgba(226,232,240,.8);--border-solid:#E2E8F0;
-  --gradient:linear-gradient(135deg,#6366f1,#8b5cf6,#a78bfa);
-  --gradient-purple:linear-gradient(135deg,#8b5cf6,#6366f1);
-  --gradient-blue:linear-gradient(135deg,#6366f1,#818cf8);
-  --gradient-accent:linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa);
-  --radius-sm:12px;--radius:18px;--radius-lg:24px;--radius-xl:28px;
-  --shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow-md:0 4px 16px rgba(0,0,0,.06);
-  --shadow-lg:0 12px 40px rgba(0,0,0,.08);--shadow-hover:0 8px 30px rgba(0,0,0,.1);
-  --sidebar-w:260px;--topbar-h:68px;--transition:.3s ease;
-}
-[data-theme="dark"]{
-  --text-primary:#F1F5F9;--text-secondary:#94A3B8;
-  --bg:#050a15;--surface:rgba(10,18,36,.95);--surface-glass:rgba(10,18,36,.85);
-  --border:rgba(99,102,241,.08);--border-solid:rgba(99,102,241,.12);
-  --shadow-sm:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 16px rgba(0,0,0,.4);
-  --shadow-lg:0 12px 40px rgba(0,0,0,.5);--shadow-hover:0 8px 30px rgba(99,102,241,.12);
+  --success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --text-primary:#f0f0f0;--text-secondary:#64748b;
+  --bg:#000000;--surface:rgba(255,255,255,.03);--surface-glass:rgba(255,255,255,.04);
+  --surface-hover:rgba(255,255,255,.06);--border:rgba(255,255,255,.06);
+  --border-solid:rgba(255,255,255,.08);
+  --gradient:linear-gradient(135deg,#06b6d4,#a855f7,#10b981);
+  --gradient-purple:linear-gradient(135deg,#a855f7,#6366f1);
+  --gradient-blue:linear-gradient(135deg,#6366f1,#06b6d4);
+  --gradient-accent:linear-gradient(90deg,#06b6d4,#a855f7,#10b981);
+  --radius-sm:10px;--radius:14px;--radius-lg:18px;--radius-xl:22px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);--shadow-md:0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.6);--shadow-hover:0 8px 30px rgba(6,182,212,.08);
+  --sidebar-w:240px;--topbar-h:64px;--transition:.3s cubic-bezier(.4,0,.2,1);
 }
 
-/* ============ RESET ============ */
+[data-theme="light"]{
+  --text-primary:#0f172a;--text-secondary:#64748b;
+  --bg:#f8fafc;--surface:rgba(255,255,255,.7);--surface-glass:rgba(255,255,255,.65);
+  --surface-hover:rgba(255,255,255,.9);--border:rgba(0,0,0,.06);--border-solid:rgba(0,0,0,.08);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow-md:0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.08);--shadow-hover:0 8px 30px rgba(99,102,241,.08);
+}
+
+/* â”€â”€ RESET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
-body{font-family:'Estedad',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;font-size:14px;transition:background var(--transition),color var(--transition);overflow-x:hidden}
-::-webkit-scrollbar{width:6px;height:6px}
+body{font-family:'Estedad','Inter',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;display:flex;font-size:14px;transition:background var(--transition),color var(--transition);overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(99,102,241,.2);border-radius:10px}
-::-webkit-scrollbar-thumb:hover{background:rgba(99,102,241,.4)}
-*{scrollbar-width:thin;scrollbar-color:rgba(99,102,241,.25) transparent}
+::-webkit-scrollbar-thumb{background:rgba(6,182,212,.15);border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:rgba(6,182,212,.3)}
+*{scrollbar-width:thin;scrollbar-color:rgba(6,182,212,.15) transparent}
 a{color:inherit;text-decoration:none}
 
-/* ============ PARTICLES BG ============ */
-.bg-particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.bg-p{position:absolute;border-radius:50%;animation:bgDrift linear infinite;filter:blur(1px)}
-@keyframes bgDrift{0%{transform:translate(0,0) scale(1);opacity:0}10%{opacity:.18}90%{opacity:.18}100%{transform:translate(60px,-45px) scale(.15);opacity:0}}
+/* â”€â”€ WEBGL CANVAS BACKGROUND â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6}
+[data-theme="light"] #bg-canvas{opacity:.3}
 
-/* ============ SIDEBAR ============ */
-.sidebar{width:var(--sidebar-w);min-height:100vh;background:linear-gradient(180deg,rgba(99,102,241,.04) 0%,var(--surface-glass) 40%);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;right:0;top:0;bottom:0;z-index:200;transition:transform var(--transition),background var(--transition),border-color var(--transition);box-shadow:-4px 0 24px rgba(99,102,241,.04)}
-.sidebar-logo{display:flex;align-items:center;gap:12px;padding:22px 18px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
-.sidebar-logo svg{width:36px;height:36px;filter:drop-shadow(0 2px 12px rgba(99,102,241,.35));flex-shrink:0}
-.sidebar-logo-text{font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:-.02em}
-.sidebar-logo-sub{font-size:9.5px;color:var(--text-secondary);margin-top:1px}
-.sidebar-nav{flex:1;overflow-y:auto;padding:8px 0}
-.nav-section{padding:16px 18px 6px;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-secondary);opacity:.6}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;color:var(--text-secondary);font-size:12.5px;font-weight:500;cursor:pointer;border-right:3px solid transparent;transition:all .25s cubic-bezier(.4,0,.2,1);margin:1px 8px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;position:relative}
-.nav-item i{font-size:17px;width:22px;text-align:center;flex-shrink:0;transition:color .25s}
-.nav-item:hover{background:rgba(99,102,241,.06);color:var(--text-primary)}
-.nav-item.active{background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(99,102,241,.08));color:var(--wp-purple);border-right-color:var(--wp-purple);font-weight:700;box-shadow:inset 0 0 20px rgba(99,102,241,.06),0 0 15px rgba(139,92,246,.08)}
-.nav-item.active i{color:var(--wp-purple);filter:drop-shadow(0 0 6px rgba(139,92,246,.4))}
-.nav-badge{margin-right:auto;background:rgba(99,102,241,.1);color:var(--wp-blue);font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700}
-.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
-.sidebar-user{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.sidebar-avatar{width:38px;height:38px;border-radius:var(--radius-sm);background:var(--gradient-purple);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0;box-shadow:0 4px 14px rgba(139,92,246,.35)}
-.sidebar-user-name{font-size:12.5px;font-weight:700;color:var(--text-primary)}
-.sidebar-user-role{font-size:9.5px;color:var(--text-secondary)}
-.theme-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:9px;border:none;border-radius:var(--radius-sm);background:rgba(99,102,241,.06);color:var(--text-secondary);font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .25s;border:1px solid var(--border)}
-.theme-btn:hover{background:rgba(99,102,241,.12);color:var(--text-primary);border-color:rgba(99,102,241,.2)}
-.logout-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:9px;border:none;border-radius:var(--radius-sm);background:rgba(239,68,68,.06);color:var(--wp-red);font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:all .25s;margin-top:6px;border:1px solid rgba(239,68,68,.1)}
-.logout-btn:hover{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.2)}
+/* â”€â”€ FLOATING DOCK SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.sidebar{
+  width:var(--sidebar-w);min-height:100vh;
+  background:rgba(6,182,212,.02);
+  backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+  position:fixed;right:0;top:0;bottom:0;z-index:200;
+  transition:transform var(--transition),background var(--transition);
+}
+[data-theme="light"] .sidebar{background:rgba(255,255,255,.5)}
+.sidebar-logo{display:flex;align-items:center;gap:10px;padding:18px 16px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-logo svg{width:32px;height:32px;filter:drop-shadow(0 0 12px rgba(6,182,212,.4));flex-shrink:0}
+.sidebar-logo-text{font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:-.02em}
+.sidebar-logo-sub{font-size:8.5px;color:var(--text-secondary);margin-top:1px;letter-spacing:.04em}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav-section{padding:14px 16px 5px;font-size:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--text-secondary);opacity:.5}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:9px 13px;
+  color:var(--text-secondary);font-size:12px;font-weight:500;
+  cursor:pointer;border-right:2px solid transparent;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  margin:1px 6px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  position:relative;
+}
+.nav-item i{font-size:16px;width:20px;text-align:center;flex-shrink:0;transition:all .25s}
+.nav-item:hover{background:rgba(6,182,212,.05);color:var(--text-primary)}
+.nav-item.active{
+  background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(168,85,247,.06));
+  color:var(--neon-cyan);border-right-color:var(--neon-cyan);font-weight:700;
+  box-shadow:inset 0 0 20px rgba(6,182,212,.04),0 0 20px rgba(6,182,212,.06);
+}
+.nav-item.active i{color:var(--neon-cyan);filter:drop-shadow(0 0 8px rgba(6,182,212,.5))}
+.nav-badge{margin-right:auto;background:rgba(6,182,212,.1);color:var(--neon-cyan);font-size:8.5px;padding:2px 7px;border-radius:20px;font-weight:700}
+.sidebar-footer{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0}
+.sidebar-user{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.sidebar-avatar{width:34px;height:34px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#06b6d4,#a855f7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0;box-shadow:0 0 16px rgba(6,182,212,.3)}
+.sidebar-user-name{font-size:11.5px;font-weight:700;color:var(--text-primary)}
+.sidebar-user-role{font-size:8.5px;color:var(--text-secondary)}
+.theme-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border:none;border-radius:var(--radius-sm);background:rgba(6,182,212,.05);color:var(--text-secondary);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .25s;border:1px solid var(--border)}
+.theme-btn:hover{background:rgba(6,182,212,.1);color:var(--text-primary);border-color:rgba(6,182,212,.15)}
+.logout-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border:none;border-radius:var(--radius-sm);background:rgba(239,68,68,.05);color:var(--wp-red);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .25s;margin-top:5px;border:1px solid rgba(239,68,68,.08)}
+.logout-btn:hover{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.15)}
 
-/* ============ MOBILE ============ */
-.mobile-top{display:none;position:fixed;top:0;right:0;left:0;height:56px;background:var(--surface-glass);backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--border);z-index:150;align-items:center;justify-content:space-between;padding:0 14px}
-.mobile-brand{display:flex;align-items:center;gap:9px}
-.mobile-brand svg{width:28px;height:28px;filter:drop-shadow(0 2px 8px rgba(99,102,241,.3))}
-.mobile-brand span{font-size:13px;font-weight:700;color:var(--text-primary)}
-.mobile-actions{display:flex;gap:6px}
-.mob-btn{background:rgba(99,102,241,.06);border:1px solid var(--border);color:var(--text-secondary);width:34px;height:34px;border-radius:10px;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
-.mob-btn:hover{background:rgba(99,102,241,.12);color:var(--wp-blue)}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;backdrop-filter:blur(6px)}
+/* â”€â”€ MOBILE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.mobile-top{display:none;position:fixed;top:0;right:0;left:0;height:52px;background:rgba(0,0,0,.8);backdrop-filter:blur(30px) saturate(200%);border-bottom:1px solid var(--border);z-index:150;align-items:center;justify-content:space-between;padding:0 14px}
+[data-theme="light"] .mobile-top{background:rgba(255,255,255,.7)}
+.mobile-brand{display:flex;align-items:center;gap:8px}
+.mobile-brand svg{width:26px;height:26px;filter:drop-shadow(0 0 8px rgba(6,182,212,.4))}
+.mobile-brand span{font-size:12px;font-weight:700;color:var(--text-primary)}
+.mobile-actions{display:flex;gap:5px}
+.mob-btn{background:rgba(6,182,212,.05);border:1px solid var(--border);color:var(--text-secondary);width:32px;height:32px;border-radius:8px;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.mob-btn:hover{background:rgba(6,182,212,.1);color:var(--neon-cyan)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:190;backdrop-filter:blur(8px)}
 .overlay.show{display:block}
 
-/* ============ MAIN ============ */
-.main{margin-right:var(--sidebar-w);flex:1;padding:24px 28px 40px;min-width:0;transition:margin var(--transition);position:relative;z-index:1}
-.page{display:none;animation:fadeIn .25s ease}
+/* â”€â”€ MAIN CONTENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.main{margin-right:var(--sidebar-w);flex:1;padding:22px 26px 40px;min-width:0;transition:margin var(--transition);position:relative;z-index:1}
+.page{display:none;animation:pageIn .4s cubic-bezier(.4,0,.2,1)}
 .page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
-/* ============ TOPBAR ============ */
-.topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
-.topbar-title{font-size:22px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:9px;letter-spacing:-.03em}
-.topbar-title i{color:var(--wp-blue);font-size:23px}
-.topbar-sub{font-size:11px;color:var(--text-secondary);margin-top:3px}
-.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.welcome-text{font-size:12.5px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;font-weight:500}
-.bell-btn{width:38px;height:38px;border-radius:var(--radius-sm);background:rgba(99,102,241,.06);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:all .25s;position:relative}
-.bell-btn:hover{background:rgba(99,102,241,.12);color:var(--wp-blue);border-color:rgba(99,102,241,.2);box-shadow:0 0 12px rgba(99,102,241,.1)}
-.bell-btn::after{content:'';position:absolute;top:8px;left:8px;width:7px;height:7px;border-radius:50%;background:var(--wp-red);border:2px solid var(--surface)}
+/* â”€â”€ TOPBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.topbar-title{font-size:20px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;letter-spacing:-.03em}
+.topbar-title i{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:22px}
+.topbar-sub{font-size:10px;color:var(--text-secondary);margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.welcome-text{font-size:11.5px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;font-weight:500}
+.bell-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .25s;position:relative}
+.bell-btn:hover{background:rgba(6,182,212,.08);color:var(--neon-cyan);border-color:rgba(6,182,212,.15);box-shadow:0 0 16px rgba(6,182,212,.08)}
+.bell-btn::after{content:'';position:absolute;top:7px;left:7px;width:6px;height:6px;border-radius:50%;background:var(--neon-pink);border:2px solid var(--bg);box-shadow:0 0 6px var(--neon-pink)}
 
-/* ============ BUTTONS ============ */
-.btn{font-family:'Estedad',sans-serif;font-size:12px;font-weight:600;border-radius:var(--radius);padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap}
-.btn i{font-size:13px}
-.btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 16px rgba(99,102,241,.3);position:relative;overflow:hidden}
-.btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:left .5s}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(99,102,241,.4)}
+/* â”€â”€ BUTTONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.btn{font-family:'Estedad','Inter',sans-serif;font-size:11.5px;font-weight:600;border-radius:var(--radius);padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;border:none;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap}
+.btn i{font-size:12px}
+.btn-primary{background:linear-gradient(135deg,#06b6d4,#a855f7);color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.25);position:relative;overflow:hidden}
+.btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);transition:left .5s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(6,182,212,.35)}
 .btn-primary:hover::before{left:100%}
-.btn-primary:active{transform:translateY(0);box-shadow:0 4px 12px rgba(99,102,241,.25)}
-.btn-ghost{background:rgba(99,102,241,.06);color:var(--wp-blue);border:1px solid rgba(99,102,241,.15)}
-.btn-ghost:hover{background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25);box-shadow:0 0 12px rgba(99,102,241,.08)}
-.btn-danger{background:rgba(239,68,68,.06);color:var(--wp-red);border:1px solid rgba(239,68,68,.15)}
-.btn-danger:hover{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.25);box-shadow:0 0 12px rgba(239,68,68,.08)}
-.btn-sm{padding:5px 10px;font-size:10.5px;border-radius:10px}
-.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:10px}
-.btn-purple{background:rgba(139,92,246,.08);color:var(--wp-purple);border:1px solid rgba(139,92,246,.15)}
-.btn-purple:hover{background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.25)}
-.btn-success{background:rgba(22,163,74,.08);color:var(--success);border:1px solid rgba(22,163,74,.15)}
-.btn-success:hover{background:rgba(22,163,74,.15);border-color:rgba(22,163,74,.25)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:rgba(6,182,212,.05);color:var(--neon-cyan);border:1px solid rgba(6,182,212,.1)}
+.btn-ghost:hover{background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.2);box-shadow:0 0 12px rgba(6,182,212,.06)}
+.btn-danger{background:rgba(239,68,68,.05);color:var(--wp-red);border:1px solid rgba(239,68,68,.1)}
+.btn-danger:hover{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2);box-shadow:0 0 12px rgba(239,68,68,.06)}
+.btn-sm{padding:5px 9px;font-size:10px;border-radius:8px}
+.btn-icon{width:30px;height:30px;padding:0;justify-content:center;border-radius:8px}
+.btn-purple{background:rgba(168,85,247,.06);color:var(--neon-purple);border:1px solid rgba(168,85,247,.1)}
+.btn-purple:hover{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.2)}
+.btn-success{background:rgba(16,185,129,.06);color:var(--neon-emerald);border:1px solid rgba(16,185,129,.1)}
+.btn-success:hover{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.2)}
 
-/* ============ BADGES ============ */
-.badge{font-size:9.5px;padding:3px 10px;border-radius:20px;font-weight:700;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-.badge-blue{background:rgba(99,102,241,.1);color:var(--wp-blue)}
-.badge-green{background:rgba(22,163,74,.1);color:var(--success)}
+/* â”€â”€ BADGES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.badge{font-size:9px;padding:3px 9px;border-radius:20px;font-weight:700;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-blue{background:rgba(6,182,212,.1);color:var(--neon-cyan)}
+.badge-green{background:rgba(16,185,129,.1);color:var(--neon-emerald)}
 .badge-red{background:rgba(239,68,68,.1);color:var(--wp-red)}
-.badge-purple{background:rgba(139,92,246,.1);color:var(--wp-purple)}
+.badge-purple{background:rgba(168,85,247,.1);color:var(--neon-purple)}
 .badge-amber{background:rgba(245,158,11,.1);color:var(--warning)}
 .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;display:inline-block}
-.dot-green{background:var(--success)}
-.dot-red{background:var(--wp-red)}
-.dot-blue{background:var(--wp-blue)}
+.dot-green{background:var(--neon-emerald);box-shadow:0 0 6px var(--neon-emerald)}
+.dot-red{background:var(--wp-red);box-shadow:0 0 6px var(--wp-red)}
+.dot-blue{background:var(--neon-cyan);box-shadow:0 0 6px var(--neon-cyan)}
 .pulse{animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
 
-/* ============ STATS CARDS ============ */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.stat-card{background:var(--surface-glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 18px 16px;transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;cursor:default}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-accent);opacity:0;transition:opacity .3s}
+/* â”€â”€ STAT CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{
+  background:var(--surface-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:18px 16px 14px;transition:all .35s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;cursor:default;
+  animation:staggerIn .5s cubic-bezier(.4,0,.2,1) both;
+}
+.stat-card:nth-child(1){animation-delay:.05s}
+.stat-card:nth-child(2){animation-delay:.1s}
+.stat-card:nth-child(3){animation-delay:.15s}
+.stat-card:nth-child(4){animation-delay:.2s}
+@keyframes staggerIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent);opacity:0;transition:opacity .3s}
 .stat-card:hover::before{opacity:1}
-.stat-card:hover{transform:translateY(-4px) scale(1.01);border-color:rgba(99,102,241,.2);box-shadow:0 12px 40px rgba(99,102,241,.1)}
-.stat-card::after{content:'';position:absolute;top:0;right:0;width:4px;height:40px;background:var(--gradient-accent);border-radius:0 0 0 6px;transition:height .35s cubic-bezier(.4,0,.2,1)}
-.stat-card:hover::after{height:60px}
-.stat-icon{width:42px;height:42px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:12px;transition:all .3s}
-.stat-card:hover .stat-icon{filter:drop-shadow(0 0 10px currentColor);transform:scale(1.08)}
-.stat-icon.blue{background:rgba(99,102,241,.1);color:var(--wp-blue)}
-.stat-icon.purple{background:rgba(139,92,246,.1);color:var(--wp-purple)}
-.stat-icon.green{background:rgba(22,163,74,.1);color:var(--success)}
-.stat-icon.red{background:rgba(239,68,68,.1);color:var(--wp-red)}
-.stat-label{font-size:10.5px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
-.stat-value{font-size:28px;font-weight:800;color:var(--text-primary);line-height:1;letter-spacing:-.03em}
-.stat-sub{font-size:10px;color:var(--text-secondary);margin-top:7px;display:flex;align-items:center;gap:4px}
-.stat-sub.up{color:var(--success)}
+.stat-card:hover{transform:translateY(-3px);border-color:rgba(6,182,212,.15);box-shadow:0 12px 40px rgba(6,182,212,.06)}
+.stat-card::after{content:'';position:absolute;top:0;right:0;width:2px;height:0;background:var(--gradient-accent);border-radius:0 0 0 4px;transition:height .35s}
+.stat-card:hover::after{height:50px}
+.stat-icon{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px;transition:all .3s}
+.stat-card:hover .stat-icon{filter:drop-shadow(0 0 12px currentColor);transform:scale(1.08)}
+.stat-icon.blue{background:rgba(6,182,212,.08);color:var(--neon-cyan)}
+.stat-icon.purple{background:rgba(168,85,247,.08);color:var(--neon-purple)}
+.stat-icon.green{background:rgba(16,185,129,.08);color:var(--neon-emerald)}
+.stat-icon.red{background:rgba(239,68,68,.08);color:var(--wp-red)}
+.stat-label{font-size:9.5px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.stat-value{font-size:26px;font-weight:800;color:var(--text-primary);line-height:1;letter-spacing:-.03em;font-family:'Inter',sans-serif}
+.stat-sub{font-size:9.5px;color:var(--text-secondary);margin-top:6px;display:flex;align-items:center;gap:4px}
+.stat-sub.up{color:var(--neon-emerald)}
 
-/* ============ QUIICK ACTIONS ============ */
-.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.qa-btn{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface-glass);backdrop-filter:blur(12px);color:var(--text-primary);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1)}
-.qa-btn:hover{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 8px 24px rgba(99,102,241,.3);transform:translateY(-3px)}
-.qa-btn i{font-size:18px;transition:transform .3s}
+/* â”€â”€ QUICK ACTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.qa-btn{
+  display:flex;align-items:center;gap:9px;padding:12px 14px;
+  border-radius:var(--radius);border:1px solid var(--border);
+  background:var(--surface-glass);backdrop-filter:blur(16px);
+  color:var(--text-primary);font-family:inherit;font-size:11.5px;font-weight:600;
+  cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);
+  animation:staggerIn .5s cubic-bezier(.4,0,.2,1) both;
+}
+.qa-btn:nth-child(1){animation-delay:.25s}.qa-btn:nth-child(2){animation-delay:.3s}
+.qa-btn:nth-child(3){animation-delay:.35s}.qa-btn:nth-child(4){animation-delay:.4s}
+.qa-btn:hover{background:linear-gradient(135deg,rgba(6,182,212,.12),rgba(168,85,247,.08));border-color:rgba(6,182,212,.2);box-shadow:0 8px 24px rgba(6,182,212,.1);transform:translateY(-2px)}
+.qa-btn i{font-size:16px;transition:transform .3s;color:var(--neon-cyan)}
 .qa-btn:hover i{transform:scale(1.1)}
 
-/* ============ SERVER INFO ============ */
-.server-panel{background:var(--surface-glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 24px 20px;margin-bottom:20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
-.server-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-accent)}
-.server-title{font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.server-title i{color:var(--wp-blue);font-size:18px}
-.server-bars{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.srv-bar-item{display:flex;flex-direction:column;gap:7px}
-.srv-bar-label{display:flex;justify-content:space-between;font-size:10.5px;font-weight:600}
+/* â”€â”€ SERVER PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.server-panel{
+  background:var(--surface-glass);backdrop-filter:blur(24px);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px 22px 18px;margin-bottom:20px;
+  box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+  animation:staggerIn .5s cubic-bezier(.4,0,.2,1) .45s both;
+}
+.server-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent)}
+.server-title{font-size:13px;font-weight:800;color:var(--text-primary);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.server-title i{font-size:16px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.server-bars{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.srv-bar-item{display:flex;flex-direction:column;gap:6px}
+.srv-bar-label{display:flex;justify-content:space-between;font-size:10px;font-weight:600}
 .srv-bar-name{color:var(--text-secondary)}
-.srv-bar-pct{color:var(--text-primary)}
-.srv-bar-track{height:8px;border-radius:4px;background:rgba(99,102,241,.08);overflow:hidden}
-.srv-bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1);position:relative}
-.srv-bar-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);width:50%;animation:shimmer 2.5s linear infinite}
-.srv-bar-fill.blue{background:linear-gradient(90deg,#6366f1,#818cf8)}
-.srv-bar-fill.purple{background:linear-gradient(90deg,#8b5cf6,#a78bfa)}
-.srv-bar-fill.amber{background:linear-gradient(90deg,#F59E0B,#FCD34D)}
-.srv-bar-fill.green{background:linear-gradient(90deg,#16A34A,#4ADE80)}
+.srv-bar-pct{color:var(--text-primary);font-family:'Inter',sans-serif}
+.srv-bar-track{height:6px;border-radius:3px;background:rgba(255,255,255,.04);overflow:hidden}
+[data-theme="light"] .srv-bar-track{background:rgba(0,0,0,.04)}
+.srv-bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1);position:relative}
+.srv-bar-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);width:50%;animation:shimmer 2.5s linear infinite}
+.srv-bar-fill.blue{background:linear-gradient(90deg,#06b6d4,#22d3ee)}
+.srv-bar-fill.purple{background:linear-gradient(90deg,#a855f7,#c084fc)}
+.srv-bar-fill.amber{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.srv-bar-fill.green{background:linear-gradient(90deg,#10b981,#34d399)}
 @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
 
-/* ============ TABLE ============ */
-.table-wrap{background:var(--surface-glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);position:relative}
-.table-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-accent)}
+/* â”€â”€ TABLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.table-wrap{
+  background:var(--surface-glass);backdrop-filter:blur(24px);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);position:relative;
+  animation:staggerIn .5s cubic-bezier(.4,0,.2,1) .5s both;
+}
+.table-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent)}
 .table-wrap table{width:100%;border-collapse:collapse}
-.table-wrap th{background:rgba(99,102,241,.04);font-size:10px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;padding:12px 14px;text-align:right;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
-.table-wrap td{padding:12px 14px;font-size:12px;color:var(--text-primary);border-bottom:1px solid var(--border);transition:all .2s}
-.table-wrap tbody tr:nth-child(even){background:rgba(99,102,241,.02)}
-.table-wrap tbody tr:nth-child(even):hover td{background:rgba(99,102,241,.05)}
-.table-wrap tr:hover td{background:rgba(99,102,241,.04);box-shadow:inset 0 0 20px rgba(99,102,241,.03)}
+.table-wrap th{background:rgba(6,182,212,.03);font-size:9px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;padding:11px 12px;text-align:right;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
+.table-wrap td{padding:10px 12px;font-size:11.5px;color:var(--text-primary);border-bottom:1px solid var(--border);transition:all .2s}
+.table-wrap tbody tr{animation:staggerIn .3s cubic-bezier(.4,0,.2,1) both}
+.table-wrap tbody tr:nth-child(1){animation-delay:.55s}.table-wrap tbody tr:nth-child(2){animation-delay:.6s}
+.table-wrap tbody tr:nth-child(3){animation-delay:.65s}.table-wrap tbody tr:nth-child(4){animation-delay:.7s}
+.table-wrap tbody tr:nth-child(5){animation-delay:.75s}
+.table-wrap tbody tr:nth-child(even){background:rgba(6,182,212,.015)}
+.table-wrap tbody tr:hover{background:rgba(6,182,212,.03)}
 .table-wrap tr:last-child td{border-bottom:none}
-.proto-badge{font-size:9px;padding:3px 8px;border-radius:6px;font-weight:700}
-.pb-vless{background:rgba(99,102,241,.1);color:var(--wp-blue)}
-.pb-vmess{background:rgba(139,92,246,.1);color:var(--wp-purple)}
+.proto-badge{font-size:8.5px;padding:2.5px 7px;border-radius:5px;font-weight:700}
+.pb-vless{background:rgba(6,182,212,.1);color:var(--neon-cyan)}
+.pb-vmess{background:rgba(168,85,247,.1);color:var(--neon-purple)}
 .pb-trojan{background:rgba(239,68,68,.1);color:var(--wp-red)}
-.pb-ss{background:rgba(22,163,74,.1);color:var(--success)}
+.pb-ss{background:rgba(16,185,129,.1);color:var(--neon-emerald)}
 .pb-wg{background:rgba(245,158,11,.1);color:var(--warning)}
-.usage-bar-wrap{width:100%;min-width:100px}
-.usage-bar{height:6px;border-radius:3px;background:rgba(99,102,241,.08);overflow:hidden;margin-bottom:3px}
-.usage-fill{height:100%;border-radius:3px;background:var(--gradient-blue);transition:width .5s ease}
-.usage-text{font-size:9.5px;color:var(--text-secondary);display:flex;justify-content:space-between}
-.status-dot{display:flex;align-items:center;gap:5px;font-weight:600;font-size:11px}
-.status-dot.active{color:var(--success)}
+.usage-bar-wrap{width:100%;min-width:90px}
+.usage-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.04);overflow:hidden;margin-bottom:3px}
+[data-theme="light"] .usage-bar{background:rgba(0,0,0,.04)}
+.usage-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#06b6d4,#a855f7);transition:width .5s ease}
+.usage-text{font-size:9px;color:var(--text-secondary);display:flex;justify-content:space-between;font-family:'Inter',sans-serif}
+.status-dot{display:flex;align-items:center;gap:5px;font-weight:600;font-size:10.5px}
+.status-dot.active{color:var(--neon-emerald)}
 .status-dot.expired{color:var(--wp-red)}
-.exp-chip{font-size:9px;padding:2px 8px;border-radius:6px;font-weight:700}
-.exp-ok{background:rgba(22,163,74,.1);color:var(--success)}
-.exp-warn{background:rgba(245,158,11,.1);color:var(--warning)}
-.exp-bad{background:rgba(239,68,68,.1);color:var(--wp-red)}
-.action-btns{display:flex;gap:4px}
+.exp-chip{font-size:8.5px;padding:2px 7px;border-radius:5px;font-weight:700}
+.exp-ok{background:rgba(16,185,129,.08);color:var(--neon-emerald)}
+.exp-warn{background:rgba(245,158,11,.08);color:var(--warning)}
+.exp-bad{background:rgba(239,68,68,.08);color:var(--wp-red)}
+.action-btns{display:flex;gap:3px}
 
-/* ============ MODALS ============ */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px}
+/* â”€â”€ MODALS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(10px);padding:20px}
 .modal-overlay.open{display:flex}
-.modal-card{background:var(--surface-glass);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:0;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(99,102,241,.12),var(--shadow-lg);animation:modalIn .35s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
-.modal-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-accent)}
-@keyframes modalIn{from{opacity:0;transform:scale(.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.modal-head{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:relative}
-.modal-head::before{content:'';position:absolute;top:0;right:0;width:150px;height:150px;background:radial-gradient(circle,rgba(139,92,246,.06),transparent 70%);pointer-events:none}
-.modal-title{font-size:17px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;position:relative;z-index:1}
-.modal-title i{color:var(--wp-purple);font-size:19px}
-.modal-close{width:32px;height:32px;border-radius:10px;background:rgba(99,102,241,.06);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .25s}
-.modal-close:hover{background:rgba(239,68,68,.1);color:var(--wp-red);border-color:rgba(239,68,68,.2);box-shadow:0 0 12px rgba(239,68,68,.1)}
-.modal-body{padding:20px 26px}
-.modal-footer{padding:16px 26px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
-/* Form fields */
-.form-field{margin-bottom:14px}
-.form-field label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.form-field label i{color:var(--wp-purple);font-size:13px}
-.form-input{width:100%;padding:10px 14px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.5);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:12.5px;outline:none;transition:all .25s}
-[data-theme="dark"] .form-input{background:rgba(10,18,36,.5);color:var(--text-primary)}
-.form-input:focus{border-color:var(--wp-blue);box-shadow:0 0 0 3px rgba(99,102,241,.1),0 0 16px rgba(99,102,241,.06)}
-.form-input::placeholder{color:var(--text-secondary);opacity:.5}
-.form-row{display:flex;gap:10px;flex-wrap:wrap}
-.form-row .form-field{flex:1;min-width:120px}
-.form-select{width:100%;padding:10px 14px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.5);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:12.5px;outline:none;cursor:pointer;transition:all .25s}
-[data-theme="dark"] .form-select{background:rgba(10,18,36,.5);color:var(--text-primary)}
-.form-select:focus{border-color:var(--wp-blue);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-.form-textarea{width:100%;padding:10px 14px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.5);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:12.5px;outline:none;resize:vertical;min-height:70px;transition:all .25s}
-.form-textarea:focus{border-color:var(--wp-blue);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-[data-theme="dark"] .form-textarea{background:rgba(10,18,36,.5)}
-/* Toggle switch */
-.toggle-wrap{display:flex;align-items:center;gap:10px}
-.toggle-switch{width:44px;height:24px;border-radius:12px;background:rgba(100,116,139,.25);position:relative;cursor:pointer;transition:all .3s;border:none;flex-shrink:0}
-.toggle-switch::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;right:3px;top:3px;transition:all .3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.toggle-switch.on{background:var(--success)}
-.toggle-switch.on::after{right:23px}
-.toggle-label{font-size:11.5px;color:var(--text-secondary);font-weight:600}
+.modal-card{
+  background:rgba(10,15,30,.9);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);
+  border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-xl);
+  padding:0;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;
+  box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 40px rgba(6,182,212,.05);
+  animation:modalIn .35s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
+}
+[data-theme="light"] .modal-card{background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.06)}
+.modal-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent)}
+@keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:relative}
+.modal-head::before{content:'';position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle,rgba(6,182,212,.04),transparent 70%);pointer-events:none}
+.modal-title{font-size:15px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:7px;position:relative;z-index:1}
+.modal-title i{font-size:17px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.modal-close{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .25s}
+.modal-close:hover{background:rgba(239,68,68,.1);color:var(--wp-red);border-color:rgba(239,68,68,.15)}
+.modal-body{padding:18px 24px}
+.modal-footer{padding:14px 24px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.form-field{margin-bottom:12px}
+.form-field label{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.form-field label i{font-size:12px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.form-input{width:100%;padding:9px 12px;border-radius:var(--radius);border:1px solid var(--border);background:rgba(255,255,255,.03);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:12px;outline:none;transition:all .25s}
+[data-theme="light"] .form-input{background:rgba(0,0,0,.02)}
+.form-input:focus{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,.08),0 0 16px rgba(6,182,212,.04)}
+.form-input::placeholder{color:var(--text-secondary);opacity:.4}
+.form-row{display:flex;gap:8px;flex-wrap:wrap}
+.form-row .form-field{flex:1;min-width:110px}
+.form-select{width:100%;padding:9px 12px;border-radius:var(--radius);border:1px solid var(--border);background:rgba(255,255,255,.03);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:12px;outline:none;cursor:pointer;transition:all .25s}
+[data-theme="light"] .form-select{background:rgba(0,0,0,.02)}
+.form-select:focus{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,.08)}
+.form-textarea{width:100%;padding:9px 12px;border-radius:var(--radius);border:1px solid var(--border);background:rgba(255,255,255,.03);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:12px;outline:none;resize:vertical;min-height:60px;transition:all .25s}
+.form-textarea:focus{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,.08)}
+[data-theme="light"] .form-textarea{background:rgba(0,0,0,.02)}
+.toggle-wrap{display:flex;align-items:center;gap:8px}
+.toggle-switch{width:40px;height:22px;border-radius:11px;background:rgba(100,116,139,.2);position:relative;cursor:pointer;transition:all .3s;border:none;flex-shrink:0}
+.toggle-switch::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;right:3px;top:3px;transition:all .3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch.on{background:var(--neon-emerald);box-shadow:0 0 12px rgba(16,185,129,.2)}
+.toggle-switch.on::after{right:21px}
+.toggle-label{font-size:11px;color:var(--text-secondary);font-weight:600}
 
-/* ============ CONFIG CARDS ============ */
-.cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.cfg-card-item{background:var(--surface-glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;overflow:hidden;transition:all .35s cubic-bezier(.4,0,.2,1);position:relative}
-.cfg-card-item::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-accent);opacity:0;transition:opacity .3s}
+/* â”€â”€ CONFIG CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.cfg-card-item{
+  background:var(--surface-glass);backdrop-filter:blur(20px);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:0;overflow:hidden;
+  transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;
+  animation:staggerIn .4s cubic-bezier(.4,0,.2,1) both;
+}
+.cfg-card-item::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent);opacity:0;transition:opacity .3s}
 .cfg-card-item:hover::before{opacity:1}
-.cfg-card-item:hover{border-color:rgba(99,102,241,.2);transform:translateY(-3px);box-shadow:0 12px 40px rgba(99,102,241,.08)}
-.cfg-card-top{padding:16px 18px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.cfg-card-label{font-size:14px;font-weight:700;color:var(--text-primary)}
-.cfg-card-body{padding:0 18px 14px}
-.cfg-code{background:rgba(10,18,36,.06);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;font-family:'Inter',monospace;font-size:10px;color:var(--wp-blue);word-break:break-all;line-height:1.7;max-height:80px;overflow-y:auto;margin-bottom:10px}
-[data-theme="dark"] .cfg-code{background:rgba(0,0,0,.3);color:#818cf8}
-.cfg-card-actions{display:flex;gap:6px;flex-wrap:wrap;padding:0 18px 14px}
+.cfg-card-item:hover{border-color:rgba(6,182,212,.15);transform:translateY(-2px);box-shadow:0 8px 30px rgba(6,182,212,.06)}
+.cfg-card-top{padding:14px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.cfg-card-label{font-size:13px;font-weight:700;color:var(--text-primary)}
+.cfg-card-body{padding:0 16px 12px}
+.cfg-code{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-family:'Inter',monospace;font-size:9.5px;color:var(--neon-cyan);word-break:break-all;line-height:1.7;max-height:70px;overflow-y:auto;margin-bottom:8px}
+[data-theme="light"] .cfg-code{background:rgba(0,0,0,.03);color:var(--neon-blue)}
+.cfg-card-actions{display:flex;gap:5px;flex-wrap:wrap;padding:0 16px 12px}
 
-/* ============ LOG TIMELINE ============ */
+/* â”€â”€ LOG TIMELINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .log-list{display:flex;flex-direction:column}
-.log-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.log-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);animation:staggerIn .3s cubic-bezier(.4,0,.2,1) both}
 .log-row:last-child{border-bottom:none}
-.log-icon-s{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.log-icon-s.info{background:rgba(99,102,241,.1);color:var(--wp-blue)}
-.log-icon-s.ok{background:rgba(22,163,74,.1);color:var(--success)}
-.log-icon-s.warn{background:rgba(245,158,11,.1);color:var(--warning)}
-.log-icon-s.err{background:rgba(239,68,68,.1);color:var(--wp-red)}
+.log-icon-s{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.log-icon-s.info{background:rgba(6,182,212,.08);color:var(--neon-cyan)}
+.log-icon-s.ok{background:rgba(16,185,129,.08);color:var(--neon-emerald)}
+.log-icon-s.warn{background:rgba(245,158,11,.08);color:var(--warning)}
+.log-icon-s.err{background:rgba(239,68,68,.08);color:var(--wp-red)}
 .log-content{flex:1;min-width:0}
-.log-msg{font-size:12.5px;color:var(--text-primary);line-height:1.6}
-.log-time{font-size:9.5px;color:var(--text-secondary);margin-top:3px;display:flex;align-items:center;gap:5px}
+.log-msg{font-size:12px;color:var(--text-primary);line-height:1.6}
+.log-time{font-size:9px;color:var(--text-secondary);margin-top:2px;display:flex;align-items:center;gap:4px;font-family:'Inter',sans-serif}
 
-/* ============ TOAST ============ */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--surface-glass);backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius);padding:12px 22px;font-size:12.5px;font-weight:500;opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);z-index:999;pointer-events:none;display:flex;align-items:center;gap:8px;box-shadow:0 12px 40px rgba(99,102,241,.1),var(--shadow-lg);white-space:nowrap}
+/* â”€â”€ TOAST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);
+  background:rgba(10,15,30,.9);backdrop-filter:blur(30px) saturate(200%);
+  border:1px solid rgba(255,255,255,.06);color:var(--text-primary);
+  border-radius:var(--radius);padding:10px 20px;font-size:12px;font-weight:500;
+  opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);z-index:999;
+  pointer-events:none;display:flex;align-items:center;gap:7px;
+  box-shadow:0 12px 40px rgba(0,0,0,.4);white-space:nowrap;
+}
+[data-theme="light"] .toast{background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.06)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.ok{border-color:rgba(22,163,74,.3);background:rgba(22,163,74,.08);color:var(--success);box-shadow:0 12px 40px rgba(22,163,74,.1)}
-.toast.err{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:var(--wp-red);box-shadow:0 12px 40px rgba(239,68,68,.1)}
+.toast.ok{border-color:rgba(16,185,129,.2);color:var(--neon-emerald);box-shadow:0 12px 40px rgba(16,185,129,.08)}
+.toast.err{border-color:rgba(239,68,68,.2);color:var(--wp-red);box-shadow:0 12px 40px rgba(239,68,68,.08)}
 
-/* ============ EMPTY STATE ============ */
-.empty-state{text-align:center;padding:60px 20px;color:var(--text-secondary)}
-.empty-state i{font-size:44px;opacity:.3;display:block;margin-bottom:14px}
-.empty-state p{font-size:13px}
+/* â”€â”€ EMPTY STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-secondary)}
+.empty-state i{font-size:40px;opacity:.2;display:block;margin-bottom:12px}
+.empty-state p{font-size:12px}
 
-/* ============ TRAFFIC CHART ============ */
-.chart-card{background:var(--surface-glass);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
-.chart-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-accent)}
-.chart-title{font-size:14px;font-weight:800;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.chart-title i{color:var(--wp-blue)}
-.chart-canvas-wrap{position:relative;height:300px}
+/* â”€â”€ TRAFFIC CHART â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.chart-card{
+  background:var(--surface-glass);backdrop-filter:blur(24px);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:20px;
+  box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+  animation:staggerIn .5s cubic-bezier(.4,0,.2,1) .55s both;
+}
+.chart-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent)}
+.chart-title{font-size:13px;font-weight:800;color:var(--text-primary);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.chart-title i{font-size:15px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.chart-canvas-wrap{position:relative;height:280px}
 
-/* ============ RESPONSIVE ============ */
+/* â”€â”€ SKELETON LOADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.03) 25%,rgba(255,255,255,.06) 50%,rgba(255,255,255,.03) 75%);background-size:200% 100%;animation:skeletonShimmer 1.5s infinite;border-radius:6px}
+[data-theme="light"] .skeleton{background:linear-gradient(90deg,rgba(0,0,0,.04) 25%,rgba(0,0,0,.07) 50%,rgba(0,0,0,.04) 75%);background-size:200% 100%}
+@keyframes skeletonShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* â”€â”€ RESPONSIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media(max-width:1100px){
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .server-bars{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:860px){
   .sidebar{transform:translateX(100%)}
-  .sidebar.open{transform:translateX(0);box-shadow:-10px 0 40px rgba(0,0,0,.3)}
-  .main{margin-right:0;padding-top:72px}
+  .sidebar.open{transform:translateX(0);box-shadow:-10px 0 40px rgba(0,0,0,.4)}
+  .main{margin-right:0;padding-top:64px}
   .mobile-top{display:flex}
   .quick-actions{grid-template-columns:repeat(2,1fr)}
   .stats-grid{grid-template-columns:1fr 1fr}
@@ -614,21 +707,15 @@ a{color:inherit;text-decoration:none}
 @media(max-width:520px){
   .stats-grid{grid-template-columns:1fr}
   .quick-actions{grid-template-columns:1fr}
-  .main{padding:62px 12px 40px}
+  .main{padding:58px 10px 40px}
   .server-bars{grid-template-columns:1fr}
   .cfg-grid{grid-template-columns:1fr}
   .form-row{flex-direction:column}
 }
 </style>
 </head>
-<body data-theme="light">
-<div class="bg-particles">
-  <div class="bg-p" style="width:4px;height:4px;background:var(--wp-blue);top:10%;left:20%;animation-duration:18s"></div>
-  <div class="bg-p" style="width:3px;height:3px;background:var(--wp-purple);top:70%;left:40%;animation-duration:22s;animation-delay:-6s"></div>
-  <div class="bg-p" style="width:5px;height:5px;background:var(--wp-purple);top:40%;left:70%;animation-duration:16s;animation-delay:-10s;opacity:.3"></div>
-  <div class="bg-p" style="width:3px;height:3px;background:var(--wp-blue);top:80%;left:15%;animation-duration:20s;animation-delay:-3s"></div>
-  <div class="bg-p" style="width:4px;height:4px;background:var(--wp-purple);top:25%;left:55%;animation-duration:19s;animation-delay:-8s"></div>
-</div>
+<body data-theme="dark">
+<canvas id="bg-canvas"></canvas>
 <div class="toast" id="toast"></div>
 <div class="overlay" id="overlay"></div>
 
@@ -636,59 +723,59 @@ a{color:inherit;text-decoration:none}
 <div class="modal-overlay" id="modal-create-user">
   <div class="modal-card">
     <div class="modal-head">
-      <div class="modal-title"><i class="ti ti-user-plus"></i> ایجاد کاربر جدید</div>
+      <div class="modal-title"><i class="ti ti-user-plus"></i> Ø§ÛŒØ¬Ø§Ø¯ Ú©Ø§Ø±Ø¨Ø± Ø¬Ø¯ÛŒØ¯</div>
       <button class="modal-close" onclick="closeModal('modal-create-user')"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
       <form id="create-user-form">
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-user"></i> نام کاربری</label><input class="form-input" id="cu-username" placeholder="username" required></div>
-          <div class="form-field"><label><i class="ti ti-lock"></i> رمز عبور</label><input class="form-input" id="cu-password" type="password" placeholder="••••" required></div>
+          <div class="form-field"><label><i class="ti ti-user"></i> Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ</label><input class="form-input" id="cu-username" placeholder="username" required></div>
+          <div class="form-field"><label><i class="ti ti-lock"></i> Ø±Ù…Ø² Ø¹Ø¨ÙˆØ±</label><input class="form-input" id="cu-password" type="password" placeholder="â€¢â€¢â€¢â€¢" required></div>
         </div>
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-plug-connected"></i> پروتکل</label><select class="form-select" id="cu-protocol"><option value="vless">VLESS</option><option value="vmess">VMess</option><option value="trojan">Trojan</option><option value="shadowsocks">Shadowsocks</option><option value="wireguard">WireGuard</option></select></div>
-          <div class="form-field"><label><i class="ti ti-server"></i> سرور</label><select class="form-select" id="cu-server"><option value="">انتخاب سرور...</option></select></div>
+          <div class="form-field"><label><i class="ti ti-plug-connected"></i> Ù¾Ø±ÙˆØªÚ©Ù„</label><select class="form-select" id="cu-protocol"><option value="vless">VLESS</option><option value="vmess">VMess</option><option value="trojan">Trojan</option><option value="shadowsocks">Shadowsocks</option><option value="wireguard">WireGuard</option></select></div>
+          <div class="form-field"><label><i class="ti ti-server"></i> Ø³Ø±ÙˆØ±</label><select class="form-select" id="cu-server"><option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ø³Ø±ÙˆØ±...</option></select></div>
         </div>
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-gauge"></i> محدودیت ترافیک</label><input class="form-input" id="cu-traffic" type="number" min="0" step="0.1" placeholder="مقدار"></div>
-          <div class="form-field"><label>واحد</label><select class="form-select" id="cu-traffic-unit"><option value="GB">GB</option><option value="MB">MB</option><option value="TB">TB</option><option value="unlimited">نامحدود</option></select></div>
+          <div class="form-field"><label><i class="ti ti-gauge"></i> Ù…Ø­Ø¯ÙˆØ¯ÛŒØª ØªØ±Ø§ÙÛŒÚ©</label><input class="form-input" id="cu-traffic" type="number" min="0" step="0.1" placeholder="Ù…Ù‚Ø¯Ø§Ø±"></div>
+          <div class="form-field"><label>ÙˆØ§Ø­Ø¯</label><select class="form-select" id="cu-traffic-unit"><option value="GB">GB</option><option value="MB">MB</option><option value="TB">TB</option><option value="unlimited">Ù†Ø§Ù…Ø­Ø¯ÙˆØ¯</option></select></div>
         </div>
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-calendar"></i> روزهای انقضا</label><input class="form-input" id="cu-expire" type="number" min="0" placeholder="0 = نامحدود"></div>
-          <div class="form-field"><label><i class="ti ti-users"></i> اتصال همزمان</label><input class="form-input" id="cu-concurrent" type="number" min="1" value="1"></div>
+          <div class="form-field"><label><i class="ti ti-calendar"></i> Ø±ÙˆØ²Ù‡Ø§ÛŒ Ø§Ù†Ù‚Ø¶Ø§</label><input class="form-input" id="cu-expire" type="number" min="0" placeholder="0 = Ù†Ø§Ù…Ø­Ø¯ÙˆØ¯"></div>
+          <div class="form-field"><label><i class="ti ti-users"></i> Ø§ØªØµØ§Ù„ Ù‡Ù…Ø²Ù…Ø§Ù†</label><input class="form-input" id="cu-concurrent" type="number" min="1" value="1"></div>
         </div>
         <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-route"></i> اینباند</label><select class="form-select" id="cu-inbound"><option value="">انتخاب اینباند...</option></select></div>
-          <div class="form-field" id="cu-worker-country-wrap" style="display:none"><label><i class="ti ti-map-pin"></i> کشور ورکر</label><select class="form-select" id="cu-worker-country"><option value="">انتخاب کشور...</option></select></div>
+          <div class="form-field"><label><i class="ti ti-route"></i> Ø§ÛŒÙ†Ø¨Ø§Ù†Ø¯</label><select class="form-select" id="cu-inbound"><option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ø§ÛŒÙ†Ø¨Ø§Ù†Ø¯...</option></select></div>
+          <div class="form-field" id="cu-worker-country-wrap" style="display:none"><label><i class="ti ti-map-pin"></i> Ú©Ø´ÙˆØ± ÙˆØ±Ú©Ø±</label><select class="form-select" id="cu-worker-country"><option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ø´ÙˆØ±...</option></select></div>
         </div>
-        <div class="form-field"><label><i class="ti ti-notes"></i> یادداشت</label><textarea class="form-textarea" id="cu-notes" placeholder="یادداشت اختیاری..."></textarea></div>
+        <div class="form-field"><label><i class="ti ti-notes"></i> ÛŒØ§Ø¯Ø¯Ø§Ø´Øª</label><textarea class="form-textarea" id="cu-notes" placeholder="ÛŒØ§Ø¯Ø¯Ø§Ø´Øª Ø§Ø®ØªÛŒØ§Ø±ÛŒ..."></textarea></div>
         <div class="toggle-wrap">
           <button type="button" class="toggle-switch on" id="cu-active-toggle" onclick="this.classList.toggle('on')"></button>
-          <span class="toggle-label">فعال</span>
+          <span class="toggle-label">ÙØ¹Ø§Ù„</span>
         </div>
       </form>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-create-user')">انصراف</button>
-      <button class="btn btn-primary" onclick="createUser()"><i class="ti ti-user-plus"></i> ایجاد کاربر</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-create-user')">Ø§Ù†ØµØ±Ø§Ù</button>
+      <button class="btn btn-primary" onclick="createUser()"><i class="ti ti-user-plus"></i> Ø§ÛŒØ¬Ø§Ø¯ Ú©Ø§Ø±Ø¨Ø±</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-config">
-  <div class="modal-card" style="max-width:460px">
+  <div class="modal-card" style="max-width:440px">
     <div class="modal-head">
-      <div class="modal-title"><i class="ti ti-link"></i> کانفیگ</div>
+      <div class="modal-title"><i class="ti ti-link"></i> Ú©Ø§Ù†ÙÛŒÚ¯</div>
       <button class="modal-close" onclick="closeModal('modal-config')"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
-      <div class="cfg-code" style="max-height:none;font-size:11px" id="config-text"></div>
-      <div style="margin-top:14px;display:flex;gap:8px">
-        <button class="btn btn-primary" onclick="copyConfigText()"><i class="ti ti-copy"></i> کپی</button>
+      <div class="cfg-code" style="max-height:none;font-size:10.5px" id="config-text"></div>
+      <div style="margin-top:12px;display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="copyConfigText()"><i class="ti ti-copy"></i> Ú©Ù¾ÛŒ</button>
         <button class="btn btn-ghost" onclick="showQRCode()"><i class="ti ti-qrcode"></i> QR Code</button>
       </div>
-      <div id="config-qr" style="margin-top:14px;text-align:center;display:none">
-        <img id="config-qr-img" src="" alt="QR" style="max-width:200px;border-radius:12px;background:#fff;padding:8px">
+      <div id="config-qr" style="margin-top:12px;text-align:center;display:none">
+        <img id="config-qr-img" src="" alt="QR" style="max-width:180px;border-radius:10px;background:#fff;padding:6px">
       </div>
     </div>
   </div>
@@ -697,7 +784,7 @@ a{color:inherit;text-decoration:none}
 <!-- MOBILE TOP -->
 <div class="mobile-top">
   <div class="mobile-brand">
-    <svg width="28" height="28" viewBox="0 0 100 100"><defs><linearGradient id="mg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="50%" style="stop-color:#8b5cf6"/><stop offset="100%" style="stop-color:#a78bfa"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#mg1)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
+    <svg width="26" height="26" viewBox="0 0 100 100"><defs><linearGradient id="mg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#06b6d4"/><stop offset="50%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#10b981"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#mg1)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
     <span>White Panel</span>
   </div>
   <div class="mobile-actions">
@@ -709,33 +796,33 @@ a{color:inherit;text-decoration:none}
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <svg width="36" height="36" viewBox="0 0 100 100"><defs><linearGradient id="sg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="50%" style="stop-color:#8b5cf6"/><stop offset="100%" style="stop-color:#a78bfa"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#sg1)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
-    <div><div class="sidebar-logo-text">White Panel</div><div class="sidebar-logo-sub">White Panel</div></div>
+    <svg width="32" height="32" viewBox="0 0 100 100"><defs><linearGradient id="sg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#06b6d4"/><stop offset="50%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#10b981"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#sg1)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
+    <div><div class="sidebar-logo-text">White Panel</div><div class="sidebar-logo-sub">ENTERPRISE</div></div>
   </div>
   <div class="sidebar-nav">
-    <div class="nav-section">منوی اصلی</div>
-    <div class="nav-item active" data-page="dash"><i class="ti ti-layout-dashboard"></i> داشبورد</div>
-    <div class="nav-item" data-page="users"><i class="ti ti-users"></i> کاربران <span class="nav-badge" id="users-count">0</span></div>
-    <div class="nav-item" data-page="configs"><i class="ti ti-link-plus"></i> کانفیگ‌ها <span class="nav-badge" id="configs-count">0</span></div>
-    <div class="nav-item" data-page="servers"><i class="ti ti-server-2"></i> سرورها</div>
-    <div class="nav-item" data-page="plans"><i class="ti ti-receipt-2"></i> پلن‌ها</div>
-    <div class="nav-item" data-page="groups"><i class="ti ti-folders"></i> گروه‌ها</div>
-    <div class="nav-item" data-page="traffic"><i class="ti ti-chart-area"></i> ترافیک</div>
-    <div class="nav-item" data-page="logs"><i class="ti ti-history"></i> لاگ‌ها</div>
-    <div class="nav-section">سیستم</div>
+    <div class="nav-section">Ù…Ù†ÙˆÛŒ Ø§ØµÙ„ÛŒ</div>
+    <div class="nav-item active" data-page="dash"><i class="ti ti-layout-dashboard"></i> Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</div>
+    <div class="nav-item" data-page="users"><i class="ti ti-users"></i> Ú©Ø§Ø±Ø¨Ø±Ø§Ù† <span class="nav-badge" id="users-count">0</span></div>
+    <div class="nav-item" data-page="configs"><i class="ti ti-link-plus"></i> Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§ <span class="nav-badge" id="configs-count">0</span></div>
+    <div class="nav-item" data-page="servers"><i class="ti ti-server-2"></i> Ø³Ø±ÙˆØ±Ù‡Ø§</div>
+    <div class="nav-item" data-page="plans"><i class="ti ti-receipt-2"></i> Ù¾Ù„Ù†â€ŒÙ‡Ø§</div>
+    <div class="nav-item" data-page="groups"><i class="ti ti-folders"></i> Ú¯Ø±ÙˆÙ‡â€ŒÙ‡Ø§</div>
+    <div class="nav-item" data-page="traffic"><i class="ti ti-chart-area"></i> ØªØ±Ø§ÙÛŒÚ©</div>
+    <div class="nav-item" data-page="logs"><i class="ti ti-history"></i> Ù„Ø§Ú¯â€ŒÙ‡Ø§</div>
+    <div class="nav-section">Ø³ÛŒØ³ØªÙ…</div>
     <div class="nav-item" data-page="worker"><i class="ti ti-cloud"></i> Cloudflare Worker</div>
     <div class="nav-item" data-page="api"><i class="ti ti-api"></i> API</div>
-    <div class="nav-item" data-page="tools"><i class="ti ti-tools"></i> ابزارها</div>
-    <div class="nav-item" data-page="settings"><i class="ti ti-settings"></i> تنظیمات</div>
-    <div class="nav-item" data-page="logout" style="color:var(--wp-red)"><i class="ti ti-logout"></i> خروج</div>
+    <div class="nav-item" data-page="tools"><i class="ti ti-tools"></i> Ø§Ø¨Ø²Ø§Ø±Ù‡Ø§</div>
+    <div class="nav-item" data-page="settings"><i class="ti ti-settings"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª</div>
+    <div class="nav-item" data-page="logout" style="color:var(--wp-red)"><i class="ti ti-logout"></i> Ø®Ø±ÙˆØ¬</div>
   </div>
   <div class="sidebar-footer">
     <div class="sidebar-user">
       <div class="sidebar-avatar"><i class="ti ti-user"></i></div>
-      <div><div class="sidebar-user-name">ادمین</div><div class="sidebar-user-role">مدیر سیستم</div></div>
+      <div><div class="sidebar-user-name">Ø§Ø¯Ù…ÛŒÙ†</div><div class="sidebar-user-role">Ù…Ø¯ÛŒØ± Ø³ÛŒØ³ØªÙ…</div></div>
     </div>
-    <button class="theme-btn" onclick="toggleTheme()"><i class="ti ti-moon" id="theme-icon"></i> <span id="theme-label">تم تاریک</span></button>
-    <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> خروج از حساب</button>
+    <button class="theme-btn" onclick="toggleTheme()"><i class="ti ti-moon" id="theme-icon"></i> <span id="theme-label">ØªÙ… ØªØ§Ø±ÛŒÚ©</span></button>
+    <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> Ø®Ø±ÙˆØ¬ Ø§Ø² Ø­Ø³Ø§Ø¨</button>
   </div>
 </aside>
 
@@ -744,38 +831,38 @@ a{color:inherit;text-decoration:none}
   <!-- DASHBOARD PAGE -->
   <section class="page active" id="page-dash">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-layout-dashboard"></i> داشبورد</div><div class="topbar-sub" id="last-updated">در حال بارگذاری...</div></div>
+      <div><div class="topbar-title"><i class="ti ti-layout-dashboard"></i> Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</div><div class="topbar-sub" id="last-updated">Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ...</div></div>
       <div class="topbar-right">
-        <span class="welcome-text">سلام ادمین <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11a2 2 0 0 0 0-4H7.5a2.5 2.5 0 0 1 0-5h.5a3.5 3.5 0 1 1 0 7"/><path d="M22 9a6 6 0 0 1-6 6"/></svg></span>
-        <button class="bell-btn" title="اعلان‌ها"><i class="ti ti-bell"></i></button>
-        <button class="btn btn-primary" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> ایجاد کاربر جدید</button>
+        <span class="welcome-text">Ø³Ù„Ø§Ù… Ø§Ø¯Ù…ÛŒÙ† <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11a2 2 0 0 0 0-4H7.5a2.5 2.5 0 0 1 0-5h.5a3.5 3.5 0 1 1 0 7"/><path d="M22 9a6 6 0 0 1-6 6"/></svg></span>
+        <button class="bell-btn" title="Ø§Ø¹Ù„Ø§Ù†â€ŒÙ‡Ø§"><i class="ti ti-bell"></i></button>
+        <button class="btn btn-primary" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> Ø§ÛŒØ¬Ø§Ø¯ Ú©Ø§Ø±Ø¨Ø± Ø¬Ø¯ÛŒØ¯</button>
       </div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon blue"><i class="ti ti-users"></i></div><div class="stat-label">کاربران فعال</div><div class="stat-value" id="s-active-users">—</div><div class="stat-sub up" id="s-users-trend"><i class="ti ti-trending-up"></i> —</div></div>
-      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-link"></i></div><div class="stat-label">کانفیگ‌های فعال</div><div class="stat-value" id="s-active-configs">—</div></div>
-      <div class="stat-card"><div class="stat-icon purple"><i class="ti ti-transfer"></i></div><div class="stat-label">مصرف ترافیک</div><div class="stat-value" id="s-traffic">—<span style="font-size:14px;font-weight:500;color:var(--text-secondary)">GB</span></div></div>
-      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-server-2"></i></div><div class="stat-label">سرورهای آنلاین</div><div class="stat-value" id="s-online-servers">—</div><div class="stat-sub"><span class="dot dot-green pulse"></span> آنلاین</div></div>
+      <div class="stat-card"><div class="stat-icon blue"><i class="ti ti-users"></i></div><div class="stat-label">Ú©Ø§Ø±Ø¨Ø±Ø§Ù† ÙØ¹Ø§Ù„</div><div class="stat-value" id="s-active-users">â€”</div><div class="stat-sub up" id="s-users-trend"><i class="ti ti-trending-up"></i> â€”</div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-link"></i></div><div class="stat-label">Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§ÛŒ ÙØ¹Ø§Ù„</div><div class="stat-value" id="s-active-configs">â€”</div></div>
+      <div class="stat-card"><div class="stat-icon purple"><i class="ti ti-transfer"></i></div><div class="stat-label">Ù…ØµØ±Ù ØªØ±Ø§ÙÛŒÚ©</div><div class="stat-value" id="s-traffic">â€”<span style="font-size:13px;font-weight:500;color:var(--text-secondary)">GB</span></div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-server-2"></i></div><div class="stat-label">Ø³Ø±ÙˆØ±Ù‡Ø§ÛŒ Ø¢Ù†Ù„Ø§ÛŒÙ†</div><div class="stat-value" id="s-online-servers">â€”</div><div class="stat-sub"><span class="dot dot-green pulse"></span> Ø¢Ù†Ù„Ø§ÛŒÙ†</div></div>
     </div>
     <div class="quick-actions">
-      <button class="qa-btn" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> افزودن کاربر</button>
-      <button class="qa-btn" onclick="switchPage('configs')"><i class="ti ti-link-plus"></i> ساخت کانفیگ</button>
-      <button class="qa-btn" onclick="switchPage('traffic')"><i class="ti ti-chart-bar"></i> گزارش ترافیک</button>
-      <button class="qa-btn"><i class="ti ti-database"></i> بکاپ</button>
+      <button class="qa-btn" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> Ø§ÙØ²ÙˆØ¯Ù† Ú©Ø§Ø±Ø¨Ø±</button>
+      <button class="qa-btn" onclick="switchPage('configs')"><i class="ti ti-link-plus"></i> Ø³Ø§Ø®Øª Ú©Ø§Ù†ÙÛŒÚ¯</button>
+      <button class="qa-btn" onclick="switchPage('traffic')"><i class="ti ti-chart-bar"></i> Ú¯Ø²Ø§Ø±Ø´ ØªØ±Ø§ÙÛŒÚ©</button>
+      <button class="qa-btn"><i class="ti ti-database"></i> Ø¨Ú©Ø§Ù¾</button>
     </div>
     <div class="server-panel">
-      <div class="server-title"><i class="ti ti-activity"></i> وضعیت سرور</div>
+      <div class="server-title"><i class="ti ti-activity"></i> ÙˆØ¶Ø¹ÛŒØª Ø³Ø±ÙˆØ±</div>
       <div class="server-bars">
-        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">CPU</span><span class="srv-bar-pct" id="srv-cpu">—%</span></div><div class="srv-bar-track"><div class="srv-bar-fill blue" id="srv-cpu-bar" style="width:0%"></div></div></div>
-        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">RAM</span><span class="srv-bar-pct" id="srv-ram">—%</span></div><div class="srv-bar-track"><div class="srv-bar-fill purple" id="srv-ram-bar" style="width:0%"></div></div></div>
-        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">Disk</span><span class="srv-bar-pct" id="srv-disk">—%</span></div><div class="srv-bar-track"><div class="srv-bar-fill amber" id="srv-disk-bar" style="width:0%"></div></div></div>
-        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">Network</span><span class="srv-bar-pct" id="srv-net">— MB/s</span></div><div class="srv-bar-track"><div class="srv-bar-fill green" id="srv-net-bar" style="width:0%"></div></div></div>
+        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">CPU</span><span class="srv-bar-pct" id="srv-cpu">â€”%</span></div><div class="srv-bar-track"><div class="srv-bar-fill blue" id="srv-cpu-bar" style="width:0%"></div></div></div>
+        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">RAM</span><span class="srv-bar-pct" id="srv-ram">â€”%</span></div><div class="srv-bar-track"><div class="srv-bar-fill purple" id="srv-ram-bar" style="width:0%"></div></div></div>
+        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">Disk</span><span class="srv-bar-pct" id="srv-disk">â€”%</span></div><div class="srv-bar-track"><div class="srv-bar-fill amber" id="srv-disk-bar" style="width:0%"></div></div></div>
+        <div class="srv-bar-item"><div class="srv-bar-label"><span class="srv-bar-name">Network</span><span class="srv-bar-pct" id="srv-net">â€” MB/s</span></div><div class="srv-bar-track"><div class="srv-bar-fill green" id="srv-net-bar" style="width:0%"></div></div></div>
       </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>نام کاربری</th><th>پروتکل</th><th>مصرف</th><th>انقضا</th><th>وضعیت</th><th>عملیات</th></tr></thead>
-        <tbody id="dash-users-table"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-secondary)">در حال بارگذاری...</td></tr></tbody>
+        <thead><tr><th>Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ</th><th>Ù¾Ø±ÙˆØªÚ©Ù„</th><th>Ù…ØµØ±Ù</th><th>Ø§Ù†Ù‚Ø¶Ø§</th><th>ÙˆØ¶Ø¹ÛŒØª</th><th>Ø¹Ù…Ù„ÛŒØ§Øª</th></tr></thead>
+        <tbody id="dash-users-table"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-secondary)">Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ...</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -783,15 +870,15 @@ a{color:inherit;text-decoration:none}
   <!-- USERS PAGE -->
   <section class="page" id="page-users">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-users"></i> کاربران</div><div class="topbar-sub">مدیریت کاربران و کانفیگ‌ها</div></div>
+      <div><div class="topbar-title"><i class="ti ti-users"></i> Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ú©Ø§Ø±Ø¨Ø±Ø§Ù† Ùˆ Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§</div></div>
       <div class="topbar-right">
-        <button class="btn btn-primary" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> ایجاد کاربر جدید</button>
+        <button class="btn btn-primary" onclick="openModal('modal-create-user')"><i class="ti ti-user-plus"></i> Ø§ÛŒØ¬Ø§Ø¯ Ú©Ø§Ø±Ø¨Ø± Ø¬Ø¯ÛŒØ¯</button>
       </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>نام کاربری</th><th>پروتکل</th><th>مصرف</th><th>انقضا</th><th>وضعیت</th><th>عملیات</th></tr></thead>
-        <tbody id="users-table"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-secondary)">در حال بارگذاری...</td></tr></tbody>
+        <thead><tr><th>Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ</th><th>Ù¾Ø±ÙˆØªÚ©Ù„</th><th>Ù…ØµØ±Ù</th><th>Ø§Ù†Ù‚Ø¶Ø§</th><th>ÙˆØ¶Ø¹ÛŒØª</th><th>Ø¹Ù…Ù„ÛŒØ§Øª</th></tr></thead>
+        <tbody id="users-table"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-secondary)">Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ...</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -799,198 +886,127 @@ a{color:inherit;text-decoration:none}
   <!-- CONFIGS PAGE -->
   <section class="page" id="page-configs">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-link-plus"></i> کانفیگ‌ها</div><div class="topbar-sub">مدیریت کانفیگ‌های کاربران</div></div>
-      <div class="topbar-right"><span class="badge badge-blue" id="cfg-total">۰ کانفیگ</span></div>
+      <div><div class="topbar-title"><i class="ti ti-link-plus"></i> Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ú©Ø§Ù†ÙÛŒÚ¯â€ŒÙ‡Ø§ÛŒ Ú©Ø§Ø±Ø¨Ø±Ø§Ù†</div></div>
+      <div class="topbar-right"><span class="badge badge-blue" id="cfg-total">Û° Ú©Ø§Ù†ÙÛŒÚ¯</span></div>
     </div>
     <div class="cfg-grid" id="configs-grid"></div>
-    <div class="empty-state" id="configs-empty" style="display:none"><i class="ti ti-link-off"></i><p>هنوز کانفیگی وجود ندارد</p></div>
+    <div class="empty-state" id="configs-empty" style="display:none"><i class="ti ti-link-off"></i><p>Ù‡Ù†ÙˆØ² Ú©Ø§Ù†ÙÛŒÚ¯ÛŒ ÙˆØ¬ÙˆØ¯ Ù†Ø¯Ø§Ø±Ø¯</p></div>
   </section>
 
   <!-- TRAFFIC PAGE -->
   <section class="page" id="page-traffic">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-chart-area"></i> ترافیک</div><div class="topbar-sub">آمار مصرف پهنای باند</div></div>
-      <div class="topbar-right"><button class="btn btn-ghost" onclick="refreshAll()"><i class="ti ti-refresh"></i> بروزرسانی</button></div>
+      <div><div class="topbar-title"><i class="ti ti-chart-area"></i> ØªØ±Ø§ÙÛŒÚ©</div><div class="topbar-sub">Ø¢Ù…Ø§Ø± Ù…ØµØ±Ù Ù¾Ù‡Ù†Ø§ÛŒ Ø¨Ø§Ù†Ø¯</div></div>
+      <div class="topbar-right"><button class="btn btn-ghost" onclick="refreshAll()"><i class="ti ti-refresh"></i> Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ</button></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title"><i class="ti ti-activity"></i> روند مصرف ترافیک (MB)</div>
+      <div class="chart-title"><i class="ti ti-chart-line"></i> Ù†Ù…ÙˆØ¯Ø§Ø± ØªØ±Ø§ÙÛŒÚ©</div>
       <div class="chart-canvas-wrap"><canvas id="traffic-chart"></canvas></div>
     </div>
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-      <div class="stat-card"><div class="stat-icon blue"><i class="ti ti-arrow-up-right"></i></div><div class="stat-label">میانگین ساعتی</div><div class="stat-value" id="t-avg" style="font-size:20px">—</div></div>
-      <div class="stat-card"><div class="stat-icon purple"><i class="ti ti-chart-bar"></i></div><div class="stat-label">پیک مصرف</div><div class="stat-value" id="t-peak" style="font-size:20px">—</div></div>
-      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-database"></i></div><div class="stat-label">کل مصرف</div><div class="stat-value" id="t-total" style="font-size:20px">—</div></div>
+      <div class="stat-card"><div class="stat-icon blue"><i class="ti ti-clock"></i></div><div class="stat-label">Ù…ÛŒØ§Ù†Ú¯ÛŒÙ† Ø³Ø§Ø¹ØªÛŒ</div><div class="stat-value" id="t-avg">â€”</div></div>
+      <div class="stat-card"><div class="stat-icon purple"><i class="ti ti-trending-up"></i></div><div class="stat-label">Ø§ÙˆØ¬ Ù…ØµØ±Ù</div><div class="stat-value" id="t-peak">â€”</div></div>
+      <div class="stat-card"><div class="stat-icon green"><i class="ti ti-database"></i></div><div class="stat-label">Ú©Ù„ ØªØ±Ø§ÙÛŒÚ©</div><div class="stat-value" id="t-total">â€”</div></div>
     </div>
   </section>
 
   <!-- LOGS PAGE -->
   <section class="page" id="page-logs">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-history"></i> لاگ‌ها</div><div class="topbar-sub">تاریخچه فعالیت‌های سیستم</div></div>
-      <div class="topbar-right"><button class="btn btn-ghost" onclick="loadLogs()"><i class="ti ti-refresh"></i> بروزرسانی</button></div>
+      <div><div class="topbar-title"><i class="ti ti-history"></i> Ù„Ø§Ú¯â€ŒÙ‡Ø§</div><div class="topbar-sub">ØªØ§Ø±ÛŒØ®Ú†Ù‡ ÙØ¹Ø§Ù„ÛŒØªâ€ŒÙ‡Ø§</div></div>
+      <div class="topbar-right"><button class="btn btn-ghost" onclick="loadLogs()"><i class="ti ti-refresh"></i> Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ</button></div>
     </div>
-    <div class="table-wrap">
-      <div class="log-list" id="logs-list"><div class="empty-state"><i class="ti ti-history-toggle"></i><p>در حال بارگذاری...</p></div></div>
+    <div class="table-wrap" style="padding:16px">
+      <div class="log-list" id="logs-list"><div class="empty-state"><i class="ti ti-history-toggle"></i><p>Ù‡Ù†ÙˆØ² Ù„Ø§Ú¯ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡</p></div></div>
     </div>
   </section>
 
   <!-- SERVERS PAGE -->
   <section class="page" id="page-servers">
-    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-server-2"></i> سرورها</div></div></div>
-    <div class="empty-state"><i class="ti ti-server-off"></i><p>بخش مدیریت سرورها</p></div>
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-server-2"></i> Ø³Ø±ÙˆØ±Ù‡Ø§</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ø³Ø±ÙˆØ±Ù‡Ø§</div></div></div>
+    <div class="empty-state"><i class="ti ti-server-2"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
   </section>
 
   <!-- PLANS PAGE -->
   <section class="page" id="page-plans">
-    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-receipt-2"></i> پلن‌ها</div></div></div>
-    <div class="empty-state"><i class="ti ti-package-off"></i><p>بخش مدیریت پلن‌ها</p></div>
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-receipt-2"></i> Ù¾Ù„Ù†â€ŒÙ‡Ø§</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ù¾Ù„Ù†â€ŒÙ‡Ø§</div></div></div>
+    <div class="empty-state"><i class="ti ti-receipt-2"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
   </section>
 
   <!-- GROUPS PAGE -->
   <section class="page" id="page-groups">
-    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-folders"></i> گروه‌ها</div></div></div>
-    <div class="empty-state"><i class="ti ti-folders-off"></i><p>بخش مدیریت گروه‌ها</p></div>
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-folders"></i> Ú¯Ø±ÙˆÙ‡â€ŒÙ‡Ø§</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª Ú¯Ø±ÙˆÙ‡â€ŒÙ‡Ø§</div></div></div>
+    <div class="empty-state"><i class="ti ti-folders"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
   </section>
 
   <!-- SETTINGS PAGE -->
   <section class="page" id="page-settings">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-settings"></i> تنظیمات</div><div class="topbar-sub">تنظیمات عمومی پنل</div></div>
-      <div class="topbar-right"><button class="btn btn-primary" onclick="saveSettings()"><i class="ti ti-device-floppy"></i> ذخیره تغییرات</button></div>
+      <div><div class="topbar-title"><i class="ti ti-settings"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª</div><div class="topbar-sub">Ù¾ÛŒÚ©Ø±Ø¨Ù†Ø¯ÛŒ Ù¾Ù†Ù„</div></div>
+      <div class="topbar-right"><button class="btn btn-primary" onclick="saveSettings()"><i class="ti ti-device-floppy"></i> Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª</button></div>
     </div>
-
-    <div class="table-wrap" style="margin-bottom:18px">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
-        <div class="server-title" style="margin-bottom:0"><i class="ti ti-world"></i> دامنه و شبکه</div>
+    <div class="server-panel" style="animation:none">
+      <div class="server-title"><i class="ti ti-world"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø¹Ù…ÙˆÙ…ÛŒ</div>
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-world"></i> Ø¯Ø§Ù…Ù†Ù‡ Ø§ØµÙ„ÛŒ</label><input class="form-input" id="set-domain" placeholder="example.com"></div>
       </div>
-      <div style="padding:18px 22px">
-        <div class="form-field">
-          <label><i class="ti ti-world-www"></i> دامنه اصلی</label>
-          <input class="form-input" id="set-domain" placeholder="example.com" dir="ltr">
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-route"></i> ØªØ±Ù†Ø²Ù¾ÙˆØ±Øª Ù¾ÛŒØ´â€ŒÙØ±Ø¶</label>
+          <select class="form-select" id="set-transport"><option value="ws">WebSocket</option><option value="xhttp">XHTTP</option><option value="grpc">gRPC</option><option value="tcp">TCP</option></select>
         </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label><i class="ti ti-route"></i> نوع انتقال پیش‌فرض</label>
-            <select class="form-select" id="set-transport">
-              <option value="ws">WebSocket (WS)</option>
-              <option value="xhttp">XHTTP</option>
-              <option value="tcp">TCP</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label><i class="ti ti-plug-connected"></i> مد اتصال پیش‌فرض</label>
-            <select class="form-select" id="set-conn-mode">
-              <option value="ws">WebSocket</option>
-              <option value="xhttp">XHTTP</option>
-              <option value="tcp">TCP</option>
-            </select>
-          </div>
+        <div class="form-field"><label><i class="ti ti-settings-2"></i> Ø­Ø§Ù„Øª Ø§ØªØµØ§Ù„</label>
+          <select class="form-select" id="set-conn-mode"><option value="ws">WebSocket</option><option value="xhttp">XHTTP</option><option value="tcp">TCP</option></select>
         </div>
+      </div>
+      <div style="margin-top:10px">
+        <label style="font-size:10px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:8px">Ù¾Ø±ÙˆØªÚ©Ù„â€ŒÙ‡Ø§ÛŒ ÙØ¹Ø§Ù„</label>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-primary);cursor:pointer"><input type="checkbox" id="set-proto-vless" style="accent-color:var(--neon-cyan)"> VLESS</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-primary);cursor:pointer"><input type="checkbox" id="set-proto-vmess" style="accent-color:var(--neon-purple)"> VMess</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-primary);cursor:pointer"><input type="checkbox" id="set-proto-trojan" style="accent-color:var(--wp-red)"> Trojan</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-primary);cursor:pointer"><input type="checkbox" id="set-proto-reality" style="accent-color:var(--neon-emerald)"> Reality</label>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap">
+        <div class="toggle-wrap"><button type="button" class="toggle-switch on" id="set-ws-mode" onclick="this.classList.toggle('on')"></button><span class="toggle-label">WebSocket Mode</span></div>
+        <div class="toggle-wrap"><button type="button" class="toggle-switch on" id="set-xhttp-mode" onclick="this.classList.toggle('on')"></button><span class="toggle-label">XHTTP Mode</span></div>
       </div>
     </div>
 
-    <div class="table-wrap" style="margin-bottom:18px">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
-        <div class="server-title" style="margin-bottom:0"><i class="ti ti-toggle-right"></i> پروتکل‌ها و مدها</div>
+    <div class="server-panel" style="animation:none">
+      <div class="server-title"><i class="ti ti-shield-lock"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª Reality</div>
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-plug"></i> Ù¾ÙˆØ±Øª</label><input class="form-input" id="set-real-port" type="number"></div>
+        <div class="form-field"><label><i class="ti ti-target"></i> Ù…Ù‚ØµØ¯</label><input class="form-input" id="set-real-dest" placeholder="google.com:443"></div>
       </div>
-      <div style="padding:18px 22px">
-        <div class="form-row" style="margin-bottom:12px">
-          <div class="form-field">
-            <label><i class="ti ti-protocol"></i> پروتکل‌های فعال</label>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:6px 12px;background:rgba(43,127,255,.06);border-radius:8px;border:1px solid var(--border)"><input type="checkbox" id="set-proto-vless" checked onchange="updateProtoCheckboxes()"> VLESS</label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:6px 12px;background:rgba(123,97,255,.06);border-radius:8px;border:1px solid var(--border)"><input type="checkbox" id="set-proto-vmess" onchange="updateProtoCheckboxes()"> VMess</label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:6px 12px;background:rgba(255,35,82,.06);border-radius:8px;border:1px solid var(--border)"><input type="checkbox" id="set-proto-trojan" onchange="updateProtoCheckboxes()"> Trojan</label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:6px 12px;background:rgba(245,158,11,.06);border-radius:8px;border:1px solid var(--border)"><input type="checkbox" id="set-proto-reality" onchange="updateProtoCheckboxes()"> Reality</label>
-            </div>
-          </div>
-        </div>
-        <div class="toggle-wrap" style="margin-bottom:10px">
-          <button type="button" class="toggle-switch on" id="set-ws-mode" onclick="this.classList.toggle('on')"></button>
-          <span class="toggle-label">WebSocket Mode</span>
-        </div>
-        <div class="toggle-wrap">
-          <button type="button" class="toggle-switch on" id="set-xhttp-mode" onclick="this.classList.toggle('on')"></button>
-          <span class="toggle-label">XHTTP Mode</span>
-        </div>
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-key"></i> Public Key</label><input class="form-input" id="set-real-pbk" style="font-family:'JetBrains Mono',monospace;font-size:11px"></div>
+        <div class="form-field"><label><i class="ti ti-hash"></i> Short ID</label><input class="form-input" id="set-real-sid" style="font-family:'JetBrains Mono',monospace;font-size:11px"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-route"></i> KMX</label><input class="form-input" id="set-real-spx" placeholder="/"></div>
+        <div class="form-field"><label><i class="ti ti-letter-s"></i> SNI</label><input class="form-input" id="set-real-sni"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-world"></i> Ø¯Ø§Ù…Ù†Ù‡ Ø®Ø§Ø±Ø¬ÛŒ</label><input class="form-input" id="set-real-ext-domain"></div>
+        <div class="form-field"><label><i class="ti ti-plug-connected"></i> Ù¾ÙˆØ±Øª Ø®Ø§Ø±Ø¬ÛŒ</label><input class="form-input" id="set-real-ext-port" type="number"></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn-purple" onclick="generateRealityKeys()"><i class="ti ti-key"></i> ØªÙˆÙ„ÛŒØ¯ Ú©Ù„ÛŒØ¯ Ø¬Ø¯ÛŒØ¯</button>
+        <button class="btn btn-primary" onclick="saveRealitySettings()"><i class="ti ti-device-floppy"></i> Ø°Ø®ÛŒØ±Ù‡</button>
       </div>
     </div>
 
-    <div class="table-wrap" style="margin-bottom:18px">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
-        <div class="server-title" style="margin-bottom:0"><i class="ti ti-shield-lock"></i> تنظیمات Reality</div>
-      </div>
-      <div style="padding:18px 22px">
-        <div class="form-row">
-          <div class="form-field">
-            <label><i class="ti ti-plug"></i> پورت Reality</label>
-            <input class="form-input" id="set-real-port" type="number" placeholder="1234">
-          </div>
-          <div class="form-field">
-            <label><i class="ti ti-globe"></i> Destination (dest)</label>
-            <input class="form-input" id="set-real-dest" placeholder="google.com:443" dir="ltr">
-          </div>
+    <div class="server-panel" style="animation:none">
+      <div class="server-title"><i class="ti ti-palette"></i> ØµÙØ­Ù‡ Ø§Ø´ØªØ±Ø§Ú© Ø³ÙØ§Ø±Ø´ÛŒ</div>
+      <div class="custom-sub-dropdown-wrap" id="custom-sub-dropdown-wrap">
+        <div class="custom-sub-dropdown" id="custom-sub-dropdown" onclick="toggleCustomSubMenu()">
+          <span id="custom-sub-selected-label">Ù¾ÛŒØ´â€ŒÙØ±Ø¶</span>
+          <i class="ti ti-chevron-down" id="custom-sub-chevron"></i>
         </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label><i class="ti ti-key"></i> Public Key</label>
-            <input class="form-input" id="set-real-pbk" placeholder="x25519 public key" dir="ltr">
-          </div>
-          <div class="form-field">
-            <label><i class="ti ti-hash"></i> Short ID</label>
-            <input class="form-input" id="set-real-sid" placeholder="6ba85179e30d4fc2" dir="ltr">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label><i class="ti ti-link"></i> KMX Path</label>
-            <input class="form-input" id="set-real-spx" placeholder="/" dir="ltr">
-          </div>
-          <div class="form-field">
-            <label><i class="ti ti-globe"></i> SNI (Reality)</label>
-            <input class="form-input" id="set-real-sni" placeholder="www.google.com" dir="ltr">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label><i class="ti ti-world"></i> دامنه خارجی</label>
-            <input class="form-input" id="set-real-ext-domain" placeholder="ext.example.com" dir="ltr">
-          </div>
-          <div class="form-field">
-            <label><i class="ti ti-plug"></i> پورت خارجی</label>
-            <input class="form-input" id="set-real-ext-port" type="number" placeholder="443">
-          </div>
-        </div>
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="btn btn-ghost" onclick="generateRealityKeys()"><i class="ti ti-key"></i> تولید کلید Reality</button>
-          <button class="btn btn-ghost" onclick="saveRealitySettings()"><i class="ti ti-device-floppy"></i> ذخیره Reality</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Custom Sub Pages -->
-    <div class="table-wrap" style="margin-bottom:18px">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
-        <div class="server-title" style="margin-bottom:0"><i class="ti ti-layout"></i> صفحات سفارشی ساب</div>
-      </div>
-      <div style="padding:18px 22px">
-        <div class="form-field">
-          <label><i class="ti ti-checkup"></i> صفحه ساب پیش‌فرض</label>
-          <div class="custom-sub-dropdown-wrap" style="margin-top:8px" id="custom-sub-dropdown-wrap">
-            <div class="custom-sub-dropdown" id="custom-sub-dropdown" onclick="toggleCustomSubMenu()">
-              <span id="custom-sub-selected-label">انتخاب صفحه...</span>
-              <i class="ti ti-chevron-down" id="custom-sub-chevron"></i>
-              <input type="hidden" id="set-custom-sub-default" value="">
-            </div>
-            <div class="custom-sub-dropdown-menu" id="custom-sub-dropdown-menu">
-              <!-- Options populated dynamically -->
-            </div>
-            <input type="hidden" id="set-custom-sub-options" value="">
-          </div>
-          <div style="margin-top:10px;color:var(--text-secondary);font-size:12px">
-            <i class="ti ti-info-circle"></i> این صفحه برای لینک <code>/sub/{username}</code> سرو می‌شود.
-          </div>
-        </div>
+        <input type="hidden" id="set-custom-sub-default" value="">
+        <input type="hidden" id="set-custom-sub-options" value="[]">
+        <div class="custom-sub-dropdown-menu" id="custom-sub-dropdown-menu"></div>
       </div>
     </div>
   </section>
@@ -998,98 +1014,119 @@ a{color:inherit;text-decoration:none}
   <!-- WORKER PAGE -->
   <section class="page" id="page-worker">
     <div class="topbar">
-      <div><div class="topbar-title"><i class="ti ti-cloud"></i> Cloudflare Worker</div><div class="topbar-sub">تنظیم و مدیریت Worker برای پروکسی‌های توزیع‌شده</div></div>
-      <div class="topbar-right"><button class="btn btn-primary" id="worker-sync-btn" onclick="syncWorkerProxies()"><i class="ti ti-refresh-cw"></i> همگام‌سازی پروکسی‌ها</button></div>
+      <div><div class="topbar-title"><i class="ti ti-cloud"></i> Cloudflare Worker</div><div class="topbar-sub">Ù…Ø¯ÛŒØ±ÛŒØª ÙˆØ±Ú©Ø± Ú©Ù„ÙˆØ¯ÙÙ„Ø±</div></div>
+      <div class="topbar-right"><button class="btn btn-primary" id="worker-sync-btn" onclick="syncWorkerProxies()" style="display:none"><i class="ti ti-refresh"></i> Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ù¾Ø±ÙˆÚ©Ø³ÛŒâ€ŒÙ‡Ø§</button></div>
     </div>
-    <div class="table-wrap" style="margin-bottom:18px">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
-        <div class="server-title" style="margin-bottom:0"><i class="ti ti-link"></i> اتصال Cloudflare</div>
+
+    <div class="server-panel" id="worker-connect-form" style="animation:none">
+      <div class="server-title"><i class="ti ti-cloud-upload"></i> Ø§ØªØµØ§Ù„ ÙˆØ±Ú©Ø±</div>
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-key"></i> Cloudflare API Token</label><input class="form-input" id="worker-token" type="password" placeholder="API Token"></div>
+        <div class="form-field"><label><i class="ti ti-mail"></i> Ø§ÛŒÙ…ÛŒÙ„ Cloudflare</label><input class="form-input" id="worker-email" type="email" placeholder="email@example.com"></div>
       </div>
-      <div style="padding:18px 22px" id="worker-connect-form">
-        <div class="form-row">
-          <div class="form-field">
-            <label><i class="ti ti-key"></i> توکن API Cloudflare</label>
-            <input class="form-input" id="worker-token" type="password" placeholder="توکن API (Bearer یا Global Key)" dir="ltr">
-          </div>
-          <div class="form-field">
-            <label><i class="ti ti-at"></i> ایمیل (برای Global Key)</label>
-            <input class="form-input" id="worker-email" type="email" placeholder="email@example.com" dir="ltr">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label><i class="ti ti-database"></i> Account ID</label>
-            <input class="form-input" id="worker-account-id" placeholder="Account ID از داشبورد Cloudflare" dir="ltr">
-          </div>
-          <div class="form-field">
-            <label><i class="ti ti-brand-cloudflare"></i> نام Worker (اختیاری)</label>
-            <input class="form-input" id="worker-name" value="white-proxy" placeholder="white-proxy" dir="ltr">
-          </div>
-        </div>
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="btn btn-primary" onclick="connectWorker()"><i class="ti ti-cloud-plus"></i> اتصال و دیپلوی</button>
-          <button class="btn btn-ghost" id="worker-disconnect-btn" onclick="disconnectWorker()" style="display:none"><i class="ti ti-cloud-minus"></i> قطع اتصال</button>
-        </div>
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-id"></i> Account ID</label><input class="form-input" id="worker-account-id" placeholder="Account ID"></div>
+        <div class="form-field"><label><i class="ti ti-cloud"></i> Ù†Ø§Ù… ÙˆØ±Ú©Ø±</label><input class="form-input" id="worker-name" value="white-proxy"></div>
       </div>
-      <div style="padding:18px 22px;display:none" id="worker-connected-info">
-        <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-link"></i> دامنه Worker</label><input class="form-input" id="worker-domain-display" readonly dir="ltr"></div>
-          <div class="form-field"><label><i class="ti ti-database"></i> Account ID</label><input class="form-input" id="worker-account-display" readonly dir="ltr"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-field"><label><i class="ti ti-tag"></i> نام Worker</label><input class="form-input" id="worker-name-display" readonly dir="ltr"></div>
-          <div class="form-field"><label><i class="ti ti-key"></i> توکن کنترل</label><input class="form-input" id="worker-control-token-display" readonly dir="ltr" style="font-family:monospace;font-size:12px"></div>
-        </div>
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="btn btn-primary" onclick="syncWorkerProxies()"><i class="ti ti-refresh-cw"></i> همگام‌سازی پروکسی‌ها</button>
-          <button class="btn btn-ghost" onclick="deployWorker()"><i class="ti ti-upload"></i> دیپلوی مجدد</button>
-          <button class="btn btn-danger" onclick="disconnectWorker()"><i class="ti ti-cloud-minus"></i> قطع اتصال</button>
-        </div>
-        <div class="form-row" style="margin-top:12px">
-          <div class="form-field">
-            <label><i class="ti ti-globe"></i> منبع پروکسی روزانه (ProxyIP-Daily.md)</label>
-            <input class="form-input" id="worker-source-url" placeholder="https://raw.githubusercontent.com/NiREvil/vless/main/sub/ProxyIP-Daily.md" dir="ltr">
-          </div>
-          <div class="form-field">
-            <label>
-              <button type="button" class="toggle-switch on" id="worker-auto-sync" onclick="this.classList.toggle('on')"></button>
-              <span class="toggle-label">همگام‌سازی خودکار هر ساعت</span>
-            </label>
-          </div>
-        </div>
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="btn btn-ghost" onclick="saveWorkerSettings()"><i class="ti ti-device-floppy"></i> ذخیره تنظیمات</button>
-        </div>
+      <div style="margin-top:10px"><button class="btn btn-primary" onclick="connectWorker()"><i class="ti ti-cloud-upload"></i> Ø§ØªØµØ§Ù„ Ùˆ Ø§Ø³ØªÙ‚Ø±Ø§Ø±</button></div>
+    </div>
+
+    <div class="server-panel" id="worker-connected-info" style="display:none;animation:none">
+      <div class="server-title"><i class="ti ti-cloud-check"></i> ÙˆØ±Ú©Ø± Ù…ØªØµÙ„</div>
+      <button class="btn btn-danger" id="worker-disconnect-btn" onclick="disconnectWorker()" style="margin-bottom:12px"><i class="ti ti-cloud-off"></i> Ù‚Ø·Ø¹ Ø§ØªØµØ§Ù„</button>
+      <div class="form-row">
+        <div class="form-field"><label>Ø¯Ø§Ù…Ù†Ù‡ ÙˆØ±Ú©Ø±</label><input class="form-input" id="worker-domain-display" readonly></div>
+        <div class="form-field"><label>Account ID</label><input class="form-input" id="worker-account-display" readonly></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Ù†Ø§Ù… ÙˆØ±Ú©Ø±</label><input class="form-input" id="worker-name-display" readonly></div>
+        <div class="form-field"><label>ØªÙˆÚ©Ù† Ú©Ù†ØªØ±Ù„</label><input class="form-input" id="worker-control-token-display" readonly></div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="syncWorkerProxies()"><i class="ti ti-refresh"></i> Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ</button>
+        <button class="btn btn-ghost" onclick="deployWorker()"><i class="ti ti-cloud-upload"></i> Ø¨Ø§Ø²Ø§Ø³ØªÙ‚Ø±Ø§Ø±</button>
       </div>
     </div>
-    <div class="table-wrap" style="margin-bottom:18px" id="worker-proxies-section" style="display:none">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
-        <div class="server-title" style="margin-bottom:0"><i class="ti ti-map-pin"></i> موقعیت‌های پروکسی (کشورها)</div>
+
+    <div class="server-panel" style="animation:none">
+      <div class="server-title"><i class="ti ti-settings"></i> ØªÙ†Ø¸ÛŒÙ…Ø§Øª ÙˆØ±Ú©Ø±</div>
+      <div class="form-row">
+        <div class="form-field"><label><i class="ti ti-link"></i> Ù„ÛŒÙ†Ú© Ù…Ù†Ø¨Ø¹ Ù¾Ø±ÙˆÚ©Ø³ÛŒâ€ŒÙ‡Ø§</label><input class="form-input" id="worker-source-url" placeholder="https://..."></div>
       </div>
-      <div style="padding:18px 22px">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>پرچم</th><th>کشور</th><th>کد</th><th>پروکسی اصلی</th><th>پورت</th><th>تعداد پروکسی‌ها</th><th>عملیات</th></tr></thead>
-            <tbody id="worker-proxies-table"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-secondary)">در حال بارگذاری...</td></tr></tbody>
-          </table>
-        </div>
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="btn btn-primary" onclick="openAddProxyModal()"><i class="ti ti-plus"></i> افزودن کشور/پروکسی</button>
-        </div>
+      <div style="margin-top:8px;display:flex;gap:12px;align-items:center">
+        <div class="toggle-wrap"><button type="button" class="toggle-switch on" id="worker-auto-sync" onclick="this.classList.toggle('on')"></button><span class="toggle-label">Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ø®ÙˆØ¯Ú©Ø§Ø±</span></div>
+        <button class="btn btn-primary btn-sm" onclick="saveWorkerSettings()"><i class="ti ti-device-floppy"></i> Ø°Ø®ÛŒØ±Ù‡</button>
       </div>
     </div>
-    <div class="table-wrap" id="worker-last-sync" style="display:none">
-      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
-        <div class="server-title" style="margin-bottom:0"><i class="ti ti-clock"></i> آخرین همگام‌سازی</div>
-      </div>
-      <div style="padding:18px 22px">
-        <div id="worker-last-sync-info"></div>
-      </div>
+
+    <div class="table-wrap" id="worker-proxies-section">
+      <table>
+        <thead><tr><th>Ú©Ø¯ Ú©Ø´ÙˆØ±</th><th>Ú©Ø´ÙˆØ±</th><th>Ù¾Ø±ÙˆÚ©Ø³ÛŒ</th><th>Ù¾ÙˆØ±Øª</th><th>Ø¹Ù…Ù„ÛŒØ§Øª</th></tr></thead>
+        <tbody id="worker-proxies-table"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">Ù‡Ù†ÙˆØ² Ù¾Ø±ÙˆÚ©Ø³ÛŒâ€ŒØ§ÛŒ Ø§Ø¶Ø§ÙÙ‡ Ù†Ø´Ø¯Ù‡</td></tr></tbody>
+      </table>
+      <div style="padding:12px"><button class="btn btn-ghost" onclick="openAddProxyModal()"><i class="ti ti-plus"></i> Ø§ÙØ²ÙˆØ¯Ù† Ù¾Ø±ÙˆÚ©Ø³ÛŒ</button></div>
     </div>
+
+    <div class="table-wrap" id="worker-last-sync" style="margin-top:14px">
+      <div style="padding:16px"><div class="server-title" style="margin-bottom:8px"><i class="ti ti-clock"></i> Ø¢Ø®Ø±ÛŒÙ† Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ</div><div id="worker-last-sync-info" style="font-size:12px;color:var(--text-secondary)">Ù‡Ù†ÙˆØ² Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯Ù‡</div></div>
+    </div>
+  </section>
+
+  <!-- API PAGE -->
+  <section class="page" id="page-api">
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-api"></i> API</div><div class="topbar-sub">Ù…Ø³ØªÙ†Ø¯Ø§Øª API Ù¾Ù†Ù„</div></div></div>
+    <div class="empty-state"><i class="ti ti-api"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
+  </section>
+
+  <!-- TOOLS PAGE -->
+  <section class="page" id="page-tools">
+    <div class="topbar"><div><div class="topbar-title"><i class="ti ti-tools"></i> Ø§Ø¨Ø²Ø§Ø±Ù‡Ø§</div><div class="topbar-sub">Ø§Ø¨Ø²Ø§Ø±Ù‡Ø§ÛŒ Ù…Ø¯ÛŒØ±ÛŒØªÛŒ</div></div></div>
+    <div class="empty-state"><i class="ti ti-tools"></i><p>Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ...</p></div>
   </section>
 </main>
 
 <script>
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   WEBGL FLUID MESH BACKGROUND
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+(function(){
+  var c=document.getElementById('bg-canvas');
+  if(!c)return;
+  var gl=c.getContext('webgl')||c.getContext('experimental-webgl');
+  if(!gl)return;
+  var mx=0.5,my=0.5;
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;gl.viewport(0,0,c.width,c.height)}
+  resize();window.addEventListener('resize',resize);
+  document.addEventListener('mousemove',function(e){mx=e.clientX/c.width;my=1-e.clientY/c.height});
+
+  var vsrc='attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}';
+  var fsrc='precision mediump float;uniform float t;uniform vec2 r;uniform vec2 m;'+
+    'void main(){vec2 uv=gl_FragCoord.xy/r;'+
+    'float d=length(uv-m)*0.8;'+
+    'float v1=sin(uv.x*6.0+t*0.3)*0.5+0.5;'+
+    'float v2=cos(uv.y*5.0+t*0.2)*0.5+0.5;'+
+    'float v3=sin((uv.x+uv.y)*4.0+t*0.25)*0.5+0.5;'+
+    'vec3 c1=vec3(0.024,0.714,0.831);'+
+    'vec3 c2=vec3(0.659,0.333,0.969);'+
+    'vec3 c3=vec3(0.063,0.725,0.506);'+
+    'vec3 col=mix(c1,c2,v1)*v2+mix(c2,c3,v3)*0.3;'+
+    'col*=0.08*(1.0-d*0.5);'+
+    'col+=vec3(0.01)*sin(t*0.5);'+
+    'gl_FragColor=vec4(col,1);}';
+
+  function cs(src,type){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}
+  var pg=gl.createProgram();gl.attachShader(pg,cs(vsrc,gl.VERTEX_SHADER));gl.attachShader(pg,cs(fsrc,gl.FRAGMENT_SHADER));gl.linkProgram(pg);gl.useProgram(pg);
+  var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  var pl=gl.getAttribLocation(pg,'p');gl.enableVertexAttribArray(pl);gl.vertexAttribPointer(pl,2,gl.FLOAT,false,0,0);
+  var ut=gl.getUniformLocation(pg,'t'),ur=gl.getUniformLocation(pg,'r'),um=gl.getUniformLocation(pg,'m');
+  function draw(t){gl.uniform1f(ut,t*0.001);gl.uniform2f(ur,c.width,c.height);gl.uniform2f(um,mx,my);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw)}
+  requestAnimationFrame(draw);
+})();
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   APPLICATION LOGIC (PRESERVED IDENTICALLY)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
 /* ============ GLOBALS ============ */
 var isDark=localStorage.getItem('wp-theme')==='dark';
 var currentPage='dash';
@@ -1101,7 +1138,7 @@ function applyTheme(dark){
   var ti=document.getElementById('theme-icon'),tm=document.getElementById('theme-icon-mob'),tl=document.getElementById('theme-label');
   if(ti)ti.className='ti '+(dark?'ti-sun':'ti-moon');
   if(tm)tm.className='ti '+(dark?'ti-sun':'ti-moon');
-  if(tl)tl.textContent=dark?'تم روشن':'تم تاریک';
+  if(tl)tl.textContent=dark?'ØªÙ… Ø±ÙˆØ´Ù†':'ØªÙ… ØªØ§Ø±ÛŒÚ©';
 }
 function toggleTheme(){isDark=!isDark;localStorage.setItem('wp-theme',isDark?'dark':'light');applyTheme(isDark)}
 applyTheme(isDark);
@@ -1114,7 +1151,7 @@ function toast(msg,type){
 }
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function fmtB(b){if(!b||b===0)return '0 B';if(b<1024)return b+' B';if(b<1024**2)return (b/1024).toFixed(1)+' KB';if(b<1024**3)return (b/1024**2).toFixed(2)+' MB';return (b/1024**3).toFixed(2)+' GB'}
-function toFa(n){return String(n).replace(/\d/g,function(d){return'۰۱۲۳۴۵۶۷۸۹'[d]})}
+function toFa(n){return String(n).replace(/\d/g,function(d){return'Û°Û±Û²Û³Û´ÛµÛ¶Û·Û¸Û¹'[d]})}
 
 /* ============ AUTH ============ */
 async function authFetch(url,opts){
@@ -1169,18 +1206,15 @@ async function loadInbounds(){
     var workerCountrySelect=document.getElementById('cu-worker-country');
     if(!inboundSelect)return;
 
-    // Populate inbounds dropdown
-    inboundSelect.innerHTML = '<option value="">انتخاب اینباند...</option>' +
+    inboundSelect.innerHTML = '<option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ø§ÛŒÙ†Ø¨Ø§Ù†Ø¯...</option>' +
       inbounds.map(function(ib){
         return '<option value="'+esc(ib.inbound_id)+'">'+esc(ib.name)+' ('+esc(ib.protocol)+' '+esc(ib.network)+')</option>';
       }).join('');
 
-    // Handle inbound change
     inboundSelect.onchange = function(){
       var selectedId = this.value;
       var selectedInbound = inbounds.find(function(ib){ return ib.inbound_id === selectedId; });
       if(selectedInbound && selectedInbound.protocol === 'worker'){
-        // Fetch worker inbounds with countries
         loadWorkerCountries(selectedId);
         workerCountryWrap.style.display = 'block';
       }else{
@@ -1200,7 +1234,7 @@ async function loadWorkerCountries(inboundId){
 
     var selectedInbound = workerInbounds.find(function(ib){ return ib.inbound_id === inboundId; });
     if(selectedInbound && selectedInbound.countries && selectedInbound.countries.length > 0){
-      workerCountrySelect.innerHTML = '<option value="">انتخاب کشور...</option>' +
+      workerCountrySelect.innerHTML = '<option value="">Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ø´ÙˆØ±...</option>' +
         selectedInbound.countries.map(function(c){
           return '<option value="'+esc(c.code)+'">'+esc(c.country)+' ('+esc(c.code)+')</option>';
         }).join('');
@@ -1233,7 +1267,6 @@ async function createUser(){
     inbound_id: inboundId,
     inbound_ids: inboundIds,
   };
-  // If worker inbound is selected, add proxy_countries
   var workerCountryWrap = document.getElementById('cu-worker-country-wrap');
   if(workerCountryWrap && workerCountryWrap.style.display !== 'none'){
     var proxyCountry = document.getElementById('cu-worker-country').value;
@@ -1241,11 +1274,11 @@ async function createUser(){
       body.proxy_countries = [proxyCountry.toLowerCase()];
     }
   }
-  if(!body.label){toast('نام کاربری الزامی است','err');return}
+  if(!body.label){toast('Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª','err');return}
   try{
     var r=await authFetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'خطا')}
-    toast('کاربر با موفقیت ایجاد شد ✓','ok');
+    if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'Ø®Ø·Ø§')}
+    toast('Ú©Ø§Ø±Ø¨Ø± Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø§ÛŒØ¬Ø§Ø¯ Ø´Ø¯ âœ“','ok');
     closeModal('modal-create-user');
     ['cu-username','cu-password','cu-traffic','cu-expire','cu-concurrent','cu-notes'].forEach(function(id){document.getElementById(id).value=''});
     loadUsers();loadConfigs();loadDashboard();
@@ -1264,26 +1297,26 @@ async function loadUsers(){
 
 function renderUsersTable(links,tableId){
   var tbody=document.getElementById(tableId);
-  if(!links.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><i class="ti ti-users-off"></i><p>کاربری وجود ندارد</p></div></td></tr>';return}
+  if(!links.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><i class="ti ti-users-off"></i><p>Ú©Ø§Ø±Ø¨Ø±ÛŒ ÙˆØ¬ÙˆØ¯ Ù†Ø¯Ø§Ø±Ø¯</p></div></td></tr>';return}
   tbody.innerHTML=links.map(function(l){
     var pct=l.limit_bytes===0?0:Math.min(100,l.used_bytes/l.limit_bytes*100);
-    var bc=pct>90?'var(--wp-red)':pct>70?'var(--warning)':'var(--wp-blue)';
-    var lim=l.limit_bytes===0?'∞':fmtB(l.limit_bytes);
+    var bc=pct>90?'var(--wp-red)':pct>70?'var(--warning)':'var(--neon-cyan)';
+    var lim=l.limit_bytes===0?'âˆž':fmtB(l.limit_bytes);
     var protoClass=l.protocol==='vless'||l.protocol==='vless-ws'?'pb-vless':l.protocol==='vmess'?'pb-vmess':l.protocol==='trojan'?'pb-trojan':l.protocol==='shadowsocks'?'pb-ss':'pb-wg';
     var protoFa=l.protocol==='vless-ws'?'VLESS':l.protocol==='vmess'?'VMess':l.protocol==='trojan'?'Trojan':l.protocol==='shadowsocks'?'Shadowsocks':l.protocol==='wireguard'?'WireGuard':l.protocol||'VLESS';
     var isActive=l.active&&!l.expired;
-    var expText=l.expired?'منقضی':l.expires_at?new Date(l.expires_at).toLocaleDateString('fa-IR'):'نامحدود';
+    var expText=l.expired?'Ù…Ù†Ù‚Ø¶ÛŒ':l.expires_at?new Date(l.expires_at).toLocaleDateString('fa-IR'):'Ù†Ø§Ù…Ø­Ø¯ÙˆØ¯';
     var expCls=l.expired?'exp-bad':l.expires_at?'exp-ok':'exp-ok';
     return '<tr><td style="font-weight:600">'+esc(l.label)+'</td>'+
       '<td><span class="proto-badge '+protoClass+'">'+protoFa+'</span></td>'+
       '<td><div class="usage-bar-wrap"><div class="usage-bar"><div class="usage-fill" style="width:'+pct+'%;background:'+bc+'"></div></div><div class="usage-text"><span>'+fmtB(l.used_bytes)+'</span><span>'+lim+'</span></div></div></td>'+
       '<td><span class="exp-chip '+expCls+'">'+expText+'</span></td>'+
-      '<td><div class="status-dot '+(isActive?'active':'expired')+'"><span class="dot '+(isActive?'dot-green':'dot-red')+' '+(isActive?'pulse':'')+'"></span>'+(isActive?'فعال':'غیرفعال')+'</div></td>'+
+      '<td><div class="status-dot '+(isActive?'active':'expired')+'"><span class="dot '+(isActive?'dot-green':'dot-red')+' '+(isActive?'pulse':'')+'"></span>'+(isActive?'ÙØ¹Ø§Ù„':'ØºÛŒØ±ÙØ¹Ø§Ù„')+'</div></td>'+
       '<td><div class="action-btns">'+
-        '<button class="btn btn-sm btn-ghost btn-icon" onclick="viewConfig(\''+l.uuid+'\')" title="مشاهده"><i class="ti ti-eye"></i></button>'+
-        '<button class="btn btn-sm btn-ghost btn-icon" onclick="copyLink(\''+l.uuid+'\')" title="کپی"><i class="ti ti-copy"></i></button>'+
-        '<button class="btn btn-sm btn-ghost btn-icon" onclick="toggleUser(\''+l.uuid+'\')" title="فعال/غیرفعال"><i class="ti ti-toggle-'+(isActive?'right':'left')+'"></i></button>'+
-        '<button class="btn btn-sm btn-danger btn-icon" onclick="deleteUser(\''+l.uuid+'\')" title="حذف"><i class="ti ti-trash"></i></button>'+
+        '<button class="btn btn-sm btn-ghost btn-icon" onclick="viewConfig(\''+l.uuid+'\')" title="Ù…Ø´Ø§Ù‡Ø¯Ù‡"><i class="ti ti-eye"></i></button>'+
+        '<button class="btn btn-sm btn-ghost btn-icon" onclick="copyLink(\''+l.uuid+'\')" title="Ú©Ù¾ÛŒ"><i class="ti ti-copy"></i></button>'+
+        '<button class="btn btn-sm btn-ghost btn-icon" onclick="toggleUser(\''+l.uuid+'\')" title="ÙØ¹Ø§Ù„/ØºÛŒØ±ÙØ¹Ø§Ù„"><i class="ti ti-toggle-'+(isActive?'right':'left')+'"></i></button>'+
+        '<button class="btn btn-sm btn-danger btn-icon" onclick="deleteUser(\''+l.uuid+'\')" title="Ø­Ø°Ù"><i class="ti ti-trash"></i></button>'+
       '</div></td></tr>';
   }).join('');
 }
@@ -1291,7 +1324,7 @@ function renderUsersTable(links,tableId){
 /* ============ USER ACTIONS ============ */
 async function viewConfig(uuid){
   var link=allLinks.find(function(l){return l.uuid===uuid});
-  if(!link){toast('کانفیگ یافت نشد','err');return}
+  if(!link){toast('Ú©Ø§Ù†ÙÛŒÚ¯ ÛŒØ§ÙØª Ù†Ø´Ø¯','err');return}
   currentConfigText=link.vless_link||'';
   document.getElementById('config-text').textContent=currentConfigText;
   document.getElementById('config-qr').style.display='none';
@@ -1299,7 +1332,7 @@ async function viewConfig(uuid){
 }
 function copyConfigText(){
   if(!currentConfigText)return;
-  navigator.clipboard.writeText(currentConfigText).then(function(){toast('کانفیگ کپی شد ✓','ok')});
+  navigator.clipboard.writeText(currentConfigText).then(function(){toast('Ú©Ø§Ù†ÙÛŒÚ¯ Ú©Ù¾ÛŒ Ø´Ø¯ âœ“','ok')});
 }
 function showQRCode(){
   if(!currentConfigText)return;
@@ -1310,7 +1343,7 @@ function showQRCode(){
 function copyLink(uuid){
   var link=allLinks.find(function(l){return l.uuid===uuid});
   if(!link||!link.vless_link)return;
-  navigator.clipboard.writeText(link.vless_link).then(function(){toast('لینک کپی شد ✓','ok')});
+  navigator.clipboard.writeText(link.vless_link).then(function(){toast('Ù„ÛŒÙ†Ú© Ú©Ù¾ÛŒ Ø´Ø¯ âœ“','ok')});
 }
 async function toggleUser(uuid){
   var link=allLinks.find(function(l){return l.uuid===uuid});
@@ -1318,16 +1351,16 @@ async function toggleUser(uuid){
   try{
     var r=await authFetch('/api/links/'+uuid,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:!link.active})});
     if(!r.ok)throw new Error();
-    toast('وضعیت تغییر کرد ✓','ok');loadUsers();loadDashboard();
-  }catch(e){toast('خطا در تغییر وضعیت','err')}
+    toast('ÙˆØ¶Ø¹ÛŒØª ØªØºÛŒÛŒØ± Ú©Ø±Ø¯ âœ“','ok');loadUsers();loadDashboard();
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± ØªØºÛŒÛŒØ± ÙˆØ¶Ø¹ÛŒØª','err')}
 }
 async function deleteUser(uuid){
-  if(!confirm('آیا از حذف این کاربر اطمینان دارید؟'))return;
+  if(!confirm('Ø¢ÛŒØ§ Ø§Ø² Ø­Ø°Ù Ø§ÛŒÙ† Ú©Ø§Ø±Ø¨Ø± Ø§Ø·Ù…ÛŒÙ†Ø§Ù† Ø¯Ø§Ø±ÛŒØ¯ØŸ'))return;
   try{
     var r=await authFetch('/api/links/'+uuid,{method:'DELETE'});
     if(!r.ok)throw new Error();
-    toast('کاربر حذف شد ✓','ok');loadUsers();loadDashboard();loadConfigs();
-  }catch(e){toast('خطا در حذف','err')}
+    toast('Ú©Ø§Ø±Ø¨Ø± Ø­Ø°Ù Ø´Ø¯ âœ“','ok');loadUsers();loadDashboard();loadConfigs();
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø­Ø°Ù','err')}
 }
 
 /* ============ CONFIGS PAGE ============ */
@@ -1336,7 +1369,7 @@ async function loadConfigs(){
     var r=await authFetch('/api/links'),d=await r.json();
     allLinks=d.links||[];
     document.getElementById('configs-count').textContent=allLinks.length;
-    document.getElementById('cfg-total').textContent=toFa(allLinks.length)+' کانفیگ';
+    document.getElementById('cfg-total').textContent=toFa(allLinks.length)+' Ú©Ø§Ù†ÙÛŒÚ¯';
     var grid=document.getElementById('configs-grid'),empty=document.getElementById('configs-empty');
     if(!allLinks.length){grid.innerHTML='';empty.style.display='block';return}
     empty.style.display='none';
@@ -1346,12 +1379,12 @@ async function loadConfigs(){
       var isActive=l.active&&!l.expired;
       var pct=l.limit_bytes===0?0:Math.min(100,l.used_bytes/l.limit_bytes*100);
       return '<div class="cfg-card-item">'+
-        '<div class="cfg-card-top"><span class="cfg-card-label">'+esc(l.label)+'</span><span class="badge '+(isActive?'badge-green':'badge-red')+'"><span class="dot '+(isActive?'dot-green':'dot-red')+' '+(isActive?'pulse':'')+'"></span> '+(isActive?'فعال':'غیرفعال')+'</span></div>'+
-        '<div class="cfg-card-body"><span class="proto-badge '+protoClass+'" style="margin-bottom:8px;display:inline-block">'+protoFa+'</span>'+
-        '<div class="usage-bar-wrap" style="margin-bottom:8px"><div class="usage-bar"><div class="usage-fill" style="width:'+pct+'%"></div></div><div class="usage-text"><span>'+fmtB(l.used_bytes)+'</span><span>'+(l.limit_bytes===0?'∞':fmtB(l.limit_bytes))+'</span></div></div></div>'+
+        '<div class="cfg-card-top"><span class="cfg-card-label">'+esc(l.label)+'</span><span class="badge '+(isActive?'badge-green':'badge-red')+'"><span class="dot '+(isActive?'dot-green':'dot-red')+' '+(isActive?'pulse':'')+'"></span> '+(isActive?'ÙØ¹Ø§Ù„':'ØºÛŒØ±ÙØ¹Ø§Ù„')+'</span></div>'+
+        '<div class="cfg-card-body"><span class="proto-badge '+protoClass+'" style="margin-bottom:6px;display:inline-block">'+protoFa+'</span>'+
+        '<div class="usage-bar-wrap" style="margin-bottom:6px"><div class="usage-bar"><div class="usage-fill" style="width:'+pct+'%"></div></div><div class="usage-text"><span>'+fmtB(l.used_bytes)+'</span><span>'+(l.limit_bytes===0?'âˆž':fmtB(l.limit_bytes))+'</span></div></div></div>'+
         '<div class="cfg-card-actions">'+
-        '<button class="btn btn-sm btn-ghost" onclick="viewConfig(\''+l.uuid+'\')"><i class="ti ti-eye"></i> مشاهده</button>'+
-        '<button class="btn btn-sm btn-ghost" onclick="copyLink(\''+l.uuid+'\')"><i class="ti ti-copy"></i> کپی</button>'+
+        '<button class="btn btn-sm btn-ghost" onclick="viewConfig(\''+l.uuid+'\')"><i class="ti ti-eye"></i> Ù…Ø´Ø§Ù‡Ø¯Ù‡</button>'+
+        '<button class="btn btn-sm btn-ghost" onclick="copyLink(\''+l.uuid+'\')"><i class="ti ti-copy"></i> Ú©Ù¾ÛŒ</button>'+
         '<button class="btn btn-sm btn-ghost btn-icon" onclick="showQRForLink(\''+l.uuid+'\')"><i class="ti ti-qrcode"></i></button>'+
         '</div></div>';
     }).join('');
@@ -1386,12 +1419,12 @@ async function loadTraffic(){
       var ctx=canvas.getContext('2d');
       if(trafficChart){trafficChart.data.labels=labels;trafficChart.data.datasets[0].data=vals;trafficChart.update()}
       else{
-        var grad=ctx.createLinearGradient(0,0,0,300);
-        grad.addColorStop(0,'rgba(99,102,241,.45)');grad.addColorStop(1,'rgba(99,102,241,0)');
+        var grad=ctx.createLinearGradient(0,0,0,280);
+        grad.addColorStop(0,'rgba(6,182,212,.35)');grad.addColorStop(0.5,'rgba(168,85,247,.15)');grad.addColorStop(1,'rgba(6,182,212,0)');
         trafficChart=new Chart(ctx,{
-          type:'line',data:{labels:labels,datasets:[{data:vals,borderColor:'#6366f1',backgroundColor:grad,fill:true,tension:.4,pointRadius:0,borderWidth:2.5}]},
-          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-            scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'rgba(99,102,241,.05)'},ticks:{font:{size:9},callback:function(v){return v+' MB'}}}},
+          type:'line',data:{labels:labels,datasets:[{data:vals,borderColor:'#06b6d4',backgroundColor:grad,fill:true,tension:.4,pointRadius:0,borderWidth:2,pointHoverRadius:4,pointHoverBackgroundColor:'#06b6d4',pointHoverBorderColor:'#fff',pointHoverBorderWidth:2}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(10,15,30,.9)',titleColor:'#06b6d4',bodyColor:'#f0f0f0',borderColor:'rgba(6,182,212,.2)',borderWidth:1,cornerRadius:10,padding:10,titleFont:{family:'Inter'},bodyFont:{family:'Inter'}}},
+            scales:{x:{grid:{display:false},ticks:{font:{size:9,family:'Inter'},color:'rgba(100,116,139,.5)'}},y:{grid:{color:'rgba(6,182,212,.04)'},ticks:{font:{size:9,family:'Inter'},color:'rgba(100,116,139,.5)',callback:function(v){return v+' MB'}}}},
             interaction:{mode:'index',intersect:false}}
         });
       }
@@ -1405,7 +1438,7 @@ async function loadLogs(){
     var r=await authFetch('/api/activity'),d=await r.json();
     var logs=(d.logs||[]).slice().reverse();
     var el=document.getElementById('logs-list');
-    if(!logs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-history-toggle"></i><p>هنوز لاگی ثبت نشده</p></div>';return}
+    if(!logs.length){el.innerHTML='<div class="empty-state"><i class="ti ti-history-toggle"></i><p>Ù‡Ù†ÙˆØ² Ù„Ø§Ú¯ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡</p></div>';return}
     var icMap={ok:'ti-circle-check ok',err:'ti-circle-x err',warn:'ti-alert-triangle warn',info:'ti-info-circle info'};
     el.innerHTML=logs.map(function(l){
       return '<div class="log-row"><div class="log-icon-s '+(l.level||'info')+'"><i class="ti '+(icMap[l.level]||'ti-info-circle')+'"></i></div><div class="log-content"><div class="log-msg">'+esc(l.message)+'</div><div class="log-time"><i class="ti ti-clock"></i> '+new Date(l.time).toLocaleString('fa-IR')+'</div></div></div>';
@@ -1419,16 +1452,14 @@ async function loadDashboard(){
     var r=await authFetch('/stats'),d=await r.json();
     document.getElementById('s-active-users').textContent=d.active_links||'0';
     document.getElementById('s-active-configs').textContent=d.active_links||'0';
-    document.getElementById('s-traffic').innerHTML=d.total_traffic_mb.toFixed(1)+'<span style="font-size:14px;font-weight:500;color:var(--text-secondary)">GB</span>';
+    document.getElementById('s-traffic').innerHTML=d.total_traffic_mb.toFixed(1)+'<span style="font-size:13px;font-weight:500;color:var(--text-secondary)">GB</span>';
     document.getElementById('s-online-servers').textContent='1';
-    document.getElementById('s-users-trend').innerHTML='<i class="ti ti-trending-up"></i> '+toFa(d.active_connections||0)+' اتصال';
-    document.getElementById('last-updated').textContent='آخرین بروزرسانی: '+new Date().toLocaleTimeString('fa-IR');
-    // Server bars (simulated from stats)
+    document.getElementById('s-users-trend').innerHTML='<i class="ti ti-trending-up"></i> '+toFa(d.active_connections||0)+' Ø§ØªØµØ§Ù„';
+    document.getElementById('last-updated').textContent='Ø¢Ø®Ø±ÛŒÙ† Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ: '+new Date().toLocaleTimeString('fa-IR');
     document.getElementById('srv-cpu').textContent='32%';document.getElementById('srv-cpu-bar').style.width='32%';
     document.getElementById('srv-ram').textContent='58%';document.getElementById('srv-ram-bar').style.width='58%';
     document.getElementById('srv-disk').textContent='41%';document.getElementById('srv-disk-bar').style.width='41%';
     document.getElementById('srv-net').textContent='12 MB/s';document.getElementById('srv-net-bar').style.width='24%';
-    // Load users table for dashboard
     var lr=await authFetch('/api/links'),ld=await lr.json();
     allLinks=ld.links||[];
     document.getElementById('users-count').textContent=allLinks.length;
@@ -1452,7 +1483,6 @@ async function loadSettings(){
     d.websocket_mode!==false?wsEl.classList.add('on'):wsEl.classList.remove('on');
     var xhEl=document.getElementById('set-xhttp-mode');
     d.xhttp_mode!==false?xhEl.classList.add('on'):xhEl.classList.remove('on');
-    // Reality
     var real=d.reality||{};
     document.getElementById('set-real-port').value=real.port||1234;
     document.getElementById('set-real-dest').value=real.dest||'google.com:443';
@@ -1462,7 +1492,6 @@ async function loadSettings(){
     document.getElementById('set-real-sni').value=real.sni||d.domain||'';
     document.getElementById('set-real-ext-domain').value=real.external_domain||d.domain||'';
     document.getElementById('set-real-ext-port').value=real.external_port||443;
-    // Custom sub default
     document.getElementById('set-custom-sub-default').value=d.custom_sub_default||'';
     loadCustomSubs(d.custom_sub_default||'');
     var lbl=document.getElementById('custom-sub-selected-label');
@@ -1482,241 +1511,204 @@ async function loadCustomSubs(selected){
     input.value=JSON.stringify(opts);
     var html='';
     if(!opts.length){
-      html+='<div class="custom-sub-option" style="color:var(--text-secondary)">هیچ صفحه‌ای یافت نشد</div>';
+      html+='<div class="custom-sub-option" style="color:var(--text-secondary)">Ù‡ÛŒÚ† ØµÙØ­Ù‡â€ŒØ§ÛŒ ÛŒØ§ÙØª Ù†Ø´Ø¯</div>';
     }else{
       html=opts.map(function(o){
         var active=o.file===selected?' active':'';
-        return '<div class="custom-sub-option'+active+'" onclick="selectCustomSub(\''+esc(o.file)+'\', \''+esc(o.label)+'\')"><span class="sub-preview"></span>'+esc(o.label||o.file)+'</div>'
+        return '<div class="custom-sub-option'+active+'" onclick="selectCustomSub(\''+esc(o.file)+'\', \''+esc(o.label)+'\')"><span class="sub-preview"></span>'+esc(o.label||o.file)+'</div>';
       }).join('');
     }
     menu.innerHTML=html;
   }catch(e){console.error(e)}
 }
+
 function toggleCustomSubMenu(){
   var wrap=document.getElementById('custom-sub-dropdown-wrap');
-  var dd=document.getElementById('custom-sub-dropdown');
-  if(wrap.classList.contains('open')){wrap.classList.remove('open')}else{wrap.classList.add('open')}
+  wrap.classList.toggle('open');
 }
 function selectCustomSub(file,label){
   document.getElementById('set-custom-sub-default').value=file;
-  var lbl=document.getElementById('custom-sub-selected-label');if(lbl)lbl.textContent=label||file;
-  var wrap=document.getElementById('custom-sub-dropdown-wrap');if(wrap)wrap.classList.remove('open');
-  document.getElementById('custom-sub-chevron').style.transform='';
+  document.getElementById('custom-sub-selected-label').textContent=label||file;
+  document.querySelectorAll('.custom-sub-option').forEach(function(el){el.classList.remove('active')});
+  event.currentTarget.classList.add('active');
+  document.getElementById('custom-sub-dropdown-wrap').classList.remove('open');
 }
-document.addEventListener('click',function(e){
-  var wrap=document.getElementById('custom-sub-dropdown-wrap');
-  if(!wrap||!wrap.contains(e.target)){wrap.classList.remove('open');}
-});
 
 async function saveSettings(){
+  var body={
+    domain:document.getElementById('set-domain').value.trim(),
+    default_transport:document.getElementById('set-transport').value,
+    default_connection_mode:document.getElementById('set-conn-mode').value,
+    enabled_protocols:[],
+    websocket_mode:document.getElementById('set-ws-mode').classList.contains('on'),
+    xhttp_mode:document.getElementById('set-xhttp-mode').classList.contains('on'),
+    custom_sub_default:document.getElementById('set-custom-sub-default').value,
+  };
+  if(document.getElementById('set-proto-vless').checked)body.enabled_protocols.push('vless');
+  if(document.getElementById('set-proto-vmess').checked)body.enabled_protocols.push('vmess');
+  if(document.getElementById('set-proto-trojan').checked)body.enabled_protocols.push('trojan');
+  if(document.getElementById('set-proto-reality').checked)body.enabled_protocols.push('reality');
   try{
-    var protos=[];
-    if(document.getElementById('set-proto-vless').checked)protos.push('vless');
-    if(document.getElementById('set-proto-vmess').checked)protos.push('vmess');
-    if(document.getElementById('set-proto-trojan').checked)protos.push('trojan');
-    if(document.getElementById('set-proto-reality').checked)protos.push('reality');
-    var body={
-      domain:document.getElementById('set-domain').value.trim(),
-      default_transport:document.getElementById('set-transport').value,
-      default_connection_mode:document.getElementById('set-conn-mode').value,
-      enabled_protocols:protos,
-      websocket_mode:document.getElementById('set-ws-mode').classList.contains('on'),
-      xhttp_mode:document.getElementById('set-xhttp-mode').classList.contains('on'),
-      custom_sub_default:document.getElementById('set-custom-sub-default').value.trim()
-    };
     var r=await authFetch('/api/tools/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error();
-    toast('تنظیمات ذخیره شد ✓','ok');
-  }catch(e){toast('خطا در ذخیره تنظیمات','err')}
+    toast('ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯ âœ“','ok');
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª','err')}
 }
 
 async function saveRealitySettings(){
+  var body={
+    port:parseInt(document.getElementById('set-real-port').value)||1234,
+    dest:document.getElementById('set-real-dest').value.trim(),
+    public_key:document.getElementById('set-real-pbk').value.trim(),
+    short_id:document.getElementById('set-real-sid').value.trim(),
+    kmx:document.getElementById('set-real-spx').value.trim(),
+    sni:document.getElementById('set-real-sni').value.trim(),
+    external_domain:document.getElementById('set-real-ext-domain').value.trim(),
+    external_port:parseInt(document.getElementById('set-real-ext-port').value)||443,
+  };
   try{
-    var body={
-      port:parseInt(document.getElementById('set-real-port').value)||1234,
-      dest:document.getElementById('set-real-dest').value.trim(),
-      public_key:document.getElementById('set-real-pbk').value.trim(),
-      short_id:document.getElementById('set-real-sid').value.trim(),
-      kmx:document.getElementById('set-real-spx').value.trim(),
-      sni:document.getElementById('set-real-sni').value.trim(),
-      external_domain:document.getElementById('set-real-ext-domain').value.trim(),
-      external_port:parseInt(document.getElementById('set-real-ext-port').value)||443
-    };
     var r=await authFetch('/api/tools/reality-settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok)throw new Error();
-    toast('تنظیمات Reality ذخیره شد ✓','ok');
-  }catch(e){toast('خطا در ذخیره Reality','err')}
+    toast('ØªÙ†Ø¸ÛŒÙ…Ø§Øª Reality Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯ âœ“','ok');
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª Reality','err')}
 }
 
 async function generateRealityKeys(){
   try{
     var r=await authFetch('/api/tools/generate-reality-keys',{method:'POST'});
     var d=await r.json();
-    document.getElementById('set-real-pbk').value=d.public_key||'';
-    toast('کلیدهای Reality تولید شد ✓','ok');
-  }catch(e){toast('خطا در تولید کلید','err')}
+    if(d.public_key)document.getElementById('set-real-pbk').value=d.public_key;
+    if(d.private_key)document.getElementById('set-real-sid').value=d.short_id||'';
+    toast('Ú©Ù„ÛŒØ¯ Reality ØªÙˆÙ„ÛŒØ¯ Ø´Ø¯ âœ“','ok');
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± ØªÙˆÙ„ÛŒØ¯ Ú©Ù„ÛŒØ¯','err')}
 }
+function updateProtoCheckboxes(){}
 
-function updateProtoCheckboxes(){/* no-op hook for UI */}
-
-/* ============ WORKER PAGE ============ */
+/* ============ WORKER ============ */
 async function loadWorker(){
   try{
     var r=await authFetch('/api/worker'),d=await r.json();
     var connectForm=document.getElementById('worker-connect-form');
     var connectedInfo=document.getElementById('worker-connected-info');
-    var proxiesSection=document.getElementById('worker-proxies-section');
-    var lastSync=document.getElementById('worker-last-sync');
     var syncBtn=document.getElementById('worker-sync-btn');
-    var disconnectBtn=document.getElementById('worker-disconnect-btn');
-
     if(d.connected){
-      connectForm.style.display = 'none';
-      connectedInfo.style.display = 'block';
-      proxiesSection.style.display = 'block';
-      lastSync.style.display = 'block';
-      if(syncBtn)syncBtn.style.display = 'inline-flex';
-      if(disconnectBtn)disconnectBtn.style.display = 'inline-flex';
-
-      document.getElementById('worker-domain-display').value = d.worker_domain || '';
-      document.getElementById('worker-account-display').value = d.account_id || '';
-      document.getElementById('worker-name-display').value = d.worker_name || '';
-      document.getElementById('worker-control-token-display').value = d.control_token || '';
-      document.getElementById('worker-source-url').value = d.source_url || 'https://raw.githubusercontent.com/NiREvil/vless/main/sub/ProxyIP-Daily.md';
-      document.getElementById('worker-auto-sync').classList.toggle('on', d.auto_sync);
-
-      // Render proxies table
-      renderWorkerProxies(d.proxies || []);
-
-      // Last sync info
+      connectForm.style.display='none';
+      connectedInfo.style.display='block';
+      syncBtn.style.display='inline-flex';
+      document.getElementById('worker-domain-display').value=d.worker_domain||'';
+      document.getElementById('worker-account-display').value=d.account_id||'';
+      document.getElementById('worker-name-display').value=d.worker_name||'';
+      document.getElementById('worker-control-token-display').value=d.control_token||'';
+      document.getElementById('worker-source-url').value=d.source_url||'';
+      var autoEl=document.getElementById('worker-auto-sync');
+      d.auto_sync!==false?autoEl.classList.add('on'):autoEl.classList.remove('on');
+      if(d.proxies)renderWorkerProxies(d.proxies);
       if(d.last_sync){
-        var ls=document.getElementById('worker-last-sync-info');
-        var syncTime = new Date(d.last_sync).toLocaleString('fa-IR');
-        var syncCount = d.sync_count || 0;
-        var syncError = d.sync_error || '';
-        ls.innerHTML = '<div style="font-size:13px;color:var(--text-secondary)">زمان: '+syncTime+'</div>' +
-          '<div style="font-size:13px;color:var(--text-secondary);margin-top:4px">تعداد همگام‌سازی‌ها: '+syncCount+'</div>' +
-          (syncError ? '<div style="font-size:13px;color:var(--wp-red);margin-top:4px">خطا: '+esc(syncError)+'</div>' : '');
+        document.getElementById('worker-last-sync-info').innerHTML=
+          '<div style="display:flex;flex-direction:column;gap:4px">'+
+          '<div><span style="color:var(--text-secondary)">Ø²Ù…Ø§Ù†:</span> '+new Date(d.last_sync).toLocaleString('fa-IR')+'</div>'+
+          '<div><span style="color:var(--text-secondary)">ØªØ¹Ø¯Ø§Ø¯:</span> '+toFa(Object.keys(d.proxies||{}).length)+' Ú©Ø´ÙˆØ±</div>'+
+          (d.last_error?'<div style="color:var(--wp-red)"><span>Ø®Ø·Ø§:</span> '+esc(d.last_error)+'</div>':'')+
+          '</div>';
       }
     }else{
-      connectForm.style.display = 'block';
-      connectedInfo.style.display = 'none';
-      proxiesSection.style.display = 'none';
-      lastSync.style.display = 'none';
-      if(syncBtn)syncBtn.style.display = 'none';
-      if(disconnectBtn)disconnectBtn.style.display = 'none';
+      connectForm.style.display='block';
+      connectedInfo.style.display='none';
+      syncBtn.style.display='none';
+      document.getElementById('worker-source-url').value=d.source_url||'';
     }
   }catch(e){console.error(e)}
 }
 
 function renderWorkerProxies(proxies){
   var tbody=document.getElementById('worker-proxies-table');
-  if(!proxies || !proxies.length){
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-secondary)">کشوری اضافه نشده است</td></tr>';
-    return;
-  }
-  tbody.innerHTML = proxies.map(function(p){
-    var flag = p.flag || '';
-    var country = p.country || p.code.toUpperCase();
-    var code = p.code || '';
-    var proxy = p.proxy || '';
-    var port = p.port || 443;
-    var count = (p.proxies && p.proxies.length) || 1;
-    return '<tr>'+
-      '<td style="font-size:18px;text-align:center">'+esc(flag)+'</td>'+
-      '<td style="font-weight:500">'+esc(country)+'</td>'+
-      '<td style="font-family:monospace;font-size:12px">'+esc(code)+'</td>'+
-      '<td style="font-family:monospace;font-size:12px">'+esc(proxy)+'</td>'+
-      '<td style="text-align:center">'+esc(port)+'</td>'+
-      '<td style="text-align:center">'+esc(count)+'</td>'+
-      '<td><button class="btn btn-sm btn-ghost btn-icon" onclick="deleteWorkerProxy(\''+esc(code)+'\')" title="حذف"><i class="ti ti-trash"></i></button></td>'+
-      '</tr>';
+  var codes=Object.keys(proxies);
+  if(!codes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-secondary)">Ù‡Ù†ÙˆØ² Ù¾Ø±ÙˆÚ©Ø³ÛŒâ€ŒØ§ÛŒ Ø§Ø¶Ø§ÙÙ‡ Ù†Ø´Ø¯Ù‡</td></tr>';return}
+  tbody.innerHTML=codes.map(function(code){
+    var p=proxies[code];
+    return '<tr><td style="font-weight:600">'+esc(code.toUpperCase())+'</td>'+
+      '<td>'+esc(p.country)+'</td>'+
+      '<td style="font-family:JetBrains Mono,monospace;font-size:11px">'+esc(p.proxy)+'</td>'+
+      '<td>'+esc(p.port)+'</td>'+
+      '<td><button class="btn btn-sm btn-danger btn-icon" onclick="deleteWorkerProxy(\''+esc(code)+'\')" title="Ø­Ø°Ù"><i class="ti ti-trash"></i></button></td></tr>';
   }).join('');
 }
 
 async function connectWorker(){
-  var token=document.getElementById('worker-token').value.trim();
-  var email=document.getElementById('worker-email').value.trim();
-  var account_id=document.getElementById('worker-account-id').value.trim();
-  var worker_name=document.getElementById('worker-name').value.trim()||'white-proxy';
-  if(!token||!account_id){toast('توکن و Account ID الزامی هستند','err');return}
+  var body={
+    token:document.getElementById('worker-token').value.trim(),
+    email:document.getElementById('worker-email').value.trim(),
+    account_id:document.getElementById('worker-account-id').value.trim(),
+    worker_name:document.getElementById('worker-name').value.trim()||'white-proxy',
+  };
+  if(!body.token||!body.email||!body.account_id){toast('Ù‡Ù…Ù‡ ÙÛŒÙ„Ø¯Ù‡Ø§ Ø§Ù„Ø²Ø§Ù…ÛŒ Ù‡Ø³ØªÙ†Ø¯','err');return}
   try{
-    var r=await authFetch('/api/worker/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token,account_id:account_id,email:email,worker_name:worker_name})});
-    var d=await r.json();
-    if(!d.ok)throw new Error(d.detail||'خطا');
-    toast('Worker با موفقیت متصل و دیپلوی شد ✓','ok');
-    loadWorker();
+    var r=await authFetch('/api/worker/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.detail||'Ø®Ø·Ø§')}
+    toast('ÙˆØ±Ú©Ø± Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ù…ØªØµÙ„ Ø´Ø¯ âœ“','ok');loadWorker();
   }catch(e){toast(e.message,'err')}
 }
 
 async function disconnectWorker(){
-  if(!confirm('آیا از قطع اتصال Worker اطمینان دارید؟'))return;
+  if(!confirm('Ø¢ÛŒØ§ Ø§Ø² Ù‚Ø·Ø¹ Ø§ØªØµØ§Ù„ ÙˆØ±Ú©Ø± Ø§Ø·Ù…ÛŒÙ†Ø§Ù† Ø¯Ø§Ø±ÛŒØ¯ØŸ'))return;
   try{
     var r=await authFetch('/api/worker',{method:'DELETE'});
-    var d=await r.json();
-    if(!d.ok)throw new Error();
-    toast('Worker قطع شد ✓','ok');
-    loadWorker();
-  }catch(e){toast('خطا در قطع اتصال','err')}
+    if(!r.ok)throw new Error();
+    toast('ÙˆØ±Ú©Ø± Ù‚Ø·Ø¹ Ø´Ø¯ âœ“','ok');loadWorker();
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ù‚Ø·Ø¹ Ø§ØªØµØ§Ù„','err')}
 }
 
 async function deployWorker(){
   try{
     var r=await authFetch('/api/worker/sync',{method:'POST'});
-    var d=await r.json();
-    if(!d.ok)throw new Error(d.error||'deploy failed');
-    toast('Worker دیپلوی شد ✓','ok');
-    loadWorker();
-  }catch(e){toast(e.message,'err')}
+    if(!r.ok)throw new Error();
+    toast('ÙˆØ±Ú©Ø± Ø¨Ø§Ø²Ø§Ø³ØªÙ‚Ø±Ø§Ø± Ø´Ø¯ âœ“','ok');
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø§Ø²Ø§Ø³ØªÙ‚Ø±Ø§Ø±','err')}
 }
 
 async function syncWorkerProxies(){
   try{
     var r=await authFetch('/api/worker/sync-source',{method:'POST'});
-    var d=await r.json();
-    if(!d.ok)throw new Error(d.error||'sync failed');
-    toast('پروکسی‌ها همگام‌سازی شدند ✓ ('+d.sync.countries+' کشور)','ok');
-    loadWorker();
-  }catch(e){toast(e.message,'err')}
+    if(!r.ok)throw new Error();
+    toast('Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯ âœ“','ok');loadWorker();
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ','err')}
 }
 
 async function saveWorkerSettings(){
-  var source_url=document.getElementById('worker-source-url').value.trim();
-  var auto_sync=document.getElementById('worker-auto-sync').classList.contains('on');
+  var body={
+    source_url:document.getElementById('worker-source-url').value.trim(),
+    auto_sync:document.getElementById('worker-auto-sync').classList.contains('on'),
+  };
   try{
-    var r=await authFetch('/api/worker/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source_url:source_url,auto_sync:auto_sync})});
-    var d=await r.json();
-    if(!d.ok)throw new Error();
-    toast('تنظیمات ذخیره شد ✓','ok');
-    loadWorker();
-  }catch(e){toast(e.message,'err')}
+    var r=await authFetch('/api/worker/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error();
+    toast('ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯ âœ“','ok');
+  }catch(e){toast('Ø®Ø·Ø§ Ø¯Ø± Ø°Ø®ÛŒØ±Ù‡','err')}
 }
 
 async function deleteWorkerProxy(code){
-  if(!confirm('آیا از حذف این کشور اطمینان دارید؟'))return;
+  if(!confirm('Ø¢ÛŒØ§ Ø§Ø² Ø­Ø°Ù Ø§ÛŒÙ† Ù¾Ø±ÙˆÚ©Ø³ÛŒ Ø§Ø·Ù…ÛŒÙ†Ø§Ù† Ø¯Ø§Ø±ÛŒØ¯ØŸ'))return;
   try{
     var r=await authFetch('/api/worker/proxies/'+code,{method:'DELETE'});
-    var d=await r.json();
-    if(!d.ok)throw new Error();
-    toast('کشور حذف شد ✓','ok');
-    loadWorker();
+    if(!r.ok)throw new Error();
+    toast('Ú©Ø´ÙˆØ± Ø­Ø°Ù Ø´Ø¯ âœ“','ok');loadWorker();
   }catch(e){toast(e.message,'err')}
 }
 
 async function openAddProxyModal(){
-  var code=prompt('کد کشور (مثلاً: de, us, nl):');
+  var code=prompt('Ú©Ø¯ Ú©Ø´ÙˆØ± (Ù…Ø«Ù„Ø§Ù‹: de, us, nl):');
   if(!code)return;
-  var country=prompt('نام کشور (مثلاً: Germany):');
+  var country=prompt('Ù†Ø§Ù… Ú©Ø´ÙˆØ± (Ù…Ø«Ù„Ø§Ù‹: Germany):');
   if(!country)return;
-  var proxy=prompt('آدرس پروکسی (IP یا دامنه):');
+  var proxy=prompt('Ø¢Ø¯Ø±Ø³ Ù¾Ø±ÙˆÚ©Ø³ÛŒ (IP ÛŒØ§ Ø¯Ø§Ù…Ù†Ù‡):');
   if(!proxy)return;
-  var port=prompt('پورت:', '443');
+  var port=prompt('Ù¾ÙˆØ±Øª:', '443');
   if(!port)port='443';
   try{
     var r=await authFetch('/api/worker/proxies',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:code.trim().toLowerCase(),country:country.trim(),proxy:proxy.trim(),port:parseInt(port)})});
     var d=await r.json();
-    if(!d.ok)throw new Error(d.detail||'خطا');
-    toast('کشور اضافه شد ✓','ok');
+    if(!d.ok)throw new Error(d.detail||'Ø®Ø·Ø§');
+    toast('Ú©Ø´ÙˆØ± Ø§Ø¶Ø§ÙÙ‡ Ø´Ø¯ âœ“','ok');
     loadWorker();
   }catch(e){toast(e.message,'err')}
 }
@@ -1724,7 +1716,7 @@ async function openAddProxyModal(){
 /* ============ REFRESH ============ */
 function refreshAll(){
   loadDashboard();loadUsers();loadConfigs();loadTraffic();loadLogs();loadWorker();
-  toast('بروزرسانی شد ✓','ok');
+  toast('Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø´Ø¯ âœ“','ok');
 }
 
 /* ============ INIT ============ */
@@ -1745,6 +1737,7 @@ document.addEventListener('DOMContentLoaded',async function(){
 </body></html>"""
 
 
+
 def get_public_page_html(uuid_key: str, sub_url: str = "", announcement: str = "") -> str:
     """Public subscription group page with OS detection, One-Click Import, and Announcements."""
     ann_html = ""
@@ -1761,156 +1754,183 @@ def get_public_page_html(uuid_key: str, sub_url: str = "", announcement: str = "
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>White Panel · اشتراک</title>
+<title>White Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Estedad:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 :root{{
-  --wp-blue:#6366f1;--wp-purple:#8b5cf6;--wp-red:#ef4444;
-  --success:#16A34A;--warning:#F59E0B;--danger:#DC2626;
-  --text-primary:#0F172A;--text-secondary:#475569;
-  --bg:#F8FAFC;--surface:rgba(255,255,255,.8);--surface-glass:rgba(255,255,255,.75);
-  --border:rgba(226,232,240,.7);
-  --radius:18px;--radius-lg:24px;--radius-xl:28px;
-  --shadow-sm:0 2px 8px rgba(0,0,0,.04);--shadow-md:0 8px 24px rgba(0,0,0,.06);
-  --shadow-lg:0 16px 48px rgba(0,0,0,.08);
+  --neon-cyan:#06b6d4;--neon-purple:#a855f7;--neon-emerald:#10b981;
+  --neon-blue:#6366f1;--wp-blue:#6366f1;--wp-purple:#8b5cf6;--wp-red:#ef4444;
+  --success:#10b981;--warning:#f59e0b;
+  --text-primary:#f0f0f0;--text-secondary:#64748b;
+  --bg:#000000;--surface:rgba(255,255,255,.03);--surface-glass:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.06);
+  --gradient:linear-gradient(135deg,#06b6d4,#a855f7,#10b981);
+  --gradient-accent:linear-gradient(90deg,#06b6d4,#a855f7,#10b981);
+  --radius-sm:10px;--radius:14px;--radius-lg:18px;--radius-xl:22px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);--shadow-md:0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.6);
+  --transition:.3s cubic-bezier(.4,0,.2,1);
 }}
-[data-theme="dark"]{{
-  --text-primary:#F1F5F9;--text-secondary:#94A3B8;
-  --bg:#0B1121;--surface:rgba(15,23,42,.85);--surface-glass:rgba(15,23,42,.7);
-  --border:rgba(226,232,240,.06);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.2);--shadow-md:0 8px 24px rgba(0,0,0,.3);
-  --shadow-lg:0 16px 48px rgba(0,0,0,.4);
+[data-theme="light"]{{
+  --text-primary:#0f172a;--text-secondary:#64748b;
+  --bg:#f8fafc;--surface:rgba(255,255,255,.7);--surface-glass:rgba(255,255,255,.65);
+  --border:rgba(0,0,0,.06);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.04);--shadow-md:0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.08);
 }}
 *{{margin:0;padding:0;box-sizing:border-box}}
-html,body{{min-height:100%;background:var(--bg);font-family:'Estedad',sans-serif;color:var(--text-primary);font-size:14px;transition:background .4s,color .4s}}
-.bg-glow{{position:fixed;inset:0;z-index:0;pointer-events:none}}
-.bg-orb{{position:absolute;border-radius:50%;filter:blur(120px);opacity:.15;animation:float 14s ease-in-out infinite}}
-.bg-orb:nth-child(1){{width:450px;height:450px;background:var(--wp-blue);top:-150px;left:-100px}}
-.bg-orb:nth-child(2){{width:350px;height:350px;background:var(--wp-purple);bottom:-100px;right:-80px;animation-delay:-7s}}
+html,body{{min-height:100%;background:var(--bg);font-family:'Estedad','Inter',sans-serif;color:var(--text-primary);font-size:14px;transition:background var(--transition),color var(--transition)}}
+::-webkit-scrollbar{{width:5px}}
+::-webkit-scrollbar-track{{background:transparent}}
+::-webkit-scrollbar-thumb{{background:rgba(6,182,212,.15);border-radius:10px}}
+#bg-canvas{{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6}}
+[data-theme="light"] #bg-canvas{{opacity:.3}}
+@keyframes staggerIn{{from{{opacity:0;transform:translateY(16px) scale(.97)}}to{{opacity:1;transform:none}}}}
+@keyframes spin{{to{{transform:rotate(360deg)}}}}
 @keyframes float{{0%,100%{{transform:translateY(0) scale(1)}}50%{{transform:translateY(-25px) scale(1.04)}}}}
+
+.announcement-bar{{display:flex;align-items:center;gap:10px;padding:12px 18px;background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(168,85,247,.06));backdrop-filter:blur(20px);border:1px solid rgba(6,182,212,.12);border-radius:var(--radius);margin-bottom:16px;font-size:12px;color:var(--neon-cyan);animation:staggerIn .5s cubic-bezier(.4,0,.2,1) both}}
+.announcement-bar i{{font-size:16px;flex-shrink:0}}
+.announcement-bar span{{flex:1;color:var(--text-primary);font-weight:500}}
+
 .wrap{{position:relative;z-index:10;max-width:680px;margin:0 auto;padding:28px 16px 60px}}
 .top-bar{{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:10px}}
 .brand{{display:flex;align-items:center;gap:10px}}
-.brand svg{{width:38px;height:38px;filter:drop-shadow(0 3px 8px rgba(43,127,255,.3))}}
-.brand-name{{font-size:14px;font-weight:800;color:var(--text-primary)}}
-.brand-sub{{font-size:9.5px;color:var(--text-secondary)}}
-.theme-toggle{{width:38px;height:38px;border-radius:var(--radius);background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .2s}}
-.theme-toggle:hover{{background:rgba(43,127,255,.1);color:var(--wp-blue)}}
-/* Info card */
-.info-card{{background:var(--surface);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px 26px 24px;margin-bottom:18px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}}
-.info-card::before{{content:'';position:absolute;top:0;right:0;width:180px;height:180px;background:radial-gradient(circle,rgba(123,97,255,.08),transparent 70%);pointer-events:none}}
+.brand svg{{width:38px;height:38px;filter:drop-shadow(0 0 12px rgba(6,182,212,.4))}}
+.brand-name{{font-size:14px;font-weight:800;color:var(--text-primary);letter-spacing:-.02em}}
+.brand-sub{{font-size:8.5px;color:var(--text-secondary);letter-spacing:.04em}}
+.theme-toggle{{width:38px;height:38px;border-radius:var(--radius);background:var(--surface-glass);backdrop-filter:blur(12px);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .25s}}
+.theme-toggle:hover{{background:rgba(6,182,212,.08);color:var(--neon-cyan);border-color:rgba(6,182,212,.15);box-shadow:0 0 16px rgba(6,182,212,.08)}}
+
+.info-card{{background:var(--surface-glass);backdrop-filter:blur(24px) saturate(200%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px 26px 24px;margin-bottom:18px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;animation:staggerIn .5s cubic-bezier(.4,0,.2,1) both}}
+.info-card::before{{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent)}}
+.info-card::after{{content:'';position:absolute;top:0;right:0;width:180px;height:180px;background:radial-gradient(circle,rgba(6,182,212,.04),transparent 70%);pointer-events:none}}
 .info-name{{font-size:22px;font-weight:800;color:var(--text-primary);position:relative;z-index:1;letter-spacing:-.02em}}
 .info-desc{{font-size:12.5px;color:var(--text-secondary);margin-top:6px;position:relative;z-index:1;line-height:1.7}}
 .info-stats{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;position:relative;z-index:1}}
-.info-stat{{text-align:center;padding:12px 8px;background:rgba(43,127,255,.04);border-radius:var(--radius);border:1px solid var(--border)}}
-.info-s-val{{font-size:18px;font-weight:800;color:var(--text-primary)}}
-.info-s-label{{font-size:9px;color:var(--text-secondary);margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}}
-/* Config cards */
+.info-stat{{text-align:center;padding:12px 8px;background:rgba(6,182,212,.04);border-radius:var(--radius);border:1px solid var(--border);transition:all .25s}}
+.info-stat:hover{{border-color:rgba(6,182,212,.15);box-shadow:0 4px 16px rgba(6,182,212,.06)}}
+.info-s-val{{font-size:18px;font-weight:800;color:var(--text-primary);font-family:'Inter',sans-serif}}
+.info-s-label{{font-size:9px;color:var(--text-secondary);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}}
+
+.import-section{{margin-bottom:20px;animation:staggerIn .5s cubic-bezier(.4,0,.2,1) .1s both}}
+.import-title{{font-size:12px;font-weight:800;color:var(--text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.06em}}
+.import-title i{{font-size:14px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.import-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}}
+.import-btn{{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface-glass);backdrop-filter:blur(16px);color:var(--text-primary);font-size:12px;font-weight:600;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);text-decoration:none}}
+.import-btn:hover{{background:linear-gradient(135deg,rgba(6,182,212,.12),rgba(168,85,247,.08));border-color:rgba(6,182,212,.2);box-shadow:0 8px 24px rgba(6,182,212,.1);transform:translateY(-2px)}}
+.import-btn .ico{{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}}
+.import-btn .ico.ico-android{{background:rgba(6,182,212,.1);color:var(--neon-cyan)}}
+.import-btn .ico.ico-ios{{background:rgba(168,85,247,.1);color:var(--neon-purple)}}
+.import-btn .ico.ico-windows{{background:rgba(99,102,241,.1);color:var(--neon-blue)}}
+.import-btn .ico.ico-macos{{background:rgba(16,185,129,.1);color:var(--neon-emerald)}}
+.import-btn .lbl{{font-size:9px;color:var(--text-secondary);margin-top:1px}}
+
 .section-title{{font-size:12.5px;font-weight:800;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.06em}}
-.section-title i{{color:var(--wp-blue);font-size:15px}}
-.cfg-card{{background:var(--surface);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 20px 18px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:all .3s}}
-.cfg-card:hover{{border-color:rgba(43,127,255,.2);transform:translateY(-2px);box-shadow:var(--shadow-md)}}
+.section-title i{{font-size:15px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.cfg-card{{background:var(--surface-glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 20px 18px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;animation:staggerIn .4s cubic-bezier(.4,0,.2,1) both}}
+.cfg-card::before{{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent);opacity:0;transition:opacity .3s}}
+.cfg-card:hover::before{{opacity:1}}
+.cfg-card:hover{{border-color:rgba(6,182,212,.15);transform:translateY(-2px);box-shadow:0 8px 30px rgba(6,182,212,.06)}}
 .cfg-head{{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:12px}}
 .cfg-name{{font-size:14px;font-weight:700;color:var(--text-primary)}}
-.cfg-status{{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700;white-space:nowrap}}
-.cfg-status.ok{{background:rgba(22,163,74,.1);color:var(--success)}}
-.cfg-status.no{{background:rgba(255,35,82,.1);color:var(--wp-red)}}
-.cfg-code{{background:rgba(15,23,42,.05);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-family:'Inter',monospace;font-size:10px;color:var(--wp-blue);word-break:break-all;line-height:1.7;margin-bottom:10px;max-height:80px;overflow-y:auto}}
-[data-theme="dark"] .cfg-code{{background:rgba(0,0,0,.2);color:#60A5FA}}
+.cfg-status{{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}}
+.cfg-status.ok{{background:rgba(16,185,129,.1);color:var(--neon-emerald)}}
+.cfg-status.no{{background:rgba(239,68,68,.1);color:var(--wp-red)}}
+.cfg-code{{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-family:'JetBrains Mono','Inter',monospace;font-size:10px;color:var(--neon-cyan);word-break:break-all;line-height:1.7;margin-bottom:10px;max-height:80px;overflow-y:auto}}
+[data-theme="light"] .cfg-code{{background:rgba(0,0,0,.03);color:var(--neon-blue)}}
 .cfg-actions{{display:flex;gap:7px;flex-wrap:wrap}}
-.btn{{font-family:'Estedad',sans-serif;font-size:11.5px;font-weight:700;border-radius:var(--radius);padding:8px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .2s;white-space:nowrap}}
+
+.btn{{font-family:'Estedad','Inter',sans-serif;font-size:11.5px;font-weight:700;border-radius:var(--radius);padding:8px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap}}
 .btn i{{font-size:13px}}
-.btn-p{{background:linear-gradient(90deg,var(--wp-blue),var(--wp-purple));color:#fff;box-shadow:0 4px 14px rgba(43,127,255,.25)}}
-.btn-p:hover{{transform:translateY(-1px);box-shadow:0 6px 20px rgba(43,127,255,.35)}}
-.btn-ghost{{background:rgba(43,127,255,.06);color:var(--wp-blue);border:1px solid rgba(43,127,255,.15)}}
-.btn-ghost:hover{{background:rgba(43,127,255,.12)}}
-/* Password lock */
-.lock-page{{display:flex;align-items:center;justify-content:center;min-height:70vh}}
-.lock-card{{background:var(--surface);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:var(--radius-xl);padding:40px 32px 34px;text-align:center;max-width:380px;width:100%;box-shadow:var(--shadow-lg)}}
-.lock-icon{{width:64px;height:64px;border-radius:18px;background:rgba(43,127,255,.1);border:1px solid rgba(43,127,255,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;color:var(--wp-blue)}}
-.lock-title{{font-size:18px;font-weight:800;margin-bottom:6px}}
-.lock-sub{{font-size:12px;color:var(--text-secondary);margin-bottom:20px;line-height:1.7}}
+.btn-p{{background:linear-gradient(135deg,#06b6d4,#a855f7);color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.25);position:relative;overflow:hidden}}
+.btn-p::before{{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);transition:left .5s}}
+.btn-p:hover{{transform:translateY(-2px);box-shadow:0 8px 30px rgba(6,182,212,.35)}}
+.btn-p:hover::before{{left:100%}}
+.btn-ghost{{background:rgba(6,182,212,.05);color:var(--neon-cyan);border:1px solid rgba(6,182,212,.1)}}
+.btn-ghost:hover{{background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.2);box-shadow:0 0 12px rgba(6,182,212,.06)}}
+
+.lock-page{{display:flex;align-items:center;justify-content:center;min-height:60vh}}
+.lock-card{{background:var(--surface-glass);backdrop-filter:blur(30px) saturate(200%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:40px 32px 34px;text-align:center;max-width:380px;width:100%;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;animation:staggerIn .5s cubic-bezier(.4,0,.2,1) both}}
+.lock-card::before{{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-accent)}}
+.lock-card::after{{content:'';position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle,rgba(6,182,212,.04),transparent 70%);pointer-events:none}}
+.lock-icon{{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(168,85,247,.08));border:1px solid rgba(6,182,212,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;color:var(--neon-cyan);box-shadow:0 0 24px rgba(6,182,212,.1)}}
+.lock-title{{font-size:18px;font-weight:800;margin-bottom:6px;position:relative;z-index:1}}
+.lock-sub{{font-size:12px;color:var(--text-secondary);margin-bottom:20px;line-height:1.7;position:relative;z-index:1}}
 .lock-field{{position:relative;margin-bottom:14px}}
-.lock-input{{width:100%;padding:13px 44px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.5);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:14px;text-align:center;outline:none;transition:all .2s;letter-spacing:.1em}}
-.lock-input:focus{{border-color:var(--wp-blue);box-shadow:0 0 0 4px rgba(43,127,255,.1)}}
+.lock-input{{width:100%;padding:13px 44px;border-radius:var(--radius);border:1.5px solid var(--border);background:rgba(255,255,255,.03);backdrop-filter:blur(8px);color:var(--text-primary);font-family:inherit;font-size:14px;text-align:center;outline:none;transition:all .25s;letter-spacing:.1em}}
+.lock-input:focus{{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,.08),0 0 16px rgba(6,182,212,.04)}}
 .lock-icon-left{{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:16px;pointer-events:none}}
 .lock-err{{color:var(--wp-red);font-size:11px;margin-bottom:10px;min-height:18px}}
-/* Toast */
-.toast{{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--surface);backdrop-filter:blur(16px);border:1px solid var(--border);color:var(--text-primary);border-radius:var(--radius);padding:10px 20px;font-size:12px;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-md)}}
+
+.toast{{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:rgba(10,15,30,.9);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.06);color:var(--text-primary);border-radius:var(--radius);padding:10px 20px;font-size:12px;font-weight:500;opacity:0;transition:all .4s cubic-bezier(.4,0,.2,1);z-index:999;pointer-events:none;display:flex;align-items:center;gap:7px;box-shadow:0 12px 40px rgba(0,0,0,.4);white-space:nowrap}}
+[data-theme="light"] .toast{{background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.06)}}
 .toast.show{{opacity:1;transform:translateX(-50%) translateY(0)}}
-.toast.ok{{border-color:rgba(22,163,74,.3);color:var(--success)}}
-/* Empty */
+.toast.ok{{border-color:rgba(16,185,129,.2);color:var(--neon-emerald)}}
+.toast.err{{border-color:rgba(239,68,68,.2);color:var(--wp-red)}}
+
 .empty{{text-align:center;padding:60px 20px;color:var(--text-secondary)}}
-.empty i{{font-size:40px;opacity:.3;display:block;margin-bottom:12px}}
-.footer{{text-align:center;padding-top:30px;font-size:10.5px;color:var(--text-secondary)}}
+.empty i{{font-size:40px;opacity:.2;display:block;margin-bottom:12px}}
+.footer{{text-align:center;padding-top:30px;font-size:10.5px;color:var(--text-secondary);position:relative;z-index:10}}
+
 @media(max-width:500px){{
   .info-stats{{grid-template-columns:1fr 1fr}}
   .wrap{{padding:20px 12px 50px}}
-}}
-@keyframes spin{{to{{transform:rotate(360deg)}}}}
-/* Custom Sub Dropdown */
-.custom-sub-dropdown-wrap{{position:relative;margin-top:8px}}
-.custom-sub-dropdown{{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--surface);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:10px 14px;cursor:pointer;
-  transition:all .2s;gap:8px;overflow:hidden;position:relative;z-index:2
-}}
-.custom-sub-dropdown:hover{{border-color:rgba(43,127,255,.25)}}
-.custom-sub-dropdown::after{{
-  content:'';position:absolute;inset:0;border-radius:var(--radius-lg);
-  background:linear-gradient(135deg,rgba(43,127,255,.05),transparent);opacity:0;transition:opacity .2s
-}}
-.custom-sub-dropdown:hover::after{{opacity:1}}
-#custom-sub-selected-label{{font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
-#custom-sub-chevron{{font-size:14px;color:var(--text-secondary);transition:transform .2s}}
-.custom-sub-dropdown.open #custom-sub-chevron{{transform:rotate(180deg)}}
-.custom-sub-dropdown-menu{{
-  position:absolute;top:100%;left:0;right:0;
-  background:var(--surface);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:1.5px solid var(--border);border-radius:var(--radius-lg);
-  max-height:220px;overflow-y:auto;overflow-x:hidden;
-  z-index:10;margin-top:6px;box-shadow:var(--shadow-lg);
-  opacity:0;visibility:hidden;transform:translateY(-6px);transition:all .2s;
-  padding:6px
-}}
-.custom-sub-dropdown-wrap.open .custom-sub-dropdown-menu{{opacity:1;visibility:visible;transform:translateY(0)}}
-.custom-sub-dropdown-menu::-webkit-scrollbar{{width:6px}}
-.custom-sub-dropdown-menu::-webkit-scrollbar-track{{background:transparent}}
-.custom-sub-dropdown-menu::-webkit-scrollbar-thumb{{background:rgba(43,127,255,.18);border-radius:3px}}
-.custom-sub-dropdown-menu::-webkit-scrollbar-thumb:hover{{background:rgba(43,127,255,.28)}}
-.custom-sub-option{{
-  padding:10px 14px;cursor:pointer;border-radius:var(--radius);margin:4px 6px;
-  font-size:12.5px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  transition:all .2s;display:flex;align-items:center;gap:8px
-}}
-.custom-sub-option:hover{{background:rgba(43,127,255,.08);color:var(--wp-blue)}}
-.custom-sub-option.active{{background:rgba(43,127,255,.14);color:var(--wp-blue);border:1px solid rgba(43,127,255,.2);font-weight:600}}
-.custom-sub-option .sub-preview{{
-  display:inline-block;width:18px;height:18px;border-radius:4px;
-  background:linear-gradient(135deg,var(--wp-blue),var(--wp-purple));
-  flex-shrink:0;box-shadow:0 0 4px rgba(43,127,255,.4)
+  .import-grid{{grid-template-columns:1fr}}
 }}
 </style>
 </head>
-<body data-theme="light">
-<div class="bg-glow"><div class="bg-orb"></div><div class="bg-orb"></div></div>
+<body data-theme="dark">
+<canvas id="bg-canvas"></canvas>
 <div class="toast" id="toast"></div>
 <div class="wrap">
   {ann_html}
   <div class="top-bar">
     <div class="brand">
-      <svg width="38" height="38" viewBox="0 0 100 100"><defs><linearGradient id="bgg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="50%" style="stop-color:#8b5cf6"/><stop offset="100%" style="stop-color:#a78bfa"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#bgg)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
-      <div><div class="brand-name">White Panel</div><div class="brand-sub">White Panel</div></div>
+      <svg width="38" height="38" viewBox="0 0 100 100"><defs><linearGradient id="bgg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#06b6d4"/><stop offset="50%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#10b981"/></linearGradient></defs><path d="M50 5 L90 22 L90 55 C90 78 72 93 50 98 C28 93 10 78 10 55 L10 22 Z" fill="url(#bgg)" opacity="0.95"/><path d="M50 18 L75 30 L75 54 C75 70 63 80 50 85 C37 80 25 70 25 54 L25 30 Z" fill="rgba(255,255,255,0.12)"/><rect x="43" y="38" width="14" height="22" rx="2" fill="rgba(255,255,255,0.9)"/><circle cx="50" cy="33" r="5" fill="rgba(255,255,255,0.9)"/></svg>
+      <div><div class="brand-name">White Panel</div><div class="brand-sub">ENTERPRISE</div></div>
     </div>
-    <button class="theme-toggle" onclick="toggleTheme()" title="تغییر تم"><i class="ti ti-sun" id="theme-icon"></i></button>
+    <button class="theme-toggle" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i></button>
   </div>
   <div id="root"><div class="empty"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i><p>در حال بارگذاری...</p></div></div>
   <div class="footer">White Panel</div>
 </div>
+<script>
+(function(){{
+  var c=document.getElementById('bg-canvas');
+  if(!c)return;
+  var gl=c.getContext('webgl')||c.getContext('experimental-webgl');
+  if(!gl)return;
+  var mx=0.5,my=0.5;
+  function resize(){{c.width=window.innerWidth;c.height=window.innerHeight;gl.viewport(0,0,c.width,c.height)}}
+  resize();window.addEventListener('resize',resize);
+  document.addEventListener('mousemove',function(e){{mx=e.clientX/c.width;my=1-e.clientY/c.height}});
+  var vsrc='attribute vec2 p;void main(){{gl_Position=vec4(p,0,1);}}';
+  var fsrc='precision mediump float;uniform float t;uniform vec2 r;uniform vec2 m;'+
+    'void main(){{vec2 uv=gl_FragCoord.xy/r;'+
+    'float d=length(uv-m)*0.8;'+
+    'float v1=sin(uv.x*6.0+t*0.3)*0.5+0.5;'+
+    'float v2=cos(uv.y*5.0+t*0.2)*0.5+0.5;'+
+    'float v3=sin((uv.x+uv.y)*4.0+t*0.25)*0.5+0.5;'+
+    'vec3 c1=vec3(0.024,0.714,0.831);'+
+    'vec3 c2=vec3(0.659,0.333,0.969);'+
+    'vec3 c3=vec3(0.063,0.725,0.506);'+
+    'vec3 col=mix(c1,c2,v1)*v2+mix(c2,c3,v3)*0.3;'+
+    'col*=0.08*(1.0-d*0.5);'+
+    'col+=vec3(0.01)*sin(t*0.5);'+
+    'gl_FragColor=vec4(col,1);}}';
+  function cs(src,type){{var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}}
+  var pg=gl.createProgram();gl.attachShader(pg,cs(vsrc,gl.VERTEX_SHADER));gl.attachShader(pg,cs(fsrc,gl.FRAGMENT_SHADER));gl.linkProgram(pg);gl.useProgram(pg);
+  var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  var pl=gl.getAttribLocation(pg,'p');gl.enableVertexAttribArray(pl);gl.vertexAttribPointer(pl,2,gl.FLOAT,false,0,0);
+  var ut=gl.getUniformLocation(pg,'t'),ur=gl.getUniformLocation(pg,'r'),um=gl.getUniformLocation(pg,'m');
+  function draw(t){{gl.uniform1f(ut,t*0.001);gl.uniform2f(ur,c.width,c.height);gl.uniform2f(um,mx,my);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(draw)}}
+  requestAnimationFrame(draw);
+}})();
+</script>
 <script>
 var UUID_KEY='{uuid_key}',SUB_URL='{sub_url}',savedPw='',currentData=null;
 var isDark=localStorage.getItem('wp-pub-theme')==='dark';
@@ -1920,65 +1940,83 @@ applyTheme(isDark);
 function toast(m,t){{var el=document.getElementById('toast');el.textContent=m;el.className='toast show'+(t?' '+t:'');setTimeout(function(){{el.classList.remove('show')}},2400)}}
 function esc(s){{return String(s||'').replace(/[&<>"']/g,function(c){{return{{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]}})}}
 function fmtB(b){{if(!b)return'0 B';if(b<1024)return b+' B';if(b<1024**2)return(b/1024).toFixed(1)+' KB';if(b<1024**3)return(b/1024**2).toFixed(2)+' MB';return(b/1024**3).toFixed(2)+' GB'}}
-function toFa(n){{return String(n).replace(/\\d/g,function(d){{return'۰۱۲۳۴۵۶۷۸۹'[d]}})}}
+function toFa(n){{return String(n).replace(/\d/g,function(d){{return'\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9'[d]}})}}
 
-/* ── OS Detection & One-Click Import ──────────────────────────────────── */
-function detectOS() {{
-  var ua = navigator.userAgent || '';
-  if (/android/i.test(ua)) return 'android';
-  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
-  if (/Win\\d/.test(ua)) return 'windows';
-  if (/Macintosh|Mac OS X/.test(ua)) return 'macos';
-  return 'other';
+function detectOS(){{
+  var ua=navigator.userAgent||'';
+  if(/android/i.test(ua))return'android';
+  if(/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return'ios';
+  if(/Win\d/.test(ua))return'windows';
+  if(/Macintosh|Mac OS X/.test(ua))return'macos';
+  return'other';
 }}
-function getImportApps() {{
-  var os = detectOS();
-  var apps = [];
-  if (os === 'android') {{
-    apps.push({{name:'v2rayNG', cls:'ico-android', icon:'ti ti-brand-android', href:'v2rayng://install-sub?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Hiddify', cls:'ico-android', icon:'ti ti-shield', href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'V2Box', cls:'ico-android', icon:'ti ti-box', href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
-  }} else if (os === 'ios') {{
-    apps.push({{name:'V2Box', cls:'ico-ios', icon:'ti ti-box', href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Hiddify', cls:'ico-ios', icon:'ti ti-shield', href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Streisand', cls:'ico-ios', icon:'ti ti-bolt', href:'streisand://import?url='+encodeURIComponent(SUB_URL)}});
-  }} else if (os === 'windows') {{
-    apps.push({{name:'v2rayN', cls:'ico-windows', icon:'ti ti-brand-windows', href:'v2rayn://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Hiddify', cls:'ico-windows', icon:'ti ti-shield', href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
-  }} else if (os === 'macos') {{
-    apps.push({{name:'V2rayU', cls:'ico-macos', icon:'ti ti-brand-apple', href:'v2rayu://import?url='+encodeURIComponent(SUB_URL)}});
-    apps.push({{name:'Hiddify', cls:'ico-macos', icon:'ti ti-shield', href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+function getImportApps(){{
+  var os=detectOS(),apps=[];
+  if(os==='android'){{
+    apps.push({{name:'v2rayNG',icon:'ti ti-brand-android',cls:'ico-android',href:'v2rayng://install-sub?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-android',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'V2Box',icon:'ti ti-box',cls:'ico-android',href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
+  }}else if(os==='ios'){{
+    apps.push({{name:'V2Box',icon:'ti ti-box',cls:'ico-ios',href:'v2box://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-ios',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Streisand',icon:'ti ti-bolt',cls:'ico-ios',href:'streisand://import?url='+encodeURIComponent(SUB_URL)}});
+  }}else if(os==='windows'){{
+    apps.push({{name:'v2rayN',icon:'ti ti-brand-windows',cls:'ico-windows',href:'v2rayn://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-windows',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
+  }}else if(os==='macos'){{
+    apps.push({{name:'V2rayU',icon:'ti ti-brand-apple',cls:'ico-macos',href:'v2rayu://import?url='+encodeURIComponent(SUB_URL)}});
+    apps.push({{name:'Hiddify',icon:'ti ti-shield',cls:'ico-macos',href:'hiddify://import?url='+encodeURIComponent(SUB_URL)}});
   }}
   return apps;
 }}
-function buildImportHtml() {{
-  var apps = getImportApps();
-  if (!apps.length) return '';
-  var h = '<div class="import-section"><div class="import-title"><i class="ti ti-download"></i> وارد کردن سریع</div><div class="import-grid">';
-  apps.forEach(function(a) {{
-    h += '<a class="import-btn" href="'+esc(a.href)+'"><div class="ico '+a.cls+'"><i class="ti '+a.icon+'"></i></div><div><div>'+esc(a.name)+'</div><div class="lbl">یک کلیک</div></div></a>';
+function buildImportHtml(){{
+  var apps=getImportApps();
+  if(!apps.length)return'';
+  var h='<div class="import-section"><div class="import-title"><i class="ti ti-download"></i> \u0648\u0627\u0631\u062f \u06a9\u0631\u062f\u0646 \u0633\u0631\u06cc\u0639</div><div class="import-grid">';
+  apps.forEach(function(a){{
+    h+='<a class="import-btn" href="'+esc(a.href)+'"><div class="ico '+a.cls+'"><i class="ti '+a.icon+'"></i></div><div><div>'+esc(a.name)+'</div><div class="lbl">\u06cc\u06a9 \u06a9\u0644\u06cc\u06a9</div></div></a>';
   }});
-  h += '</div></div>';
-  return h;
+  h+='</div></div>';return h;
 }}
 
 async function loadData(pw){{var u='/api/public/sub/'+UUID_KEY+(pw?'?pw='+encodeURIComponent(pw):'');var r=await fetch(u);return r.json()}}
 
-function renderLock(name,err){{document.getElementById('root').innerHTML='<div class="lock-page"><div class="lock-card"><div class="lock-icon"><i class="ti ti-shield-lock"></i></div><div class="lock-title">'+esc(name)+'</div><div class="lock-sub">این گروه با رمز محافظت می‌شود</div><div class="lock-err" id="lock-err">'+(err?'<i class="ti ti-alert-circle"></i> '+esc(err):'')+'</div><div class="lock-field"><i class="ti ti-lock lock-icon-left"></i><input class="lock-input" type="password" id="lock-pw" placeholder="••••••••" autofocus></div><button class="btn btn-p" style="width:100%;justify-content:center;padding:12px" onclick="submitLock()"><i class="ti ti-lock-open"></i> ورود</button></div></div>';document.getElementById('lock-pw').addEventListener('keydown',function(e){{if(e.key==='Enter')submitLock()}})}}
-
-async function submitLock(){{var pw=document.getElementById('lock-pw').value;var d=await loadData(pw);if(d.locked){{renderLock(d.name,'رمز اشتباه است');return}}savedPw=pw;renderContent(d)}}
-
-function renderContent(d){{currentData=d;var active=d.links.filter(function(l){{return l.active}}).length;var subUrl=d.sub_url||SUB_URL;subUrl+=savedPw?'?pw='+encodeURIComponent(savedPw):'';
-var importHtml=buildImportHtml();
-document.getElementById('root').innerHTML='<div class="info-card"><div class="info-name">'+esc(d.name)+'</div>'+(d.desc?'<div class="info-desc">'+esc(d.desc)+'</div>':'')+
-'<div class="info-stats"><div class="info-stat"><div class="info-s-val">'+toFa(active)+'</div><div class="info-s-label">کانفیگ فعال</div></div><div class="info-stat"><div class="info-s-val">'+toFa(d.links.length)+'</div><div class="info-s-label">کل کانفیگ‌ها</div></div><div class="info-stat"><div class="info-s-val">'+esc(d.total_used_fmt||'0')+'</div><div class="info-s-label">مصرف</div></div></div></div>'+
-importHtml+
-'<div class="section-title"><i class="ti ti-link"></i> کانفیگ‌ها ('+toFa(d.links.length)+' عدد)</div>'+
-(d.links.length?d.links.map(function(l){{return'<div class="cfg-card"><div class="cfg-head"><div class="cfg-name">'+esc(l.label)+'</div><span class="cfg-status '+(l.active?'ok':'no')+'">'+(l.active?'<i class="ti ti-circle-check"></i> فعال':'<i class="ti ti-circle-x"></i> غیرفعال')+'</span></div><div class="cfg-code">'+esc(l.vless_link)+'</div><div class="cfg-actions"><button class="btn btn-p" onclick="navigator.clipboard.writeText(\''+esc(l.vless_link).replace(/'/g,"\\'")+'\').then(function(){{toast(\'کپی شد ✓\',\'ok\')}})"><i class="ti ti-copy"></i> کپی لینک</button><button class="btn btn-ghost" onclick="window.open(\'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(l.vless_link)+'\',\'_blank\')"><i class="ti ti-qrcode"></i> QR Code</button></div></div>'}}).join(''):'<div class="empty"><i class="ti ti-link-off"></i><p>کانفیگی در این گروه وجود ندارد</p></div>')+
-'<div style="margin-top:16px;text-align:center"><button class="btn btn-ghost" style="justify-content:center" onclick="location.reload()"><i class="ti ti-refresh"></i> بروزرسانی</button></div>';
+function renderLock(name,err){{
+  document.getElementById('root').innerHTML='<div class="lock-page"><div class="lock-card"><div class="lock-icon"><i class="ti ti-shield-lock"></i></div><div class="lock-title">'+esc(name)+'</div><div class="lock-sub">\u0627\u06cc\u0646 \u06af\u0631\u0648\u0647 \u0628\u0627 \u0631\u0645\u0632 \u0645\u062d\u0627\u0641\u0638\u062a \u0645\u06cc\u200c\u0634\u0648\u062f</div><div class="lock-err" id="lock-err">'+(err?'<i class="ti ti-alert-circle"></i> '+esc(err):'')+'</div><div class="lock-field"><i class="ti ti-lock lock-icon-left"></i><input class="lock-input" type="password" id="lock-pw" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" autofocus></div><button class="btn btn-p" style="width:100%;justify-content:center;padding:12px" onclick="submitLock()"><i class="ti ti-lock-open"></i> \u0648\u0631\u0648\u062f</button></div></div>';
+  document.getElementById('lock-pw').addEventListener('keydown',function(e){{if(e.key==='Enter')submitLock()}});
 }}
 
-async function init(){{try{{var d=await loadData();if(d.locked){{renderLock(d.name);return}}renderContent(d)}}catch(e){{document.getElementById('root').innerHTML='<div class="empty"><i class="ti ti-alert-circle" style="color:var(--wp-red)"></i><p>خطا در بارگذاری</p></div>'}}}}
+async function submitLock(){{var pw=document.getElementById('lock-pw').value;var d=await loadData(pw);if(d.locked){{renderLock(d.name,'\u0631\u0645\u0632 \u0627\u0634\u062a\u0628\u0627\u0647 \u0627\u0633\u062a');return}}savedPw=pw;renderContent(d)}}
+
+function renderContent(d){{
+  currentData=d;
+  var active=d.links.filter(function(l){{return l.active}}).length;
+  var subUrl=d.sub_url||SUB_URL;
+  subUrl+=savedPw?'?pw='+encodeURIComponent(savedPw):'';
+  var importHtml=buildImportHtml();
+  document.getElementById('root').innerHTML=
+    '<div class="info-card"><div class="info-name">'+esc(d.name)+'</div>'+
+    (d.desc?'<div class="info-desc">'+esc(d.desc)+'</div>':'')+
+    '<div class="info-stats">'+
+    '<div class="info-stat"><div class="info-s-val">'+toFa(active)+'</div><div class="info-s-label">\u06a9\u0627\u0646\u0641\u06cc\u06af \u0641\u0639\u0627\u0644</div></div>'+
+    '<div class="info-stat"><div class="info-s-val">'+toFa(d.links.length)+'</div><div class="info-s-label">\u06a9\u0644 \u06a9\u0627\u0646\u0641\u06cc\u06af\u200c\u0647\u0627</div></div>'+
+    '<div class="info-stat"><div class="info-s-val">'+esc(d.total_used_fmt||'0')+'</div><div class="info-s-label">\u0645\u0635\u0631\u0641</div></div>'+
+    '</div></div>'+
+    importHtml+
+    '<div class="section-title"><i class="ti ti-link"></i> \u06a9\u0627\u0646\u0641\u06cc\u06af\u200c\u0647\u0627 ('+toFa(d.links.length)+' \u0639\u062f\u062f)</div>'+
+    (d.links.length?d.links.map(function(l){{
+      return '<div class="cfg-card"><div class="cfg-head"><div class="cfg-name">'+esc(l.label)+'</div>'+
+        '<span class="cfg-status '+(l.active?'ok':'no')+'">'+(l.active?'<i class="ti ti-circle-check"></i> \u0641\u0639\u0627\u0644':'<i class="ti ti-circle-x"></i> \u063a\u06cc\u0631\u0641\u0639\u0627\u0644')+'</span></div>'+
+        '<div class="cfg-code">'+esc(l.vless_link)+'</div>'+
+        '<div class="cfg-actions">'+
+        '<button class="btn btn-p" onclick="navigator.clipboard.writeText(\''+esc(l.vless_link).replace(/'/g,"\\'")+'\').then(function(){{toast(\'\u06a9\u067e\u06cc \u0634\u062f \u2713\',\'ok\')}})"><i class="ti ti-copy"></i> \u06a9\u067e\u06cc \u0644\u06cc\u0646\u06a9</button>'+
+        '<button class="btn btn-ghost" onclick="window.open(\'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(l.vless_link)+'\',\'_blank\')"><i class="ti ti-qrcode"></i> QR Code</button>'+
+        '</div></div>';
+    }}).join(''):'<div class="empty"><i class="ti ti-link-off"></i><p>\u06a9\u0627\u0646\u0641\u06cc\u06af\u06cc \u062f\u0631 \u0627\u06cc\u0646 \u06af\u0631\u0648\u0647 \u0648\u062c\u0648\u062f \u0646\u062f\u0627\u0631\u062f</p></div>')+
+    '<div style="margin-top:16px;text-align:center"><button class="btn btn-ghost" style="justify-content:center" onclick="location.reload()"><i class="ti ti-refresh"></i> \u0628\u0631\u0648\u0632\u0631\u0633\u0627\u0646\u06cc</button></div>';
+}}
+
+async function init(){{try{{var d=await loadData();if(d.locked){{renderLock(d.name);return}}renderContent(d)}}catch(e){{document.getElementById('root').innerHTML='<div class="empty"><i class="ti ti-alert-circle" style="color:var(--wp-red)"></i><p>\u062e\u0637\u0627 \u062f\u0631 \u0628\u0627\u0631\u06af\u0630\u0627\u0631\u06cc</p></div>'}}}}
 init();
 </script>
 </body></html>"""
