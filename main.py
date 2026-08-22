@@ -2185,7 +2185,7 @@ async def ensure_default_link():
 # ── Basic endpoints ───────────────────────────────────────────────────────────
 @app.get("/")
 async def root():
-    return {"service": "White Gateway", "version": "2.0.0", "status": "active", "channel": "https://t.me/killmaster_is_here"
+    return {"service": "White Gateway", "version": "2.0.0", "status": "active", "channel": "https://t.me/killmaster_is_here"}
 
 # ── Subscription ping (must be before /sub/{{identifier}}) ──────────────────
 @app.get("/sub/{identifier}/ping")
