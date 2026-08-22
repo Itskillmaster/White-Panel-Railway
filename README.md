@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ White Panel
+# White Panel
 
 **VLESS / XHTTP / WS‑TLS subscription & proxy‑relay panel**
 FastAPI panel for Railway + Cloudflare Workers. Manage users, inbounds, Reality / WS‑TLS configs, browser‑side IP scanning and a multi‑location Cloudflare Worker proxy — all from one dashboard.
