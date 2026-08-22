@@ -18,7 +18,7 @@ from shared import (
     RELAY_BUF,
 )
 
-logger = logging.getLogger("White-Panel")
+logger = logging.getLogger("White-Gateway")
 IRAN_TZ = timezone(timedelta(hours=3, minutes=30))
 
 # ── Lazy access to main module (avoids circular import) ──

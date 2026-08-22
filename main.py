@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import secrets
 import time
 import uuid
-import aiosqlite
 import aiofiles
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -23,7 +22,7 @@ import io
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-logger = logging.getLogger("White-Panel")
+logger = logging.getLogger("White-Gateway")
 
 try:
     import qrcode
@@ -51,7 +50,7 @@ _sys.modules.setdefault("main", _sys.modules[__name__])
 
 IRAN_TZ = ZoneInfo("Asia/Tehran")
 
-app = FastAPI(title="White Panel", docs_url=None, redoc_url=None)
+app = FastAPI(title="White Gateway", docs_url=None, redoc_url=None)
 
 # Import and include xhttp_siz10 router - deferred until globals are defined
 xhttp_router = None
@@ -72,86 +71,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Persistence (async SQLite key-value store) ────────────────────────────────
+# ── Persistence ───────────────────────────────────────────────────────────────
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
-DATA_FILE = DATA_DIR / "white_state.json"   # legacy JSON state (auto-migrated → .json.bak)
-DB_PATH = DATA_DIR / "white_state.db"        # async SQLite key-value store
-KV_TABLE = "kv_store"                        # CREATE TABLE kv_store (key TEXT PRIMARY KEY, value TEXT)
+DATA_FILE = DATA_DIR / "white_state.json"
 SAVE_LOCK = asyncio.Lock()
-
-
-async def init_db():
-    """Create the kv_store table if it doesn't exist."""
-    try:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-    except Exception:
-        pass
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(f"""
-            CREATE TABLE IF NOT EXISTS {KV_TABLE} (
-                key TEXT PRIMARY KEY,
-                value TEXT
-            )
-        """)
-        await db.commit()
-
-
-async def _kv_get(key: str, default=None):
-    """Fetch one key from the kv_store (values are JSON-encoded strings)."""
-    try:
-        async with aiosqlite.connect(DB_PATH) as db:
-            async with db.execute(f"SELECT value FROM {KV_TABLE} WHERE key = ?", (key,)) as cursor:
-                row = await cursor.fetchone()
-                if row:
-                    return json.loads(row[0])
-    except Exception as e:
-        logger.warning(f"_kv_get({key}) failed: {e}")
-    return default
-
-
-async def _kv_set(key: str, value):
-    """Insert (or replace) one key in the kv_store."""
-    try:
-        async with aiosqlite.connect(DB_PATH) as db:
-            await db.execute(
-                f"INSERT OR REPLACE INTO {KV_TABLE} (key, value) VALUES (?, ?)",
-                (key, json.dumps(value, ensure_ascii=False)),
-            )
-            await db.commit()
-    except Exception as e:
-        logger.warning(f"_kv_set({key}) failed: {e}")
-
-
-async def _kv_delete(key: str):
-    """Remove one key from the kv_store."""
-    try:
-        async with aiosqlite.connect(DB_PATH) as db:
-            await db.execute(f"DELETE FROM {KV_TABLE} WHERE key = ?", (key,))
-            await db.commit()
-    except Exception as e:
-        logger.warning(f"_kv_delete({key}) failed: {e}")
-
-
-async def _migrate_from_json():
-    """Auto-migration: if white_state.json exists, copy every top-level key into
-    the SQLite kv_store, then rename the JSON file to white_state.json.bak."""
-    if not DATA_FILE.exists():
-        return
-    try:
-        async with aiofiles.open(DATA_FILE, "r", encoding="utf-8") as f:
-            raw = await f.read()
-        data = json.loads(raw)
-        async with aiosqlite.connect(DB_PATH) as db:
-            for key, value in data.items():
-                await db.execute(
-                    f"INSERT OR REPLACE INTO {KV_TABLE} (key, value) VALUES (?, ?)",
-                    (key, json.dumps(value, ensure_ascii=False)),
-                )
-            await db.commit()
-        DATA_FILE.rename(DATA_FILE.with_suffix(".json.bak"))
-        logger.info(f"Migrated JSON state → SQLite: {len(data)} keys ({DATA_FILE.name} → white_state.json.bak)")
-    except Exception as e:
-        logger.warning(f"Migration from JSON failed: {e}")
 
 # ── IP scanner live-saved files (first 10 working IPs per source) ─────────────
 SCANNED_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "scanned"
@@ -233,36 +156,34 @@ def _save_scanned_ips(ctype: str, entries: list, replace: bool = False) -> list:
 
 async def load_state():
     global LINKS, AUTH, SUBS, USERS, SETTINGS, GROUPS, IP_POOL, IP_BLACKLIST, INBOUNDS
-    await init_db()
-    # Auto-migrate the legacy JSON file into SQLite (then rename it to .json.bak).
-    await _migrate_from_json()
     try:
-        LINKS.update(await _kv_get("links") or {})
-        SUBS.update(await _kv_get("subs") or {})
-        USERS.update(await _kv_get("users") or {})
-        # Always load saved password hash (no secret-key guard — causes password reset bugs)
-        _pw = await _kv_get("password_hash")
-        if _pw:
-            AUTH["password_hash"] = _pw
-        # Also store saved_secret so future saves remain consistent
-        _saved_secret = await _kv_get("saved_secret")
-        if _saved_secret:
-            CONFIG["secret"] = _saved_secret
-        _settings = await _kv_get("settings") or {}
-        if isinstance(_settings, dict):
-            SETTINGS.update(_settings)
-        GROUPS.update(await _kv_get("groups") or {})
-        INBOUNDS.update(await _kv_get("inbounds") or {})
-        IP_POOL.clear()
-        IP_POOL.extend(await _kv_get("ip_pool") or [])
-        IP_BLACKLIST.clear()
-        IP_BLACKLIST.update(await _kv_get("ip_blacklist") or [])
-        _worker_data = await _kv_get("worker")
-        if isinstance(_worker_data, dict):
-            WORKER.update(_worker_data)
-        logger.info(f"State loaded: {len(LINKS)} links, {len(SUBS)} subs, {len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, {len(INBOUNDS)} inbounds")
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        if DATA_FILE.exists():
+            async with aiofiles.open(DATA_FILE, "r", encoding="utf-8") as f:
+                raw = await f.read()
+            data = json.loads(raw)
+            LINKS.update(data.get("links", {}))
+            SUBS.update(data.get("subs", {}))
+            USERS.update(data.get("users", {}))
+            # Always load saved password hash (no secret-key guard — causes password reset bugs)
+            if "password_hash" in data:
+                AUTH["password_hash"] = data["password_hash"]
+            # Also store saved_secret so future saves remain consistent
+            if "saved_secret" in data:
+                CONFIG["secret"] = data["saved_secret"]
+            if "settings" in data:
+                SETTINGS.update(data["settings"])
+            GROUPS.update(data.get("groups", {}))
+            INBOUNDS.update(data.get("inbounds", {}))
+            IP_POOL.clear()
+            IP_POOL.extend(data.get("ip_pool", []))
+            IP_BLACKLIST.clear()
+            IP_BLACKLIST.update(data.get("ip_blacklist", []))
+            if isinstance(data.get("worker"), dict):
+                WORKER.update(data["worker"])
+            logger.info(f"State loaded: {len(LINKS)} links, {len(SUBS)} subs, {len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, {len(INBOUNDS)} inbounds")
     except Exception as e:
-        logger.warning(f"Could not load state from SQLite: {e}")
+        logger.warning(f"Could not load state: {e}")
     # Rebuild path index from all users and links
     _rebuild_path_index()
     # Migrate: auto-create links for users that have config_uuid but no link
@@ -372,19 +293,25 @@ def _rebuild_path_index():
 async def save_state():
     async with SAVE_LOCK:
         try:
-            await init_db()
-            await _kv_set("links", dict(LINKS))
-            await _kv_set("users", dict(USERS))
-            await _kv_set("subs", dict(SUBS))
-            await _kv_set("settings", dict(SETTINGS))
-            await _kv_set("groups", dict(GROUPS))
-            await _kv_set("inbounds", dict(INBOUNDS))
-            await _kv_set("ip_pool", list(IP_POOL))
-            await _kv_set("ip_blacklist", list(IP_BLACKLIST))
-            await _kv_set("worker", dict(WORKER))
-            await _kv_set("password_hash", AUTH["password_hash"])
-            await _kv_set("saved_secret", CONFIG["secret"])
-            await _kv_set("saved_at", datetime.now().isoformat())
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+            data = {
+                "links": dict(LINKS),
+                "users": dict(USERS),
+                "subs": dict(SUBS),
+                "settings": dict(SETTINGS),
+                "groups": dict(GROUPS),
+                "inbounds": dict(INBOUNDS),
+                "ip_pool": list(IP_POOL),
+                "ip_blacklist": list(IP_BLACKLIST),
+                "worker": dict(WORKER),
+                "password_hash": AUTH["password_hash"],
+                "saved_secret": CONFIG["secret"],
+                "saved_at": datetime.now().isoformat(),
+            }
+            tmp = DATA_FILE.with_suffix(".tmp")
+            async with aiofiles.open(tmp, "w", encoding="utf-8") as f:
+                await f.write(json.dumps(data, ensure_ascii=False, indent=2))
+            tmp.replace(DATA_FILE)
         except Exception as e:
             logger.warning(f"Could not save state: {e}")
 
@@ -423,8 +350,6 @@ SETTINGS = {
     "bg_login": "",
     "bg_dashboard": "",
     "bg_sub": "",
-    # Show the status config as the FIRST entry in subscription links
-    "show_status_config": True,
     # Panel audio (uploaded by admin)
     "panel_audio": "",
     "panel_audio_enabled": False,
@@ -436,7 +361,7 @@ SETTINGS = {
         "public_key": "",
         "private_key": "",
         "short_id": "5a3ff5a13d",
-        "kmx": "/",
+        "spiderx": "/",
         "fingerprint": "chrome",
         "external_domain": "",
         "external_port": 443,
@@ -484,15 +409,22 @@ WORKER: dict = {
     "worker_url": "",
     "token": "",
     # Cloudflare auth email (for Global API Key auth: cfk_... tokens).
-    "cf_email": "",
     # Control token: a random secret baked into the deployed worker. The panel
     # uses it to call the worker's admin API (update proxy map, etc.) after
     # deploy — the worker only accepts calls carrying this Bearer token.
     "control_token": "",
     # Panel domain injected into the worker so it can expose panel info.
     "panel_domain": "",
-    # KV namespace id for the worker's SPIDER_KV binding.
+    # KV namespace id + title for the worker's dedicated WHITE_KV binding
+    # ({worker_name}-db — one namespace per worker, never shared).
     "kv_namespace_id": "",
+    "kv_namespace_title": "",
+    # Remote-control status pulled from the worker's /panel/status API.
+    "remote_status": "",
+    "last_heartbeat": "",
+    "worker_users_online": 0,
+    "worker_traffic_bytes": 0,
+    "worker_user_count": 0,
     "proxies": {},
     "last_sync": "",
     "last_error": "",
@@ -504,6 +436,10 @@ WORKER: dict = {
 WORKER_LOCK = asyncio.Lock()
 # Serialize source syncs (hourly loop + manual button can't overlap).
 WORKER_SYNC_LOCK = asyncio.Lock()
+
+# ── Telegram Proxy Instances ────────────────────────────────────────────────
+# Maps inbound_id → MTProtoProxyServer instance
+TG_PROXY_INSTANCES: dict = {}
 
 # پروتکل‌های پشتیبانی‌شده برای هر کانفیگ
 PROTOCOLS = ("vless-ws", "xhttp-packet-up", "xhttp-stream-up", "xhttp-stream-one")
@@ -617,7 +553,7 @@ def _gen_reality_settings() -> dict:
             "private_key": priv,
             "public_key": pub,
             "short_id": secrets.token_hex(5)[:10],
-            "kmx": "/",
+            "spiderx": "/",
             "dest": "is1-ssl.mzstatic.com:443",
             "mldsa65_seed": seed,
             "mldsa65_verify": verify,
@@ -631,7 +567,7 @@ def _gen_reality_settings() -> dict:
             "private_key": priv_key,
             "public_key": pub_key,
             "short_id": secrets.token_hex(5)[:10],
-            "kmx": "/",
+            "spiderx": "/",
             "dest": "is1-ssl.mzstatic.com:443",
             "mldsa65_seed": b64.b64encode(mldsa_seed).decode(),
             "mldsa65_verify": _gen_ml_dsa65(mldsa_seed),
@@ -639,7 +575,7 @@ def _gen_reality_settings() -> dict:
     except ImportError:
         return {
             "private_key": "", "public_key": "", "short_id": "5a3ff5a13d",
-            "kmx": "/", "dest": "is1-ssl.mzstatic.com:443",
+            "spiderx": "/", "dest": "is1-ssl.mzstatic.com:443",
             "mldsa65_seed": b64.b64encode(mldsa_seed).decode(),
             "mldsa65_verify": _gen_ml_dsa65(mldsa_seed),
         }
@@ -698,6 +634,389 @@ def _xray_x25519_privkey_norm(private_key: str) -> str:
         return b64.urlsafe_b64encode(decoded).decode().rstrip("=")
     except Exception:
         return ""
+
+
+# ── WireGuard / AmneziaWG helpers ────────────────────────────────────────────
+def _wg_gen_keypair() -> tuple:
+    """Generate a WireGuard key pair (private, public) using Python crypto."""
+    try:
+        from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+        import base64 as b64
+        priv = X25519PrivateKey.generate()
+        priv_bytes = priv.private_bytes_raw()
+        pub_bytes = priv.public_key().public_bytes_raw()
+        return (
+            b64.b64encode(priv_bytes).decode(),
+            b64.b64encode(pub_bytes).decode(),
+        )
+    except ImportError:
+        return "", ""
+
+
+def _wg_read_endpoints() -> list:
+    """Read available endpoints from data/endpoint.txt."""
+    ep_file = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "endpoint.txt"
+    if not ep_file.is_file():
+        ep_file = DATA_DIR / "endpoint.txt"
+    if not ep_file.is_file():
+        return []
+    out = []
+    for line in ep_file.read_text(errors="ignore").splitlines():
+        line = line.strip()
+        if line and ":" in line and not line.startswith("#"):
+            out.append(line)
+    return out
+
+
+def generate_wg_config(user_id: str, user: dict, inbound: dict, remark_tag: str = None) -> str:
+    """Generate an AmneziaWG config for a user based on the inbound settings.
+
+    Supports two modes:
+    - WARP mode (warp_mode=True): Uses Cloudflare WARP infrastructure with
+      proper WARP PublicKey, Address (IPv4+IPv6), DNS, and endpoints.
+    - Custom mode (warp_mode=False): Uses user-defined server settings.
+    """
+    username = user.get("username", user_id)
+    wg = inbound.get("wireguard_settings") or {}
+    warp_mode = bool(wg.get("warp_mode"))
+
+    # Generate per-user WireGuard private key
+    priv_key, _ = _wg_gen_keypair()
+    if not priv_key:
+        return ""
+
+    # AmneziaWG obfuscation parameters
+    jc = wg.get("jc") or "3"
+    jmin = wg.get("jmin") or "1"
+    jmax = wg.get("jmax") or "3"
+    s1 = wg.get("s1") or "0"
+    s2 = wg.get("s2") or "0"
+    h1 = wg.get("h1") or "1"
+    h2 = wg.get("h2") or "2"
+    h3 = wg.get("h3") or "3"
+    h4 = wg.get("h4") or "4"
+    i1 = wg.get("i1") or ""
+
+    if warp_mode:
+        # ── WARP mode: use Cloudflare WARP infrastructure ──
+        # Fixed WARP PublicKey (same for all WARP users)
+        server_pub = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+        # WARP address: 172.16.0.x/32 + IPv6
+        address = wg.get("address") or "172.16.0.2/32, 2606:4700:110::2/128"
+        # WARP DNS: Cloudflare DNS with IPv6
+        dns = wg.get("dns") or "1.1.1.1, 1.0.0.1, 2606:4700:4700::1111, 2606:4700:4700::1001"
+        mtu = wg.get("mtu") or "1280"
+        # Endpoint from the configured endpoint (should be a Cloudflare WARP IP)
+        endpoint = wg.get("endpoint") or "8.6.112.4:443"
+    else:
+        # ── Custom WireGuard server mode ──
+        server_pub = wg.get("server_public_key") or ""
+        if not server_pub:
+            _, server_pub = _wg_gen_keypair()
+        endpoint = wg.get("endpoint") or "8.6.112.4:443"
+        mtu = wg.get("mtu") or "1280"
+        address = wg.get("address") or "172.16.0.2/32"
+        dns = wg.get("dns") or "1.1.1.1, 1.0.0.1"
+
+    # AmneziaWG parameters
+    jc = wg.get("jc") or "3"
+    jmin = wg.get("jmin") or "1"
+    jmax = wg.get("jmax") or "3"
+    s1 = wg.get("s1") or "0"
+    s2 = wg.get("s2") or "0"
+    h1 = wg.get("h1") or "1"
+    h2 = wg.get("h2") or "2"
+    h3 = wg.get("h3") or "3"
+    h4 = wg.get("h4") or "4"
+    i1 = wg.get("i1") or ""
+
+    rem = f"White-{username}-WG"
+    if remark_tag:
+        rem = f"{rem} {remark_tag}"
+
+    config = f"""# AmneziaWG Config
+
+[Interface]
+PrivateKey = {priv_key}
+Address = {address}
+DNS = {dns}
+MTU = {mtu}
+Jc = {jc}
+Jmin = {jmin}
+Jmax = {jmax}
+S1 = {s1}
+S2 = {s2}
+H1 = {h1}
+H2 = {h2}
+H3 = {h3}
+H4 = {h4}
+I1 = {i1}
+
+[Peer]
+PublicKey = {server_pub}
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = {endpoint}
+"""
+    return config.strip()
+
+
+def _wg_read_endpoints() -> list:
+    """Read available endpoints from data/endpoint.txt."""
+    ep_file = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "endpoint.txt"
+    if not ep_file.is_file():
+        ep_file = DATA_DIR / "endpoint.txt"
+    if not ep_file.is_file():
+        return []
+    out = []
+    for line in ep_file.read_text(errors="ignore").splitlines():
+        line = line.strip()
+        if line and ":" in line and not line.startswith("#"):
+            out.append(line)
+    return out
+
+
+def generate_wg_config(user_id: str, user: dict, inbound: dict, remark_tag: str = None) -> str:
+    """Generate an AmneziaWG config for a user based on the inbound settings.
+
+    Supports two modes:
+    - WARP mode (warp_mode=True): Uses Cloudflare WARP infrastructure with
+      proper WARP PublicKey, Address (IPv4+IPv6), DNS, and endpoints.
+    - Custom mode (warp_mode=False): Uses user-defined server settings.
+    """
+    username = user.get("username", user_id)
+    wg = inbound.get("wireguard_settings") or {}
+    warp_mode = bool(wg.get("warp_mode"))
+
+    # Generate per-user WireGuard private key
+    priv_key, _ = _wg_gen_keypair()
+    if not priv_key:
+        return ""
+
+    # AmneziaWG obfuscation parameters
+    jc = wg.get("jc") or "3"
+    jmin = wg.get("jmin") or "1"
+    jmax = wg.get("jmax") or "3"
+    s1 = wg.get("s1") or "0"
+    s2 = wg.get("s2") or "0"
+    h1 = wg.get("h1") or "1"
+    h2 = wg.get("h2") or "2"
+    h3 = wg.get("h3") or "3"
+    h4 = wg.get("h4") or "4"
+    i1 = wg.get("i1") or ""
+
+    if warp_mode:
+        # ── WARP mode: use Cloudflare WARP infrastructure ──
+        # Fixed WARP PublicKey (same for all WARP users)
+        server_pub = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+        # WARP address: 172.16.0.x/32 + IPv6
+        address = wg.get("address") or "172.16.0.2/32, 2606:4700:110::2/128"
+        # WARP DNS: Cloudflare DNS with IPv6
+        dns = wg.get("dns") or "1.1.1.1, 1.0.0.1, 2606:4700:4700::1111, 2606:4700:4700::1001"
+        mtu = wg.get("mtu") or "1280"
+        # Endpoint from the configured endpoint (should be a Cloudflare WARP IP)
+        endpoint = wg.get("endpoint") or "8.6.112.4:443"
+    else:
+        # ── Custom WireGuard server mode ──
+        server_pub = wg.get("server_public_key") or ""
+        if not server_pub:
+            _, server_pub = _wg_gen_keypair()
+        endpoint = wg.get("endpoint") or "8.6.112.4:443"
+        mtu = wg.get("mtu") or "1280"
+        address = wg.get("address") or "172.16.0.2/32"
+        dns = wg.get("dns") or "1.1.1.1, 1.0.0.1"
+
+    # AmneziaWG parameters
+    jc = wg.get("jc") or "3"
+    jmin = wg.get("jmin") or "1"
+    jmax = wg.get("jmax") or "3"
+    s1 = wg.get("s1") or "0"
+    s2 = wg.get("s2") or "0"
+    h1 = wg.get("h1") or "1"
+    h2 = wg.get("h2") or "2"
+    h3 = wg.get("h3") or "3"
+    h4 = wg.get("h4") or "4"
+    i1 = wg.get("i1") or ""
+
+    rem = f"White-{username}-WG"
+    if remark_tag:
+        rem = f"{rem} {remark_tag}"
+
+    config = f"""# AmneziaWG Config
+
+[Interface]
+PrivateKey = {priv_key}
+Address = {address}
+DNS = {dns}
+MTU = {mtu}
+Jc = {jc}
+Jmin = {jmin}
+Jmax = {jmax}
+S1 = {s1}
+S2 = {s2}
+H1 = {h1}
+H2 = {h2}
+H3 = {h3}
+H4 = {h4}
+I1 = {i1}
+
+[Peer]
+PublicKey = {server_pub}
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = {endpoint}
+"""
+    return config.strip()
+
+
+def _wg_read_endpoints() -> list:
+    """Read available endpoints from data/endpoint.txt."""
+    ep_file = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "endpoint.txt"
+    if not ep_file.is_file():
+        ep_file = DATA_DIR / "endpoint.txt"
+    if not ep_file.is_file():
+        return []
+    out = []
+    for line in ep_file.read_text(errors="ignore").splitlines():
+        line = line.strip()
+        if line and ":" in line and not line.startswith("#"):
+            out.append(line)
+    return out
+
+
+def generate_wg_config(user_id: str, user: dict, inbound: dict, remark_tag: str = None) -> str:
+    """Generate an AmneziaWG config for a user based on the inbound settings.
+
+    Supports two modes:
+    - WARP mode (warp_mode=True): Uses Cloudflare WARP infrastructure with
+      proper WARP PublicKey, Address (IPv4+IPv6), DNS, and endpoints.
+    - Custom mode (warp_mode=False): Uses user-defined server settings.
+    """
+    username = user.get("username", user_id)
+    wg = inbound.get("wireguard_settings") or {}
+    warp_mode = bool(wg.get("warp_mode"))
+
+    # Generate per-user WireGuard private key
+    priv_key, _ = _wg_gen_keypair()
+    if not priv_key:
+        return ""
+
+    # AmneziaWG obfuscation parameters
+    jc = wg.get("jc") or "3"
+    jmin = wg.get("jmin") or "1"
+    jmax = wg.get("jmax") or "3"
+    s1 = wg.get("s1") or "0"
+    s2 = wg.get("s2") or "0"
+    h1 = wg.get("h1") or "1"
+    h2 = wg.get("h2") or "2"
+    h3 = wg.get("h3") or "3"
+    h4 = wg.get("h4") or "4"
+    i1 = wg.get("i1") or ""
+
+    if warp_mode:
+        # ── WARP mode: use Cloudflare WARP infrastructure ──
+        # Fixed WARP PublicKey (same for all WARP users)
+        server_pub = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+        # WARP address: 172.16.0.x/32 + IPv6
+        address = wg.get("address") or "172.16.0.2/32, 2606:4700:110::2/128"
+        # WARP DNS: Cloudflare DNS with IPv6
+        dns = wg.get("dns") or "1.1.1.1, 1.0.0.1, 2606:4700:4700::1111, 2606:4700:4700::1001"
+        mtu = wg.get("mtu") or "1280"
+        # Endpoint from the configured endpoint (should be a Cloudflare WARP IP)
+        endpoint = wg.get("endpoint") or "8.6.112.4:443"
+    else:
+        # ── Custom WireGuard server mode ──
+        server_pub = wg.get("server_public_key") or ""
+        if not server_pub:
+            _, server_pub = _wg_gen_keypair()
+        endpoint = wg.get("endpoint") or "8.6.112.4:443"
+        mtu = wg.get("mtu") or "1280"
+        address = wg.get("address") or "172.16.0.2/32"
+        dns = wg.get("dns") or "1.1.1.1,1.0.0.1"
+
+    rem = f"White-{username}-WG"
+    if remark_tag:
+        rem = f"{rem} {remark_tag}"
+
+    config = f"""# AmneziaWG Config
+[Interface]
+PrivateKey = {priv_key}
+Address = {address}
+DNS = {dns}
+MTU = {mtu}
+Jc = {jc}
+Jmin = {jmin}
+Jmax = {jmax}
+S1 = {s1}
+S2 = {s2}
+H1 = {h1}
+H2 = {h2}
+H3 = {h3}
+H4 = {h4}
+I1 = {i1}
+
+[Peer]
+PublicKey = {server_pub}
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = {endpoint}
+"""
+    return config.strip()
+
+
+def _railway_tcp_info() -> dict:
+    """Return Railway TCP Proxy routing metadata when TCP Proxy is enabled.
+
+    Railway exposes the externally reachable hostname/port separately from the
+    service's internal application port. Telegram MTProto must listen on the
+    internal TCP application port, while user links must use the public TCP
+    proxy domain/port.
+    """
+    domain = str(os.getenv("RAILWAY_TCP_PROXY_DOMAIN") or "").strip()
+    try:
+        public_port = int(str(os.getenv("RAILWAY_TCP_PROXY_PORT") or "0").strip() or 0)
+    except Exception:
+        public_port = 0
+    try:
+        app_port = int(str(os.getenv("RAILWAY_TCP_APPLICATION_PORT") or "0").strip() or 0)
+    except Exception:
+        app_port = 0
+    return {"domain": domain, "public_port": public_port, "application_port": app_port,
+            "enabled": bool(domain and public_port and app_port)}
+
+
+@app.get("/api/telegram/railway-info")
+async def telegram_railway_info(_=Depends(require_auth)):
+    info = _railway_tcp_info()
+    return {"ok": True, "advisory": True, "message": "Railway TCP variables are informational only; inbound External Domain/Port are authoritative.", **info}
+
+
+def generate_telegram_proxy_link(user_id: str, user: dict, inbound: dict, remark_tag: str = None) -> str:
+    """Generate a Telegram Proxy link for a user based on the inbound settings.
+
+    The secret is deterministic per user (derived from config_uuid) and stored
+    on the user record so it remains stable across config regenerations.
+    """
+    from telegram_proxy import derive_secret_from_uuid
+
+    username = user.get("username", user_id)
+    config_uuid = user.get("config_uuid", user_id)
+    tg = inbound.get("telegram_settings") or {}
+
+    # Telegram inbound settings are authoritative. Railway TCP variables are
+    # advisory only and must not override what the user entered in the inbound.
+    external_domain = str(tg.get("external_domain") or inbound.get("external_domain") or "").strip()
+    try:
+        external_port = int(tg.get("external_port") or inbound.get("external_port") or 0)
+    except Exception:
+        external_port = 0
+    if not external_domain or not external_port:
+        return ""
+
+    # Use stored secret or derive a stable one
+    secret = user.get("telegram_secret") or derive_secret_from_uuid(config_uuid)
+
+    # Note: Telegram t.me/proxy links don't support #remark fragment like VLESS links
+    # The name is set by the user in the Telegram app after adding the proxy
+    link = f"https://t.me/proxy?server={external_domain}&port={external_port}&secret={secret}"
+    return link
 
 
 XRAY_URL = "https://github.com/XTLS/Xray-core/releases/download/v26.3.27/Xray-linux-64.zip"
@@ -765,7 +1084,6 @@ async def startup():
                 "reality_settings": {},
                 "xhttp_settings": {},
                 "created_at": datetime.now().isoformat(),
-                "naming_format": "White-{username}",
             }
             asyncio.create_task(save_state())
             log_activity("inbound", "اینباند پیش‌فرض VLESS+WS ساخته شد", "ok")
@@ -782,7 +1100,7 @@ async def startup():
             INBOUNDS["default-reality"] = {
                 "name": "Reality+XHTTP پیش‌فرض",
                 "protocol": "reality",
-                "port": "",
+                "port": 8443,
                 "network": "xhttp",
                 "security": "reality",
                 "domain": "",
@@ -794,11 +1112,10 @@ async def startup():
                 "xhttp_settings": {
                     "path": "/",
                     "xPaddingBytes": "100-1000",
-                    "mode": "auto",
+                    "mode": "stream-up",
                     "scMaxEachPostBytes": "1000000",
                 },
                 "created_at": datetime.now().isoformat(),
-                "naming_format": "White-{username}",
             }
             asyncio.create_task(save_state())
             log_activity("inbound", "اینباند پیش‌فرض Reality+XHTTP ساخته شد", "ok")
@@ -824,10 +1141,24 @@ async def startup():
                 "ws_settings": {"path": "/route/{uuid}"},
                 "grpc_settings": {},
                 "created_at": datetime.now().isoformat(),
-                "naming_format": "White-{username}",
             }
             asyncio.create_task(save_state())
             log_activity("inbound", "اینباند پیش‌فرض Worker ساخته شد", "ok")
+
+    # Normalize existing Telegram inbounds: only internal/external Telegram fields
+    # are meaningful. Remove legacy SNI/Destination/Server Name state.
+    for _tg_ib in INBOUNDS.values():
+        if (_tg_ib.get("protocol") or "").lower() == "telegram":
+            _tg = _tg_ib.setdefault("telegram_settings", {})
+            _tg["internal_port"] = int(_tg.get("internal_port") or _tg_ib.get("port") or 44344)
+            _tg["external_port"] = int(_tg.get("external_port") or _tg_ib.get("external_port") or 443)
+            _tg["external_domain"] = str(_tg.get("external_domain") or _tg_ib.get("external_domain") or "").strip()
+            _tg_ib["port"] = _tg["internal_port"]
+            _tg_ib["external_port"] = _tg["external_port"]
+            _tg_ib["external_domain"] = _tg["external_domain"]
+            _tg_ib.pop("sni", None)
+            _tg_ib.pop("destination", None)
+            _tg_ib.pop("server_name", None)
 
     # Backfill placeholder domains on any pre-existing inbounds so configs never
     # carry localhost/SERVER_IP when a real domain is available.
@@ -864,17 +1195,6 @@ async def startup():
                 _changed = True
     if _changed:
         asyncio.create_task(save_state())
-        logger.info("Backfilled placeholder domains on existing inbounds")
-
-    # Backfill naming_format on pre-existing inbounds (defaults to "White-{username}").
-    _nf_changed = False
-    for _ib in INBOUNDS.values():
-        if "naming_format" not in _ib or not str(_ib.get("naming_format") or "").strip():
-            _ib["naming_format"] = "White-{username}"
-            _nf_changed = True
-    if _nf_changed:
-        asyncio.create_task(save_state())
-        logger.info("Backfilled missing naming_format in inbounds")
         logger.info("Backfilled placeholder inbound domains with %s", _real)
 
     # Deduplicate inbound ports: on Railway each inbound must listen on its own
@@ -944,19 +1264,13 @@ async def startup():
             _changed = True
             logger.info("Reality inbound «%s» backfilled with pbk", _ib.get("name"))
         _rs.setdefault("short_id", _gs_rs.get("short_id") or secrets.token_hex(5)[:10])
-        _rs.setdefault("kmx", "/")
+        _rs.setdefault("spiderx", "/")
         _rs.setdefault("dest", "is1-ssl.mzstatic.com:443")
         _rs.setdefault("sni", "is1-ssl.mzstatic.com")
-        # Xray must LISTEN on the same port the client connects to (external_port),
-        # otherwise the reality config in the client can't reach the server.
-        # If they differ, prefer the internal port (where Xray actually listens)
-        # and expose the same port to the client.
-        _ext = int(_ib.get("external_port") or 0)
-        _int = int(_ib.get("port") or 0)
-        if _ext and _int and _ext != _int:
-            _ib["external_port"] = _int
-            _changed = True
-            logger.info("Reality inbound «%s» client port synced to listen port %s", _ib.get("name"), _int)
+        # Internal and external ports are intentionally separate.
+        # Xray MUST listen on internal `port`; the client connects to
+        # external_domain:external_port (for example a Railway TCP proxy).
+        # Never overwrite one with the other.
 
     # WS/XHTTP-TLS inbounds are served by the FastAPI relay on the panel's own
     # port (CONFIG["port"]); the client-facing port stays 443 (Railway TLS).
@@ -1010,13 +1324,140 @@ async def startup():
         except Exception as e:
             logger.warning(f"Xray apply on boot failed: {e}")
     log_activity("system", "سرور راه‌اندازی شد", "ok")
-    logger.info(f"White Panel v9.2 (commit 24d7594) started on port {CONFIG['port']}")
+    logger.info(f"White Gateway v9.2 (commit 24d7594) started on port {CONFIG['port']}")
     # Include XHTTP router for xhttp-siz10 endpoints (globals are now defined)
     global xhttp_router
     from xhttp_siz10 import router as xhttp_router
     app.include_router(xhttp_router)
     asyncio.create_task(_worker_proxy_sync_loop())
+    asyncio.create_task(_worker_auto_sync_loop())
     asyncio.create_task(_xray_client_audit_loop())
+
+    # Start Telegram Proxy instances for all existing TG inbounds
+    await _start_all_telegram_proxies()
+
+
+# ── Telegram Proxy Lifecycle ────────────────────────────────────────────────
+async def _start_all_telegram_proxies():
+    """Start MTProto proxy servers for all Telegram inbounds."""
+    from telegram_proxy import derive_secret_from_uuid, is_docker_available, run_docker_telegram_proxy, stop_docker_telegram_proxy
+    async with INBOUNDS_LOCK:
+        snap = dict(INBOUNDS)
+    for iid, ib in snap.items():
+        if (ib.get("protocol") or "").lower() == "telegram":
+            await _start_telegram_proxy(iid, ib)
+
+
+async def _start_telegram_proxy(inbound_id: str, inbound: dict):
+    """Start one MTProto listener on the inbound internal port.
+
+    The built-in implementation is used because a single listener must accept
+    all user secrets assigned to this inbound; spawning one Docker process per
+    user would require different host ports. The listener therefore belongs to
+    the Telegram inbound itself, while credentials remain per-user.
+    """
+    from telegram_proxy import MTProtoProxyServer, derive_secret_from_uuid
+
+    await _stop_telegram_proxy(inbound_id)
+    tg = inbound.get("telegram_settings") or {}
+    # The inbound values are the single source of truth. Railway environment
+    # variables are informational only and must never silently rewrite them.
+    try:
+        int_port = int(tg.get("internal_port") or inbound.get("port") or 44344)
+    except Exception:
+        int_port = 44344
+    try:
+        ext_port = int(tg.get("external_port") or inbound.get("external_port") or 0)
+    except Exception:
+        ext_port = 0
+    ext_domain = str(tg.get("external_domain") or inbound.get("external_domain") or "").strip()
+    inbound["telegram_settings"] = {
+        "internal_port": int_port,
+        "external_port": ext_port,
+        "external_domain": ext_domain,
+    }
+    inbound["port"] = int_port
+    inbound["external_port"] = ext_port
+    inbound["external_domain"] = ext_domain
+
+    secrets_map = {}
+    async with USERS_LOCK:
+        for uid, u in USERS.items():
+            iids = u.get("inbound_ids") or []
+            if inbound_id in iids:
+                config_uuid = u.get("config_uuid", uid)
+                secret = str(u.get("telegram_secret") or "").strip().lower()
+                if not re.fullmatch(r"[0-9a-f]{32}", secret):
+                    secret = derive_secret_from_uuid(config_uuid)
+                    u["telegram_secret"] = secret
+                secrets_map[secret] = {"user_id": uid, "config_uuid": config_uuid, "label": u.get("username", uid)}
+
+    server = MTProtoProxyServer(inbound_id=inbound_id, port=int_port)
+    server.update_secrets(secrets_map)
+    if not secrets_map:
+        logger.info(f"[TG Proxy {inbound_id}] no users yet; listener will start after a Telegram user is assigned")
+        return
+
+    def on_traffic(user_id: str, nbytes: int):
+        asyncio.create_task(_sync_tg_traffic(user_id, nbytes))
+    server.on_traffic = on_traffic
+
+    try:
+        await server.start()
+        TG_PROXY_INSTANCES[inbound_id] = server
+        log_activity("telegram-proxy", f"Telegram MTProto listening on internal port {int_port}", "ok")
+    except Exception as e:
+        logger.error(f"Failed to start Telegram MTProto for {inbound_id}: {e}")
+
+
+async def _stop_telegram_proxy(inbound_id: str):
+    """Stop the Telegram proxy server for a Telegram inbound (both Python and Docker)."""
+    # Stop Python proxy if running
+    server = TG_PROXY_INSTANCES.pop(inbound_id, None)
+    if server:
+        await server.stop()
+
+    # Stop Docker containers if any
+    from telegram_proxy import stop_docker_telegram_proxy, is_docker_available
+    if is_docker_available():
+        # Stop all containers for this inbound_id
+        for i in range(10):  # Try up to 10 possible container names (for different secrets)
+            container_name = f"white-tg-proxy-{inbound_id}-"
+            # We can't know the exact secret suffix, so we'll stop any matching
+            import subprocess
+            try:
+                result = subprocess.run(
+                    ["docker", "ps", "-a", "--filter", f"name=white-tg-proxy-{inbound_id}-", "--format", "{{.Names}}"],
+                    capture_output=True, text=True, timeout=10
+                )
+                for name in result.stdout.strip().split('\n'):
+                    if name:
+                        subprocess.run(["docker", "stop", name], capture_output=True, timeout=10)
+                        subprocess.run(["docker", "rm", name], capture_output=True, timeout=10)
+                        logger.info(f"Stopped Docker Telegram proxy: {name}")
+            except Exception as e:
+                logger.error(f"Failed to stop Docker Telegram proxy: {e}")
+
+
+async def _restart_telegram_proxy(inbound_id: str):
+    """Restart the MTProto proxy for an inbound (e.g. after settings change)."""
+    async with INBOUNDS_LOCK:
+        ib = INBOUNDS.get(inbound_id)
+    if ib and (ib.get("protocol") or "").lower() == "telegram":
+        await _start_telegram_proxy(inbound_id, ib)
+
+
+async def _sync_tg_traffic(user_id: str, nbytes: int):
+    """Sync Telegram proxy traffic back to the user record."""
+    try:
+        async with USERS_LOCK:
+            u = USERS.get(user_id)
+            if u:
+                u["traffic_used_bytes"] = u.get("traffic_used_bytes", 0) + nbytes
+        asyncio.create_task(save_state())
+    except Exception:
+        pass
+
 
 # Worker proxy source sync — hourly pull from the daily GitHub list and push to
 # the deployed Cloudflare Worker (Railway is the control plane; the Worker gets
@@ -1032,15 +1473,46 @@ async def _worker_proxy_sync_loop():
     await asyncio.sleep(30)
     while True:
         try:
-            if WORKER.get("connected") and WORKER.get("auto_sync"):
-                await _sync_worker_proxies_from_source()
+            if WORKER.get("connected"):
+                if WORKER.get("auto_sync"):
+                    await _sync_worker_proxies_from_source()
+                # Worker owns runtime traffic counters; pull them back to Railway
+                # so the panel dashboard/subscription always reflects reality.
+                await _worker_pull_all_users()
         except Exception as e:
-            logger.warning(f"worker proxy sync failed: {e}")
-        await asyncio.sleep(WORKER_SYNC_INTERVAL)
+            logger.warning(f"worker sync failed: {e}")
+        await asyncio.sleep(min(WORKER_SYNC_INTERVAL, 30))
+
+WORKER_AUTO_SYNC_INTERVAL = int(os.environ.get("WORKER_AUTO_SYNC_INTERVAL", 300))  # seconds
+
+async def _worker_auto_sync_loop():
+    """Background loop: keeps panel and worker in sync without any manual action.
+
+    Every WORKER_AUTO_SYNC_INTERVAL seconds (default 5 min), while a worker is
+    connected:
+      1. push users/routes/settings → worker (POST /panel/config),
+      2. pull live usage + worker-generated configs back (GET /api/user/{uuid}),
+      3. refresh the remote status/heartbeat shown in the Worker tab.
+    Failures (e.g. KV daily limit) are logged and retried next tick."""
+    await asyncio.sleep(20)  # let startup finish
+    while True:
+        try:
+            if WORKER.get("connected"):
+                push = await _worker_push_config()
+                if not push.get("ok"):
+                    logger.warning(f"worker auto-push failed: {push.get('detail')}")
+                await _worker_pull_all_users()
+                await _worker_pull_status()
+        except Exception as e:
+            logger.warning(f"worker auto-sync failed: {e}")
+        await asyncio.sleep(WORKER_AUTO_SYNC_INTERVAL)
 
 
 @app.on_event("shutdown")
 async def shutdown():
+    # Stop all Telegram Proxy instances
+    for iid in list(TG_PROXY_INSTANCES.keys()):
+        await _stop_telegram_proxy(iid)
     await save_state()
     if http_client:
         await http_client.aclose()
@@ -1206,20 +1678,6 @@ def generate_short_id() -> str:
     """Generate a shorter ID for user management."""
     return secrets.token_hex(6)
 
-def _inbound_remark(inbound: dict, username: str, remark_tag: str = None) -> str:
-    """Build a config remark from the inbound's naming_format.
-
-    Supports the {username} and {inbound_name} placeholders. Falls back to the
-    legacy "White-{username}" format when the inbound has no naming_format.
-    """
-    fmt = (inbound or {}).get("naming_format") or "White-{username}"
-    inbound_name = (inbound or {}).get("name", "")
-    rem = fmt.replace("{username}", username or "").replace("{inbound_name}", inbound_name or "")
-    if remark_tag:
-        rem = f"{rem} {remark_tag}"
-    return rem
-
-
 def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr: str = None, remark_tag: str = None) -> str:
     """Build a VLESS config string for one inbound of a user.
 
@@ -1243,7 +1701,9 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
 
     config_uuid = user.get("config_uuid", "") or user_id
     username = user.get("username", user_id)
-    rem = _inbound_remark(inbound, username, remark_tag)
+    rem = f"White-{username}"
+    if remark_tag:
+        rem = f"{rem} {remark_tag}"
     remark = quote(rem)
 
     # Optional custom-IP address override (only the connect address changes).
@@ -1258,10 +1718,22 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
 
     # ── WORKER (multi-location via Cloudflare Worker) ──
     if proto == "worker":
-        wcfgs = _worker_configs(user_id, user, inbound, "", remark, addr_ip, addr_port)
+        wcfgs = _worker_configs(user_id, user, inbound, "", remark_tag, addr_ip, addr_port)
         if wcfgs:
             return wcfgs[0]
         return ""
+
+    # ── WIREGUARD / AmneziaWG ──
+    if proto == "wireguard":
+        if not inbound:
+            return ""
+        return generate_wg_config(user_id, user, inbound, remark_tag)
+
+    # ── TELEGRAM PROXY ──
+    if proto == "telegram":
+        if not inbound:
+            return ""
+        return generate_telegram_proxy_link(user_id, user, inbound, remark_tag)
 
     # ── REALITY (served by Xray core) ──
     if proto == "reality" or sec == "reality":
@@ -1279,7 +1751,7 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
         priv_key = rs.get("private_key") or gs.get("private_key") or ""
         pbk = _xray_x25519_public_key(priv_key) if priv_key else (rs.get("public_key") or gs.get("public_key") or "")
         sid = rs.get("short_id") or gs.get("short_id") or ""
-        spx = rs.get("kmx") or gs.get("kmx") or "/"
+        spx = rs.get("spiderx") or gs.get("spiderx") or "/"
         fp = inbound.get("fingerprint") or rs.get("fingerprint") or gs.get("fingerprint") or "chrome"
         sni = inbound.get("sni") or rs.get("sni") or gs.get("sni") or "is1-ssl.mzstatic.com"
         xs = inbound.get("xhttp_settings") or {}
@@ -1296,13 +1768,27 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
                       f"&pbk={pbk}&sid={sid}&spx={spx}")
         else:
             xpb = xs.get("xPaddingBytes", "100-1000")
-            xmod = xs.get("mode", "auto")
+            xmod = str(xs.get("mode") or "stream-up").strip().lower()
+            if xmod not in ("auto", "packet-up", "stream-up"):
+                xmod = "stream-up"
+            if xmod == "auto":
+                # Keep client/server mode deterministic. Recent Xray builds have
+                # compatibility issues when one side forces a concrete mode and
+                # the other advertises auto.
+                xmod = "stream-up"
             xsc = xs.get("scMaxEachPostBytes", "1000000")
             extra = quote('{{"xPaddingBytes":"{}","mode":"{}","scMaxEachPostBytes":"{}"}}'.format(xpb, xmod, xsc), safe='')
+            # Use dest and server_names from reality_settings if provided
+            rs_sni = rs.get("sni") or sni
+            rs_dest = rs.get("dest") or (rs_sni + ":443")
+            rs_server_names = rs.get("server_names") or [rs_sni]
+            server_names_q = quote(",".join(rs_server_names), safe="")
             params = (f"encryption=none&security=reality"
                       f"&sni={quote(sni)}&fp={fp}"
                       f"&pbk={pbk}&sid={sid}&spx={spx}"
-                      f"&type=xhttp&path={rpath}&mode={xmod}&extra={extra}")
+                      f"&type=xhttp&path={rpath}&mode={xmod}&extra={extra}"
+                      f"&dest={quote(rs_dest)}"
+                      f"&serverName={server_names_q}")
         return f"vless://{config_uuid}@{host}:{port}?{params}#{remark}"
 
     # ── TLS (WS default / XHTTP selectable) — served by the FastAPI relay ──
@@ -1354,32 +1840,35 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
     return f"vless://{config_uuid}@{host}:{port}?{params}#{remark}"
 
 
-def generate_custom_ip_configs(user_id: str, user: dict) -> list:
-    """Build up to 10 extra configs whose address comes from a scanned IP file.
+def generate_custom_ip_configs(user_id: str, user: dict) -> dict:
+    """Build extra configs from scanned IPs — ONLY for VLESS/WS/Worker inbounds.
 
-    The scanned IPs (cf | railway) become the connect address; the config still
-    routes to the real panel domain for TLS/WS. Each IP is randomly assigned to
-    one of the user's non-Reality inbounds (Reality inbounds are never used,
-    because their address/handshake cannot be swapped for a plain scanned IP).
+    WireGuard and Telegram inbounds are SKIPPED because:
+    - WireGuard requires pre-shared keys and specific endpoint routing
+    - Telegram proxy works on its own dedicated port, not on CF/Railway IPs
 
-    Per-inbound rules (from the create-user modal's custom_ip_inbounds):
-    - worker inbound → scanned Cloudflare IPs (host/sni stay on the worker domain)
-    - tls (ws/xhttp) inbound → scanned Railway IPs (host/sni stay on the panel domain)
-    - reality inbound → none (Reality can't have its address swapped)
+    Per-inbound rules:
+    - worker inbound → scanned Cloudflare IPs (host/sni stay on worker domain)
+    - tls (ws/xhttp) inbound → scanned Railway IPs (host/sni stay on panel domain)
+    - wireguard/telegram → SKIPPED (not compatible with scanned IPs)
+    - reality → SKIPPED (can't swap address)
 
-    Returns {"railway": [...], "cf": [...]} so the sub page can render the
-    Railway group then the Cloudflare group.
+    Returns {"railway": [...], "cf": [...]}
     """
     cii = user.get("custom_ip_inbounds") or {}
     cf_ids = [str(x) for x in (cii.get("cf") or [])]
     rw_ids = [str(x) for x in (cii.get("railway") or [])]
     out = {"railway": [], "cf": []}
-    # Cloudflare scanned IPs go to the selected worker inbounds.
+
+    # Cloudflare scanned IPs → worker inbounds only
     cf_ips = _read_scanned_ips("cf")
     if cf_ips:
         for iid_ in cf_ids:
             ib = INBOUNDS.get(iid_)
             if not ib:
+                continue
+            # Skip wireguard and telegram — not compatible with scanned IPs
+            if (ib.get("protocol") or "").lower() in ("wireguard", "telegram"):
                 continue
             for i, ip in enumerate(cf_ips[:10], 1):
                 try:
@@ -1389,11 +1878,17 @@ def generate_custom_ip_configs(user_id: str, user: dict) -> list:
                     continue
                 if cfg:
                     out["cf"].append(cfg)
-    # Railway scanned IPs go to the selected tls inbounds.
+
+    # Railway scanned IPs → TLS inbounds only
     rw_ips = _read_scanned_ips("railway")
     if rw_ips:
         for iid_ in rw_ids:
             ib = INBOUNDS.get(iid_)
+            if not ib:
+                continue
+            # Skip wireguard and telegram — not compatible with scanned IPs
+            if (ib.get("protocol") or "").lower() in ("wireguard", "telegram"):
+                continue
             if not ib:
                 continue
             for i, ip in enumerate(rw_ips[:10], 1):
@@ -1600,66 +2095,64 @@ def generate_sni_spoof_configs(user_id: str, user: dict) -> list:
 def _worker_configs(user_id: str, user: dict, inbound: dict, stored_path: str, base_remark: str, addr_ip: str = None, addr_port: str = None) -> list:
     """Build one VLESS config per selected country for a worker inbound.
 
-    address/host/sni = the deployed worker domain. Each selected country gets a
-    /route/{code} path + BPB snispoofing params, and the remark carries the
-    country flag + name so the multi-location configs are easy to tell apart.
-    If an addr override is given (scanned Cloudflare IP), only the address
-    changes; host/sni stay on the worker domain.
+    Config structure:
+      - address = addr_ip (Clean IP) OR worker domain
+      - host/sni = worker domain (always, for TLS handshake + SNI routing)
+      - path = /route/{code} (always, for country-based proxy selection)
+      - snispoofing = BPB SNI spoofing params (for v2box compatibility)
     """
     wdomain = str(WORKER.get("worker_domain") or "").strip().lower()
     if not wdomain or wdomain in ("localhost", "0.0.0.0", "127.0.0.1"):
         return []
     wport = (inbound.get("external_port") if inbound else None) or (inbound.get("port") if inbound else None) or 443
 
-    # Sni spoofing for v2box: use user settings when enabled, fallback to inbound defaults
+    # SNI spoofing for v2box: use user settings when enabled, fallback to inbound defaults
     sni_spoof = bool(user.get("sni_spoof_v2box"))
     if sni_spoof:
-        fake_sni = str(user.get("fake_sni") or inbound.get("sni") if inbound else "") or "www.hcaptcha.com"
-        spoof_ip = str(user.get("spoof_ip") or inbound.get("spoof_ip") if inbound else "") or "8.6.112.4"
+        fake_sni = str(user.get("fake_sni") or (inbound.get("sni") if inbound else "")) or "www.hcaptcha.com"
+        spoof_ip = str(user.get("spoof_ip") or (inbound.get("spoof_ip") if inbound else "")) or "8.6.112.4"
         spoof = {"active": True, "fakeSni": fake_sni, "spoofIp": spoof_ip, "targetPort": 443}
     else:
-        fake_sni = str(inbound.get("sni") or "www.hcaptcha.com")
-        spoof_ip = str(inbound.get("spoof_ip") or "8.6.112.4")
+        fake_sni = str((inbound.get("sni") if inbound else "")) or "www.hcaptcha.com"
+        spoof_ip = str((inbound.get("spoof_ip") if inbound else "")) or "8.6.112.4"
         spoof = {"active": True, "fakeSni": fake_sni, "spoofIp": spoof_ip, "targetPort": 0}
     spoof_q = quote(json.dumps(spoof, separators=(",", ":")), safe="")
+
     cfg_uuid = user.get("config_uuid", "")
     uname = user.get("username", user_id)
+
     # Selected countries (multi-location); fall back to a single generic route.
     wcounts = user.get("proxy_countries") or ([user.get("proxy_country")] if user.get("proxy_country") else [])
     wcounts = [str(c).strip().lower() for c in wcounts if str(c).strip()]
     chosen = [(c, (WORKER.get("proxies") or {}).get(c)) for c in wcounts if (WORKER.get("proxies") or {}).get(c)]
     if not chosen:
-        chosen = [("", {"country": ""})]  # generic route-less worker config
-    addr = addr_ip or wdomain
-    port = addr_port or wport
-    out = []
+        chosen = [("", {"country": ""})]
+
+    # Address: Clean IP when provided, otherwise worker domain
+    address = addr_ip if addr_ip else wdomain
+    port = addr_port if addr_port else wport
+
+    configs = []
     for code, p in chosen:
         flag = _code_to_flag(code) if code else ""
         clabel = str(p.get("country") or (code.upper() if code else "Worker"))
         rem = quote(f"White-{uname} {flag} {clabel}".strip() if flag else f"White-{uname} Worker")
-        # The worker routes on /route/{code} alone; the upstream path (uuid) is
-        # appended by the worker itself. Never mix stored_path here (it would
-        # double up to /route/de/route/{uuid} for worker inbounds).
-        # For a scanned-IP (custom CF) config the address is the IP, so a
-        # country route no longer applies — use a generic path.
-        if addr_ip:
-            wpath = "/"
-        else:
-            wpath = f"/route/{code}" if code else (stored_path or "/")
-        params = "&".join([
-            f"snispoofing={spoof_q}",
-            "security=tls",
-            "fp=chrome",
-            "allowInsecure=0",
-            f"host={quote(wdomain)}",
-            f"path={quote(wpath, safe='')}",
-            f"sni={quote(wdomain)}",
-            "insecure=0",
-            "encryption=none",
-            "type=ws",
-        ])
-        out.append(f"vless://{cfg_uuid}@{addr}:{port}?{params}#{rem}")
-    return out
+        wpath = f"/route/{code}" if code else f"/{cfg_uuid}"
+
+        params = {
+            "encryption": "none",
+            "security": "tls",
+            "sni": wdomain,
+            "host": wdomain,
+            "fp": "chrome",
+            "type": "ws",
+            "path": quote(wpath, safe=''),
+            "snispoofing": spoof_q,
+        }
+        query = "&".join([f"{k}={v}" for k, v in params.items()])
+        configs.append(f"vless://{cfg_uuid}@{address}:{port}?{query}#{rem}")
+
+    return configs
 
 
 # ── Default link ──────────────────────────────────────────────────────────────
@@ -1692,11 +2185,7 @@ async def ensure_default_link():
 # ── Basic endpoints ───────────────────────────────────────────────────────────
 @app.get("/")
 async def root():
-    return {"service": "White Panel", "version": "9.2", "status": "active", "channel": "https://t.me/killmaster_is_here"}
-
-@app.get("/health")
-async def health():
-    return {"status": "ok", "connections": len(connections), "uptime": uptime()}
+    return {"service": "White Gateway", "version": "9.2", "status": "active", "channel": "https://t.me/spider_vpn1"}
 
 # ── Subscription ping (must be before /sub/{{identifier}}) ──────────────────
 @app.get("/sub/{identifier}/ping")
@@ -1718,29 +2207,93 @@ async def sub_ping_handler(identifier: str):
 # ── Subscription (single link / user sub page) ──────────────────────────────
 @app.get("/sub/{identifier}")
 async def subscription_handler(identifier: str, request: Request):
-    """Smart handler: checks users first, then links by UUID."""
-    # 1) Check if it's a user (serve HTML sub page)
+    """Smart handler: accepts UUID (config_uuid) → returns all user configs as base64.
+    Also accepts username → serves the HTML subscription page for admin preview."""
+    import base64
+
+    # 1) UUID format → subscription for V2Box/clients: return ALL configs for the user
+    if _is_valid_uuid(identifier):
+        async with USERS_LOCK:
+            target_user = None
+            target_uid = None
+            for uid, u in USERS.items():
+                if u.get("config_uuid") == identifier:
+                    target_user = u
+                    target_uid = uid
+                    break
+        if target_user:
+            if _user_uses_worker_inbound(target_user):
+                target_user = await _worker_pull_user(target_uid, target_user)
+                USERS[target_uid] = target_user
+            host = SETTINGS.get("domain") or get_host()
+            username = target_user.get("username", target_uid)
+
+            # Build ALL configs for this user. Worker publishes its own standalone
+            # configs; use those exact configs when available.
+            configs = list(target_user.get("worker_configs") or [])
+            inbound_ids = target_user.get("inbound_ids") or []
+            stored_path_user = (target_user.get("path") or "").strip()
+            for iid_ in inbound_ids:
+                ib = INBOUNDS.get(iid_)
+                try:
+                    _p = (ib.get("protocol") if ib else "").lower()
+                    _s = (ib.get("security") if ib else "").lower()
+                    if ib and (_p == "reality" or _s == "reality"):
+                        if not str(ib.get("external_domain") or "").strip() or not str(ib.get("external_port") or "").strip():
+                            continue
+                    if ib and _p == "worker":
+                        if not target_user.get("worker_configs"):
+                            configs.extend(_worker_configs(target_uid, target_user, ib, stored_path_user, f"White-{username}"))
+                    else:
+                        cfg = generate_user_config(target_uid, target_user, iid_)
+                        if cfg:
+                            configs.append(cfg)
+                except Exception:
+                    continue
+            if not configs:
+                fallback_config = generate_user_config(target_uid, target_user, target_user.get("inbound_id"))
+                configs = [fallback_config] if fallback_config else []
+
+            # Custom scanned-IP configs
+            custom_cfgs = generate_custom_ip_configs(target_uid, target_user)
+            for cfg in custom_cfgs.get("railway", []) + custom_cfgs.get("cf", []):
+                configs.append(cfg)
+
+            # Sni Spoof configs
+            if target_user.get("sni_spoof_v2box"):
+                configs.extend(generate_sni_spoof_configs(target_uid, target_user))
+
+            if not configs:
+                raise HTTPException(status_code=404, detail="no configs found")
+
+            # Status config as first entry
+            status_config = generate_status_config(target_user, configs)
+            all_configs = [status_config] + configs if status_config else configs
+
+            content = base64.b64encode("\n".join(all_configs).encode()).decode()
+            return Response(content=content, media_type="text/plain",
+                            headers={"profile-title": quote(username),
+                                      "profile-update-interval": "12",
+                                      "support-url": "https://t.me/spider_vpn1"})
+
+        # Fallback: check LINKS (legacy link UUID)
+        async with LINKS_LOCK:
+            link = LINKS.get(identifier)
+        if link and is_link_allowed(link):
+            host = SETTINGS.get("domain") or get_host()
+            proto = link.get("protocol", DEFAULT_PROTOCOL)
+            vless = generate_vless_link(identifier, host, remark=f"White-{link['label']}", protocol=proto)
+            content = base64.b64encode(vless.encode()).decode()
+            return Response(content=content, media_type="text/plain",
+                            headers={"profile-title": quote(link["label"]), "support-url": "https://t.me/spider_vpn1"})
+
+        raise HTTPException(status_code=404, detail="not found")
+
+    # 2) Username format → serve the HTML subscription page (admin preview)
     async with USERS_LOCK:
         for uid, u in USERS.items():
             if u.get("username") == identifier:
-                _custom_default = SETTINGS.get("custom_sub_default", "")
-                _candidate = _os.path.join(_CUSTOM_SUB_DIR, _os.path.basename(_custom_default))
-                if _custom_default and _os.path.isfile(_candidate):
-                    return FileResponse(_candidate)
-                # Fallback to legacy sub.html
                 return FileResponse(_os.path.join(_STATIC_DIR, "sub.html"))
-
-    # 2) Check if it's a link UUID (return base64 config)
-    import base64
-    async with LINKS_LOCK:
-        link = LINKS.get(identifier)
-    if link and is_link_allowed(link):
-        host = SETTINGS.get("domain") or get_host()
-        proto = link.get("protocol", DEFAULT_PROTOCOL)
-        vless = generate_vless_link(identifier, host, remark=f"White-{link['label']}", protocol=proto)
-        content = base64.b64encode(vless.encode()).decode()
-        return Response(content=content, media_type="text/plain",
-                        headers={"profile-title": quote(link["label"]), "support-url": "https://t.me/killmaster_is_here"})
 
     raise HTTPException(status_code=404, detail="not found")
 
@@ -1900,7 +2453,7 @@ async def sub_group_subscription(uuid_key: str, request: Request):
         media_type="text/plain",
         headers={
             "profile-title": quote(sub["name"]),
-            "support-url": "https://t.me/killmaster_is_here",
+            "support-url": "https://t.me/spider_vpn1",
             "profile-update-interval": "12",
         }
     )
@@ -2285,14 +2838,18 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
     body = await request.json()
     name = (body.get("name") or "اینباند جدید").strip()[:60]
     protocol = str(body.get("protocol") or "vless").lower()
-    if protocol not in ("vless", "vmess", "trojan", "reality", "worker"):
+    if protocol not in ("vless", "vmess", "trojan", "reality", "worker", "wireguard", "telegram"):
         raise HTTPException(status_code=400, detail="Invalid protocol")
     network = str(body.get("network") or "ws").lower()
     security = str(body.get("security") or "tls").lower()
-    # A "worker" inbound is a special type: it produces a config addressed to the
-    # deployed Cloudflare Worker domain (address/host/sni = worker_domain) and
-    # optionally carries the BPB snispoofing params. The worker domain is pulled
-    # automatically from the connected worker — no manual entry needed.
+    domain = str(body.get("domain") or "").strip()
+    external_domain = str(body.get("external_domain") or "").strip()
+    sni = str(body.get("sni") or "").strip()
+    destination = str(body.get("destination") or "").strip()
+    server_name = str(body.get("server_name") or "").strip()
+    # A "worker" inbound is a special type: it is addressed to the deployed
+    # Cloudflare Worker domain; Railway only controls it and is not in the
+    # client traffic path.
     if protocol == "worker":
         wdom = _worker_safe_domain(WORKER.get("worker_domain"))
         if not wdom:
@@ -2302,20 +2859,39 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
         domain = wdom
         external_domain = wdom
         sni = wdom
-        if not external_port:
-            external_port = 443
-    domain = str(body.get("domain") or "").strip()
-    external_domain = str(body.get("external_domain") or "").strip()
-    sni = str(body.get("sni") or "").strip()
-    port = int(body.get("port") or 443)
-    external_port = int(body.get("external_port") or 443)
+
+    # Telegram uses the explicit internal listener from telegram_settings.
+    if protocol == "telegram":
+        port = int(body.get("port") or 0)
+        external_port = int(body.get("external_port") or 443)
+    elif protocol == "wireguard":
+        port = 0
+        external_port = 0
+    else:
+        port = int(body.get("port") or 443)
+        external_port = int(body.get("external_port") or 443)
+
     fingerprint = str(body.get("fingerprint") or "chrome").strip()
     spoof_ip = str(body.get("spoof_ip") or "").strip()
     reality_settings = body.get("reality_settings", {}) if isinstance(body.get("reality_settings"), dict) else {}
     xhttp_settings = body.get("xhttp_settings", {}) if isinstance(body.get("xhttp_settings"), dict) else {}
     ws_settings = body.get("ws_settings", {}) if isinstance(body.get("ws_settings"), dict) else {}
     grpc_settings = body.get("grpc_settings", {}) if isinstance(body.get("grpc_settings"), dict) else {}
-    naming_format = str(body.get("naming_format", "White-{username}") or "White-{username}").strip()[:100]
+    wireguard_settings = body.get("wireguard_settings", {}) if isinstance(body.get("wireguard_settings"), dict) else {}
+    telegram_settings = body.get("telegram_settings", {}) if isinstance(body.get("telegram_settings"), dict) else {}
+    if protocol == "telegram":
+        # Telegram Proxy does not use Xray Reality fields.
+        sni = ""
+        destination = ""
+        server_name = ""
+        telegram_settings = {
+            "internal_port": int(telegram_settings.get("internal_port") or port or 44344),
+            "external_port": int(telegram_settings.get("external_port") or external_port or 443),
+            "external_domain": str(telegram_settings.get("external_domain") or external_domain or "").strip(),
+        }
+        port = telegram_settings["internal_port"]
+        external_port = telegram_settings["external_port"]
+        external_domain = telegram_settings["external_domain"]
 
     # Auto-generate Reality keys (x25519 pbk/priv + short_id + mldsa65 seed)
     # fresh for every reality inbound. SNI target is fixed.
@@ -2327,13 +2903,16 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
             reality_settings["public_key"] = fresh["public_key"]
         if not reality_settings.get("short_id"):
             reality_settings["short_id"] = fresh["short_id"]
-        reality_settings.setdefault("kmx", "/")
-        reality_settings.setdefault("dest", "is1-ssl.mzstatic.com:443")
+        reality_settings.setdefault("spiderx", "/")
         reality_settings.setdefault("mldsa65_seed", fresh["mldsa65_seed"])
         reality_settings.setdefault("mldsa65_verify", fresh["mldsa65_verify"])
-        # Fixed SNI target per request
-        reality_settings["sni"] = "is1-ssl.mzstatic.com"
-        sni = "is1-ssl.mzstatic.com"
+        # SNI from frontend is used as dest, server_names, and sni
+        if not reality_settings.get("dest"):
+            reality_settings["dest"] = (sni or "is1-ssl.mzstatic.com") + ":443"
+        if not reality_settings.get("server_names"):
+            reality_settings["server_names"] = [sni or "is1-ssl.mzstatic.com"]
+        if not reality_settings.get("sni"):
+            reality_settings["sni"] = sni or "is1-ssl.mzstatic.com"
         security = "reality"
         if not external_domain:
             external_domain = domain or CONFIG.get("host", "")
@@ -2344,6 +2923,10 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
         # The panel domain is used via SETTINGS["domain"] in generate_user_config
         external_domain = ""
         external_port = ""
+    # WireGuard has no TCP listener here; Telegram keeps its real internal listener port.
+    if protocol == "wireguard":
+        port = 0
+        external_port = 0
 
     inbound_id = generate_short_id()
     async with INBOUNDS_LOCK:
@@ -2358,6 +2941,8 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
             "domain": domain,
             "external_domain": external_domain,
             "sni": sni,
+            "destination": destination,
+            "server_name": server_name,
             "spoof_ip": spoof_ip,
             "external_port": external_port,
             "fingerprint": fingerprint,
@@ -2365,17 +2950,21 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
             "xhttp_settings": xhttp_settings,
             "ws_settings": ws_settings,
             "grpc_settings": grpc_settings,
+            "wireguard_settings": wireguard_settings,
+            "telegram_settings": telegram_settings,
             "created_at": datetime.now().isoformat(),
-            "naming_format": naming_format,
         }
     if protocol == "reality" and network == "xhttp" and not xhttp_settings.get("path"):
         xhttp_settings["path"] = "/"
-        xhttp_settings.setdefault("mode", "auto")
+        xhttp_settings.setdefault("mode", "stream-up")
         xhttp_settings.setdefault("xPaddingBytes", "100-1000")
         xhttp_settings.setdefault("scMaxEachPostBytes", "1000000")
     await save_state()
     log_activity("inbound", f"اینباند «{name}» با پروتکل {protocol.upper()} ساخته شد", "ok")
     asyncio.create_task(_xray_apply())  # (re)start Xray with the new inbound
+    # Start Telegram Proxy if this is a telegram inbound
+    if protocol == "telegram":
+        asyncio.create_task(_start_telegram_proxy(inbound_id, INBOUNDS[inbound_id]))
     return {"ok": True, "inbound_id": inbound_id, **INBOUNDS[inbound_id]}
 
 
@@ -2391,7 +2980,7 @@ async def update_inbound(inbound_id: str, request: Request, _=Depends(require_au
             ib["name"] = str(body["name"]).strip()[:60]
         if "protocol" in body:
             p = str(body["protocol"]).lower()
-            if p in ("vless", "vmess", "trojan", "reality", "worker"):
+            if p in ("vless", "vmess", "trojan", "reality", "worker", "wireguard", "telegram"):
                 ib["protocol"] = p
         # A worker inbound always targets the connected worker domain; if the
         # inbound's domain is stale/empty, refresh it automatically.
@@ -2422,7 +3011,7 @@ async def update_inbound(inbound_id: str, request: Request, _=Depends(require_au
                 rs.setdefault("mldsa65_verify", fresh["mldsa65_verify"])
             if not rs.get("short_id"):
                 rs["short_id"] = secrets.token_hex(5)[:10]
-            rs.setdefault("kmx", "/")
+            rs.setdefault("spiderx", "/")
             rs.setdefault("dest", "is1-ssl.mzstatic.com:443")
             rs.setdefault("sni", "is1-ssl.mzstatic.com")
             ib["sni"] = "is1-ssl.mzstatic.com"
@@ -2449,17 +3038,60 @@ async def update_inbound(inbound_id: str, request: Request, _=Depends(require_au
             ib["ws_settings"] = body["ws_settings"]
         if "grpc_settings" in body and isinstance(body["grpc_settings"], dict):
             ib["grpc_settings"] = body["grpc_settings"]
-        if "naming_format" in body:
-            ib["naming_format"] = str(body["naming_format"]).strip()[:100]
+        if "wireguard_settings" in body and isinstance(body["wireguard_settings"], dict):
+            ib["wireguard_settings"] = body["wireguard_settings"]
+        if "telegram_settings" in body and isinstance(body["telegram_settings"], dict):
+            ib["telegram_settings"] = body["telegram_settings"]
+
+        if (ib.get("protocol") or "").lower() == "telegram":
+            # Telegram Proxy: inbound settings are authoritative. Railway TCP
+            # variables are advisory and must never overwrite user-entered
+            # External Domain / External Port / Internal Port.
+            ib["sni"] = ""
+            ib["destination"] = ""
+            ib["server_name"] = ""
+            tg = ib.setdefault("telegram_settings", {})
+            incoming_tg = body.get("telegram_settings") or {}
+            tg["internal_port"] = int(incoming_tg.get("internal_port") or body.get("port") or tg.get("internal_port") or ib.get("port") or 44344)
+            tg["external_port"] = int(incoming_tg.get("external_port") or body.get("external_port") or tg.get("external_port") or ib.get("external_port") or 443)
+            tg["external_domain"] = str(incoming_tg.get("external_domain") or body.get("external_domain") or tg.get("external_domain") or ib.get("external_domain") or "").strip()
+            ib.pop("sni", None)
+            ib.pop("destination", None)
+            ib.pop("server_name", None)
+            ib["port"] = tg["internal_port"]
+            ib["external_port"] = tg["external_port"]
+            ib["external_domain"] = tg["external_domain"]
+        if "destination" in body:
+            ib["destination"] = str(body["destination"]).strip()
+        if "server_name" in body:
+            ib["server_name"] = str(body["server_name"]).strip()
+        if (ib.get("protocol") or "").lower() == "telegram":
+            ib.pop("sni", None)
+            ib.pop("destination", None)
+            ib.pop("server_name", None)
+    if (ib.get("protocol") or "").lower() not in ("telegram", "worker", "reality") and (ib.get("security") or "").lower() != "reality":
+        ib["external_domain"] = ""
+        ib["external_port"] = ""
+
     await save_state()
     log_activity("inbound", f"اینباند «{ib.get('name', inbound_id)}» ویرایش شد", "info")
     asyncio.create_task(_xray_apply())
+    # Restart Telegram Proxy if this is a telegram inbound
+    if (ib.get("protocol") or "").lower() == "telegram":
+        asyncio.create_task(_restart_telegram_proxy(inbound_id))
     return {"ok": True}
+
+
+@app.get("/api/wg/endpoints")
+async def list_wg_endpoints(_=Depends(require_auth)):
+    """Return available WireGuard endpoints from endpoint.txt."""
+    endpoints = _wg_read_endpoints()
+    return {"endpoints": endpoints}
 
 
 @app.post("/api/inbounds/{inbound_id}/generate-reality-keys")
 async def generate_inbound_reality_keys(inbound_id: str, _=Depends(require_auth)):
-    """Generate Reality x25519 key pair + short_id + kmx for an inbound."""
+    """Generate Reality x25519 key pair + short_id + spiderx for an inbound."""
     async with INBOUNDS_LOCK:
         ib = INBOUNDS.get(inbound_id)
         if not ib:
@@ -2468,7 +3100,7 @@ async def generate_inbound_reality_keys(inbound_id: str, _=Depends(require_auth)
             rs = ib.setdefault("reality_settings", {})
             rs["private_key"], rs["public_key"] = _xray_x25519_keypair()
             rs["short_id"] = secrets.token_hex(5)[:10]
-            rs.setdefault("kmx", "/")
+            rs.setdefault("spiderx", "/")
             rs.setdefault("dest", "is1-ssl.mzstatic.com:443")
             ib["security"] = "reality"
             ib["protocol"] = "reality"
@@ -2482,7 +3114,7 @@ async def generate_inbound_reality_keys(inbound_id: str, _=Depends(require_auth)
         "public_key": rs["public_key"],
         "private_key": rs["private_key"],
         "short_id": rs["short_id"],
-        "kmx": rs.get("kmx", "/"),
+        "spiderx": rs.get("spiderx", "/"),
     }
 
 
@@ -2509,6 +3141,9 @@ async def delete_inbound(inbound_id: str, _=Depends(require_auth)):
         if not ib:
             raise HTTPException(status_code=404, detail="inbound not found")
         name = ib.get("name", inbound_id)
+    # Stop Telegram Proxy if this was a telegram inbound
+    if (ib.get("protocol") or "").lower() == "telegram":
+        await _stop_telegram_proxy(inbound_id)
     asyncio.create_task(save_state())
     log_activity("inbound", f"اینباند «{name}» حذف شد", "err")
     return {"ok": True, "deleted": inbound_id}
@@ -2573,7 +3208,8 @@ async def create_user(request: Request, _=Depends(require_auth)):
     traffic_limit_gb = float(body.get("traffic_limit_gb") or 0)
     expire_days = int(body.get("expire_days") or 0)
     protocol = str(body.get("protocol") or "vless").lower()
-    concurrent_connections = int(body.get("concurrent_connections") or 3)
+    _cc_raw = body.get("concurrent_connections")
+    concurrent_connections = int(_cc_raw) if _cc_raw is not None else 3
     server = (body.get("server") or "IR-Tehran-01").strip()[:40]
     sni = str(body.get("sni") or "").strip()
     path_custom = str(body.get("path") or "").strip()
@@ -2643,8 +3279,8 @@ async def create_user(request: Request, _=Depends(require_auth)):
         raise HTTPException(status_code=400, detail="Username is required")
     if len(password) < 4:
         raise HTTPException(status_code=400, detail="Password must be at least 4 characters")
-    if concurrent_connections < 1:
-        concurrent_connections = 1
+    if concurrent_connections < 0:
+        concurrent_connections = 0
 
     user_id = generate_short_id()
     config_uuid = generate_uuid()
@@ -2662,7 +3298,7 @@ async def create_user(request: Request, _=Depends(require_auth)):
                     reality.setdefault("short_id", secrets.token_hex(4)[:10])
                     reality.setdefault("dest", "is1-ssl.mzstatic.com:443")
                     reality.setdefault("sni", "is1-ssl.mzstatic.com")
-                    reality.setdefault("kmx", "/")
+                    reality.setdefault("spiderx", "/")
                     reality.setdefault("fingerprint", "chrome")
                     reality.setdefault("external_port", 443)
                     SETTINGS["reality"] = reality
@@ -2722,6 +3358,7 @@ async def create_user(request: Request, _=Depends(require_auth)):
             "inbound_ids": inbound_ids,
             "path": path,
             "transport_type": transport_type,
+            "telegram_secret": "",
         }
         _path = USERS[user_id].get("path", "").strip().lstrip("/")
 
@@ -2776,6 +3413,26 @@ async def create_user(request: Request, _=Depends(require_auth)):
         wid = next((i for i, ib in INBOUNDS.items() if (ib.get("protocol") or "").lower() == "worker"), None)
         if wid and wid in inbound_ids:
             asyncio.create_task(_worker_sync_users())
+    # Generate and persist telegram_secret if user has a Telegram inbound
+    if inbound_ids:
+        has_tg = any(
+            (INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram"
+            for i in inbound_ids
+        )
+        if has_tg:
+            from telegram_proxy import derive_secret_from_uuid
+            async with USERS_LOCK:
+                u = USERS.get(user_id)
+                if u:
+                    current = str(u.get("telegram_secret") or "").strip().lower()
+                    # mtprotoproxy 1.0.6 expects exactly 32 hex characters.
+                    if not re.fullmatch(r"[0-9a-f]{32}", current):
+                        u["telegram_secret"] = derive_secret_from_uuid(config_uuid)
+            asyncio.create_task(save_state())
+            # The inbound may have been created before this user existed.
+            # Rebuild its secret list and restart the listener now.
+            for _tg_iid in [i for i in inbound_ids if (INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram"]:
+                asyncio.create_task(_restart_telegram_proxy(_tg_iid))
     host = SETTINGS.get("domain") or get_host()
     asyncio.create_task(_xray_apply())  # refresh Xray clients after user change
     return {
@@ -2828,6 +3485,8 @@ async def reset_user_traffic(user_id: str, _=Depends(require_auth)):
     # Reset the worker-side usage too, so the quota reflects the reset immediately.
     if WORKER.get("connected") and _user_uses_worker_inbound(u):
         asyncio.create_task(_worker_sync_users())
+    for _tg_iid in [i for i in (u.get("inbound_ids") or []) if (INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram"]:
+        asyncio.create_task(_restart_telegram_proxy(_tg_iid))
     asyncio.create_task(save_state())
     log_activity("user", f"مصرف کاربر «{username}» ریست شد", "info")
     return {"ok": True, "user_id": user_id, "traffic_used_bytes": 0}
@@ -2868,7 +3527,7 @@ async def edit_user(user_id: str, request: Request, _=Depends(require_auth)):
         if "transport_type" in body:
             u["transport_type"] = str(body["transport_type"]).strip().lower()
         if "concurrent_connections" in body:
-            u["concurrent_connections"] = max(1, int(body["concurrent_connections"]))
+            u["concurrent_connections"] = max(0, int(body["concurrent_connections"]))
         if "reset_traffic" in body and body["reset_traffic"]:
             u["traffic_used_bytes"] = 0
         if "custom_ip_type" in body:
@@ -2899,10 +3558,18 @@ async def edit_user(user_id: str, request: Request, _=Depends(require_auth)):
                 u["inbound_id"] = valid[0]
             else:
                 u.pop("inbound_id", None)
+        # Ensure a Telegram secret exists whenever the edited user has a Telegram inbound.
+        if any((INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram" for i in (u.get("inbound_ids") or [])):
+            from telegram_proxy import derive_secret_from_uuid
+            cur_secret = str(u.get("telegram_secret") or "").strip().lower()
+            if not re.fullmatch(r"[0-9a-f]{32}", cur_secret):
+                u["telegram_secret"] = derive_secret_from_uuid(u.get("config_uuid", user_id))
     # If the user uses the worker inbound, push updated volume/expiry to the worker.
     if WORKER.get("connected") and _user_uses_worker_inbound(u):
         asyncio.create_task(_worker_sync_users())
     asyncio.create_task(save_state())
+    for _tg_iid in [i for i in (u.get("inbound_ids") or []) if (INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram"]:
+        asyncio.create_task(_restart_telegram_proxy(_tg_iid))
     return {"ok": True, "user_id": user_id}
 
 @app.get("/api/users/{user_id}")
@@ -3015,10 +3682,18 @@ async def edit_user(user_id: str, request: Request, _=Depends(require_auth)):
                 u["status"] = st
 
         if "concurrent_connections" in body:
-            cc = int(body["concurrent_connections"] or 3)
-            u["concurrent_connections"] = max(1, cc)
+            _ccv = body["concurrent_connections"]
+            cc = int(_ccv) if _ccv is not None else 3
+            u["concurrent_connections"] = max(0, cc)
+        if any((INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram" for i in (u.get("inbound_ids") or [])):
+            from telegram_proxy import derive_secret_from_uuid
+            cur_secret = str(u.get("telegram_secret") or "").strip().lower()
+            if not re.fullmatch(r"[0-9a-f]{32}", cur_secret):
+                u["telegram_secret"] = derive_secret_from_uuid(u.get("config_uuid", user_id))
 
     asyncio.create_task(save_state())
+    for _tg_iid in [i for i in (u.get("inbound_ids") or []) if (INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram"]:
+        asyncio.create_task(_restart_telegram_proxy(_tg_iid))
     log_activity("user", f"کاربر «{old_username}» ویرایش شد", "info")
     return {"ok": True, "user_id": user_id, "username": u.get("username")}
 
@@ -3045,7 +3720,7 @@ async def get_user_config(user_id: str, _=Depends(require_auth)):
 
 @app.get("/api/users/{user_id}/qr")
 async def get_user_qr(user_id: str, _=Depends(require_auth)):
-    """Return a QR code PNG image for the user's config."""
+    """Return a QR code PNG for the user's subscription URL (domain/sub/uuid)."""
     if not QR_AVAILABLE:
         raise HTTPException(status_code=501, detail="QR code generation not available (install qrcode and Pillow)")
 
@@ -3053,18 +3728,24 @@ async def get_user_qr(user_id: str, _=Depends(require_auth)):
         u = USERS.get(user_id)
         if not u:
             raise HTTPException(status_code=404, detail="user not found")
-        config = generate_user_config(user_id, u, u.get("inbound_id"))
+        config_uuid = u.get("config_uuid", "")
+        username = u.get("username", user_id)
 
-    # Generate QR code
+    if not config_uuid:
+        raise HTTPException(status_code=404, detail="user has no config_uuid")
+
+    host = SETTINGS.get("domain") or get_host()
+    sub_url = f"https://{host}/sub/{config_uuid}"
+
     qr = qrcode.QRCode(version=1, box_size=10, border=4, error_correction=qrcode.constants.ERROR_CORRECT_M)
-    qr.add_data(config)
+    qr.add_data(sub_url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
     return Response(content=buf.getvalue(), media_type="image/png",
-                    headers={"Content-Disposition": f"inline; filename={user_id}.png"})
+                    headers={"Content-Disposition": f"inline; filename={username}.png"})
 
 @app.get("/api/users/{user_id}/subscription")
 async def get_user_subscription(user_id: str, _=Depends(require_auth)):
@@ -3166,44 +3847,6 @@ _os.makedirs(_STATIC_DIR, exist_ok=True)
 # the panel music + background images 404'd.
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
-# ── Custom subscription pages (user-curated sub HTML pages) ──────────────
-import os as _os
-_CUSTOM_SUB_DIR = _os.path.join(_STATIC_DIR, "custom_sub")
-_os.makedirs(_CUSTOM_SUB_DIR, exist_ok=True)
-app.mount("/static/custom_sub", StaticFiles(directory=_CUSTOM_SUB_DIR), name="custom_sub")
-
-@app.get("/api/custom-subs")
-async def list_custom_subs(_=Depends(require_auth)):
-    """List available custom subscription pages and the chosen default."""
-    files = []
-    for fn in sorted(_os.listdir(_CUSTOM_SUB_DIR)):
-        if fn.lower().endswith(".html") and fn != "index.html":
-            name = fn[:-5]  # strip .html
-            files.append({
-                "file": fn,
-                "name": name,
-                "url": f"/static/custom_sub/{fn}",
-                "label": name.replace("_", " ").replace("-", " ").title(),
-            })
-    default = SETTINGS.get("custom_sub_default", files[0]["file"] if files else None)
-    return {"subs": files, "default": default}
-
-@app.post("/api/custom-subs/default")
-async def set_default_sub(request: Request, _=Depends(require_auth)):
-    """Set the default custom subscription page."""
-    body = await request.json()
-    chosen = str(body.get("file", "")).strip()
-    if not chosen.endswith(".html"):
-        raise HTTPException(status_code=400, detail="Invalid file")
-    target = _os.path.join(_CUSTOM_SUB_DIR, _os.path.basename(chosen))
-    if not _os.path.isfile(target):
-        raise HTTPException(status_code=404, detail="Sub page not found")
-    async with SETTINGS_LOCK:
-        SETTINGS["custom_sub_default"] = chosen
-    asyncio.create_task(save_state())
-    log_activity("settings", f"Default sub set to {chosen}", "ok")
-    return {"ok": True, "default": chosen}
-
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     if await is_valid_session(request.cookies.get(SESSION_COOKIE)):
@@ -3243,6 +3886,12 @@ async def api_user_sub(username: str):
                 break
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    if _user_uses_worker_inbound(user):
+        user = await _worker_pull_user(user.get("user_id"), user)
+        async with USERS_LOCK:
+            if user.get("user_id") in USERS:
+                USERS[user.get("user_id")].update(user)
 
     # Even inactive users get their sub page (just show status)
     status = user.get("status", "active")
@@ -3297,7 +3946,7 @@ async def api_user_sub(username: str):
                     if not str(ib.get("external_domain") or "").strip() or not str(ib.get("external_port") or "").strip():
                         continue
                 if ib and _p == "worker":
-                    configs.extend(_worker_configs(uid_, user, ib, stored_path_user, _inbound_remark(ib, user.get('username', uid_))))
+                    configs.extend(_worker_configs(uid_, user, ib, stored_path_user, f"White-{user.get('username', uid_)}"))
                 else:
                     configs.append(generate_user_config(uid_, user, iid_))
             except Exception:
@@ -3328,11 +3977,8 @@ async def api_user_sub(username: str):
             configs = configs + sni_spoof_cfgs
 
     # Generate a status config (config-status) with fake random stats
-    # This config is always the FIRST one in the list so clients show it as "status".
-    # It can be disabled globally via SETTINGS["show_status_config"].
-    status_config = None
-    if SETTINGS.get("show_status_config", True):
-        status_config = generate_status_config(user, configs)
+    # This config is always the FIRST one in the list so clients show it as "status"
+    status_config = generate_status_config(user, configs)
 
     # Insert status config at the beginning
     if status_config:
@@ -3353,6 +3999,7 @@ async def api_user_sub(username: str):
 
     return {
         "username": user.get("username"),
+        "config_uuid": user.get("config_uuid", ""),
         "protocol": user.get("protocol", "vless"),
         "custom_ip_type": user.get("custom_ip_type", ""),
         "custom_ip_count": len(all_custom),
@@ -3376,6 +4023,8 @@ async def api_user_sub(username: str):
         "vless_link": config,
         "config": config,
         "configs": configs,
+        "worker_configs": list(user.get("worker_configs") or []),
+        "worker_countries": list(user.get("worker_countries") or user.get("proxy_countries") or []),
         "inbound_ids": inbound_ids,
         "sni": user.get("sni", ""),
         "path": user.get("path", ""),
@@ -3392,11 +4041,12 @@ async def api_user_sub(username: str):
 
 
 @app.get("/api/sub/{username}/qr")
-async def sub_qr(username: str, mode: str = "config"):
+async def sub_qr(username: str, cfg: str = ""):
     """Public QR code PNG for the subscription page (no auth required).
 
-    mode=config  → QR of the full VLESS config (default, backward-compatible)
-    mode=sub     → QR of the subscription link  https://domain/sub/{username}
+    Without ?cfg= the QR contains the subscription URL (domain/sub/config_uuid).
+    With ?cfg={config_uuid} it encodes that specific config link of the user —
+    used by the sub page when no client-side QR library is available.
     """
     if not QR_AVAILABLE:
         raise HTTPException(status_code=501, detail="qr code generation not available")
@@ -3410,14 +4060,39 @@ async def sub_qr(username: str, mode: str = "config"):
                 break
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
-    if mode == "sub":
+    config_uuid = user.get("config_uuid", "")
+    if not config_uuid:
+        raise HTTPException(status_code=404, detail="user has no config_uuid")
+
+    qr_data = ""
+    if cfg:
+        # Encode one of this user's own configs (matched by uuid prefix).
+        if cfg != config_uuid and cfg not in (user.get("inbound_ids") or []):
+            raise HTTPException(status_code=403, detail="cfg mismatch")
+        configs = list(user.get("worker_configs") or [])
+        if not configs:
+            for iid_ in (user.get("inbound_ids") or []):
+                ib = INBOUNDS.get(iid_)
+                if ib and (ib.get("protocol") or "").lower() == "worker":
+                    configs.extend(_worker_configs(uid, user, ib, "", f"White-{username}"))
+        if not configs:
+            single = generate_user_config(uid, user, user.get("inbound_id"))
+            if single:
+                configs = [single]
+        idx = 0
+        if cfg != config_uuid:
+            try:
+                idx = int(cfg)
+            except ValueError:
+                idx = 0
+        qr_data = configs[idx] if configs and idx < len(configs) else (configs[0] if configs else "")
+    if not qr_data:
         host = SETTINGS.get("domain") or get_host()
-        data = f"https://{host}/sub/{username}"
-    else:
-        data = generate_user_config(uid, user, user.get("inbound_id"))
+        qr_data = f"https://{host}/sub/{config_uuid}"
+
     qr = qrcode.QRCode(version=1, box_size=8, border=3,
                        error_correction=qrcode.constants.ERROR_CORRECT_M)
-    qr.add_data(data)
+    qr.add_data(qr_data)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
     buf = io.BytesIO()
@@ -3453,7 +4128,7 @@ async def get_reality_settings(_=Depends(require_auth)):
         "sni": reality.get("sni", host),
         "public_key": reality.get("public_key", ""),
         "short_id": reality.get("short_id", "6ba85179e30d4fc2"),
-        "kmx": reality.get("kmx", "/"),
+        "spiderx": reality.get("spiderx", "/"),
         "fingerprint": reality.get("fingerprint", "chrome"),
         "dest": reality.get("dest", "is1-ssl.mzstatic.com:443"),
         "external_domain": reality.get("external_domain", host),
@@ -3478,8 +4153,8 @@ async def set_reality_settings(request: Request, _=Depends(require_auth)):
             reality["public_key"] = str(body.get("public_key", ""))
         if "short_id" in body:
             reality["short_id"] = str(body.get("short_id", "6ba85179e30d4fc2"))
-        if "kmx" in body:
-            reality["kmx"] = str(body.get("kmx", "/"))
+        if "spiderx" in body:
+            reality["spiderx"] = str(body.get("spiderx", "/"))
         if "external_domain" in body:
             reality["external_domain"] = str(body.get("external_domain", get_host()))
         if "external_port" in body:
@@ -3520,8 +4195,6 @@ async def get_global_settings(_=Depends(require_auth)):
         "bg_sub": SETTINGS.get("bg_sub", ""),
         "panel_audio": SETTINGS.get("panel_audio", ""),
         "panel_audio_enabled": SETTINGS.get("panel_audio_enabled", False),
-        "custom_sub_default": SETTINGS.get("custom_sub_default", ""),
-        "show_status_config": SETTINGS.get("show_status_config", True),
     }
 
 @app.post("/api/tools/settings")
@@ -3557,80 +4230,10 @@ async def set_global_settings(request: Request, _=Depends(require_auth)):
             val = str(body["default_connection_mode"]).strip()
             if val in ("ws", "xhttp", "tcp"):
                 SETTINGS["default_connection_mode"] = val
-        if "custom_sub_default" in body:
-            SETTINGS["custom_sub_default"] = str(body["custom_sub_default"]).strip()
-        if "show_status_config" in body:
-            SETTINGS["show_status_config"] = bool(body["show_status_config"])
     asyncio.create_task(save_state())
     log_activity("settings", "تنظیمات کلی ذخیره شد", "ok")
     return {"ok": True}
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# SUB-SYNC endpoints (Flask-style sub config serving)
-# ══════════════════════════════════════════════════════════════════════════════
-
-@app.get("/sub-sync/data")
-async def subsync_get_data():
-    """Return all sub data as JSON."""
-    async with SUBS_LOCK:
-        snap = dict(SUBS)
-    async with LINKS_LOCK:
-        snap_links = dict(LINKS)
-    host = SETTINGS.get("domain") or get_host()
-    result = []
-    for sid, s in snap.items():
-        link_ids = s.get("link_ids", [])
-        configs = []
-        for lid in link_ids:
-            link = snap_links.get(lid)
-            if link and is_link_allowed(link):
-                proto = link.get("protocol", DEFAULT_PROTOCOL)
-                configs.append(generate_vless_link(lid, host, remark=f"White-{link['label']}", protocol=proto))
-        result.append({"name": s["name"], "desc": s.get("desc", ""), "configs": configs, "uuid_key": s.get("uuid_key", ""), "sub_id": sid})
-    return {"subs": result}
-
-@app.post("/sub-sync/sync")
-async def subsync_sync_data(request: Request):
-    """Sync sub data (for external tools)."""
-    body = await request.json()
-    if not body or "subs" not in body:
-        raise HTTPException(status_code=400, detail="Invalid data")
-    # This is a read-only mirror — we just echo back
-    return {"ok": True, "message": "Data received", "count": len(body["subs"])}
-
-@app.get("/sub-sync/sub/{name}")
-async def subsync_get_sub(name: str):
-    """Get configs for a specific sub by name or username."""
-    configs = []
-    host = SETTINGS.get("domain") or get_host()
-    
-    # First check SUBS (subscription groups)
-    async with SUBS_LOCK:
-        sub = next((s for s in SUBS.values() if s.get("name") == name), None)
-    if sub:
-        link_ids = sub.get("link_ids", [])
-        async with LINKS_LOCK:
-            snap = dict(LINKS)
-        for lid in link_ids:
-            link = snap.get(lid)
-            if link and is_link_allowed(link):
-                proto = link.get("protocol", DEFAULT_PROTOCOL)
-                configs.append(generate_vless_link(lid, host, remark=f"White-{link['label']}", protocol=proto))
-    
-    # Also check USERS — serve user config directly
-    if not configs:
-        async with USERS_LOCK:
-            user = next(((uid, u) for uid, u in USERS.items() if u.get("username") == name), None)
-        if user:
-            uid, u = user
-            cfg = generate_user_config(uid, u, u.get("inbound_id"))
-            if cfg:
-                configs.append(cfg)
-    
-    if not configs:
-        raise HTTPException(status_code=404, detail=f"No configs found for '{name}'")
-    return Response(content="\n".join(configs), media_type="text/plain; charset=utf-8")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -4502,10 +5105,12 @@ async def _link_max_ip(uuid: str) -> int:
         async with USERS_LOCK:
             u = USERS.get(user_id)
         if u:
-            return int(u.get("concurrent_connections", 3) or 3)
+            _cc = u.get("concurrent_connections")
+            return int(_cc) if _cc is not None else 3
     # No registered user → use global setting (covers raw links / group links)
     async with SETTINGS_LOCK:
-        return int(SETTINGS.get("max_ip_per_user", 3) or 3)
+        _mip = SETTINGS.get("max_ip_per_user")
+        return int(_mip) if _mip is not None else 3
 
 async def enforce_ip_limit_for_link(uuid: str, ip: str) -> bool:
     """Real per-user concurrent-IP limit enforcement.
@@ -4796,6 +5401,7 @@ def _add_inbound_to_xray(cfg: dict, ib: dict, iid: str, host: str):
     
     inbound_obj = {
         "tag": f"inbound-{iid}",
+        "listen": "0.0.0.0",
         "port": port,
         # Xray has no "reality" protocol id — Reality is a security layer on top
         # of VLESS, so reality inbounds must declare protocol "vless".
@@ -4834,25 +5440,37 @@ def _add_inbound_to_xray(cfg: dict, ib: dict, iid: str, host: str):
 
     # Transport / Stream settings
     if protocol == "reality" or security == "reality":
-        rs_sni = "is1-ssl.mzstatic.com"  # fixed target per user request
+        # The Reality target is authoritative from this inbound's own
+        # SNI/Destination/Server Names. Do not silently replace it with a
+        # hard-coded target, otherwise the client SNI and Xray destination can
+        # describe different TLS targets.
+        rs_sni = str(rs.get("sni") or ib.get("sni") or "is1-ssl.mzstatic.com").strip()
+        rs_dest = str(rs.get("dest") or (rs_sni + ":443")).strip()
+        if "://" in rs_dest:
+            rs_dest = rs_dest.split("://", 1)[1]
+        rs_server_names = rs.get("server_names") or rs.get("serverNames") or [rs_sni]
+        if isinstance(rs_server_names, str):
+            rs_server_names = [x.strip() for x in rs_server_names.split(",") if x.strip()]
+        if not rs_server_names:
+            rs_server_names = [rs_sni]
         inbound_obj["streamSettings"] = {
             "network": network if network in ("tcp", "xhttp", "grpc") else "tcp",
             "security": "reality",
             "realitySettings": {
                 "show": False,
-                "dest": f"{rs_sni}:443",
+                "dest": rs_dest,
                 "xver": 0,
-                "serverNames": [rs_sni],
+                "serverNames": rs_server_names,
                 "privateKey": rs.get("private_key", ""),
                 "shortIds": [rs.get("short_id", "5a3ff5a13d")],
-                "kmx": rs.get("kmx", "/"),
+                "spiderX": rs.get("spiderx", "/"),
                 "mldsa65Seed": rs.get("mldsa65_seed", ""),
                 "settings": {
                     "publicKey": rs.get("public_key", ""),
                     "privateKey": rs.get("private_key", ""),
                     "fingerprint": fingerprint,
-                    "serverName": rs_sni,
-                    "kmx": rs.get("kmx", "/"),
+                    "serverName": rs_server_names[0],
+                    "spiderX": rs.get("spiderx", "/"),
                     "mldsa65Verify": rs.get("mldsa65_verify", ""),
                 },
             }
@@ -4861,7 +5479,7 @@ def _add_inbound_to_xray(cfg: dict, ib: dict, iid: str, host: str):
             inbound_obj["streamSettings"]["xhttpSettings"] = {
                 "path": xh_settings.get("path", "/"),
                 "host": xh_settings.get("host", domain),
-                "mode": xh_settings.get("mode", "auto"),
+                "mode": (xh_settings.get("mode") if xh_settings.get("mode") in ("packet-up", "stream-up") else "stream-up"),
                 "xPaddingBytes": xh_settings.get("xPaddingBytes", "100-1000"),
                 "scMaxEachPostBytes": xh_settings.get("scMaxEachPostBytes", "1000000"),
                 "scMaxBufferedPosts": xh_settings.get("scMaxBufferedPosts", 30),
@@ -4993,12 +5611,22 @@ async def _xray_start(config: dict) -> bool:
             logger.warning(f"xray config write failed: {e}")
             return False
         try:
+            log_path = bin_path.parent / "xray-runtime.log"
+            log_fp = open(log_path, "ab", buffering=0)
             _xray_proc = await asyncio.create_subprocess_exec(
                 str(bin_path), "-c", str(cfg_path),
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL,
+                stdout=log_fp,
+                stderr=asyncio.subprocess.STDOUT,
             )
-            logger.info(f"Xray started (pid={_xray_proc.pid})")
+            await asyncio.sleep(0.8)
+            if _xray_proc.returncode is not None:
+                try:
+                    tail = log_path.read_text(errors="ignore")[-5000:]
+                except Exception:
+                    tail = ""
+                logger.error(f"Xray exited immediately (code={_xray_proc.returncode}). {tail}")
+                return False
+            logger.info(f"Xray started (pid={_xray_proc.pid}) on configured Reality ports")
             return True
         except Exception as e:
             logger.warning(f"xray start failed: {e}")
@@ -5351,7 +5979,7 @@ async def scan_railway_ips(_=Depends(require_auth)):
 # ══════════════════════════════════════════════════════════════════════════════
 
 CF_API = "https://api.cloudflare.com/client/v4"
-CF_TOKEN_LINK = "https://dash.cloudflare.com/profile/api-tokens"
+CF_TOKEN_LINK = "https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=%5B%7B%22key%22%3A%22workers_scripts%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22workers_kv_storage%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22workers_routes%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22account_settings%22%2C%22type%22%3A%22read%22%7D%2C%7B%22key%22%3A%22zone%22%2C%22type%22%3A%22read%22%7D%2C%7B%22key%22%3A%22dns%22%2C%22type%22%3A%22edit%22%7D%5D&accountId=*&zoneId=all&name=white-Token"
 
 # Worker script deployed to the user's Cloudflare account lives in the project
 # at worker/_worker.js (NOT under /static, so it is never served to the web).
@@ -5396,8 +6024,11 @@ async def _cf_api(method: str, path: str, token: str, payload: dict = None, emai
     headers = {"Content-Type": "application/json", "User-Agent": "White-Panel"}
     # Cloudflare Global API Key (cfk_/cf_ prefix or 37-char hex) → Global Key
     # auth (X-Auth-Email + X-Auth-Key). Modern Bearer tokens → Authorization.
+    # Only a real GAK is sent via X-Auth-Key; a Bearer token always uses Bearer
+    # auth even if an email happens to be on file (filling email must not turn a
+    # valid API token into a rejected X-Auth-Key).
     _is_gak = _is_cf_gak(token)
-    if _is_gak or email:
+    if _is_gak:
         headers["X-Auth-Key"] = token
         headers["X-Auth-Email"] = email or os.environ.get("CF_EMAIL", "")
     else:
@@ -5431,13 +6062,18 @@ def _worker_public() -> dict:
         "worker_url": WORKER.get("worker_url", ""),
         "panel_domain": WORKER.get("panel_domain", ""),
         "kv_namespace_id": WORKER.get("kv_namespace_id", ""),
+        "kv_namespace_title": WORKER.get("kv_namespace_title", ""),
+        "remote_status": WORKER.get("remote_status", ""),
+        "last_heartbeat": WORKER.get("last_heartbeat", ""),
+        "worker_users_online": int(WORKER.get("worker_users_online") or 0),
+        "worker_traffic_bytes": int(WORKER.get("worker_traffic_bytes") or 0),
+        "worker_user_count": int(WORKER.get("worker_user_count") or 0),
         "last_sync": WORKER.get("last_sync", ""),
         "last_error": WORKER.get("last_error", ""),
         "source_url": WORKER.get("source_url", ""),
         "auto_sync": bool(WORKER.get("auto_sync", True)),
         "sync_error": WORKER.get("sync_error", ""),
         "sync_count": int(WORKER.get("sync_count", 0)),
-        "control_token": WORKER.get("control_token", ""),
         "token_link": CF_TOKEN_LINK,
         "proxies": [
             {"code": code, **dict(p)}
@@ -5447,7 +6083,12 @@ def _worker_public() -> dict:
 
 
 async def _ensure_worker_kv() -> str | None:
-    """Find or create the SPIDER_KV namespace for the worker. Returns its id."""
+    """Find or create the dedicated KV namespace for THIS worker ({worker}-db).
+
+    Every deployed worker gets its own private KV namespace so multiple
+    workers never share user/proxy state. The id is persisted in WORKER state;
+    on reconnect the namespace is looked up by title and reused.
+    """
     acct = str(WORKER.get("account_id") or "")
     cf_token = str(WORKER.get("token") or "")
     if not acct or not cf_token:
@@ -5455,23 +6096,28 @@ async def _ensure_worker_kv() -> str | None:
     existing = str(WORKER.get("kv_namespace_id") or "")
     if existing:
         return existing
-    # List existing namespaces, reuse if we already created one.
-    code, data = await _cf_api("GET", f"/accounts/{acct}/storage/kv/namespaces", cf_token, email=WORKER.get("cf_email"))
+    wname = str(WORKER.get("worker_name") or "").strip()
+    kv_title = f"{wname}-db" if wname else "white-worker-kv"
+    # List existing namespaces, reuse ours if a previous deploy created it.
+    code, data = await _cf_api("GET", f"/accounts/{acct}/storage/kv/namespaces", cf_token, email="")
     if code == 200:
         for ns in (data.get("result") or []):
-            if ns.get("title") == "white-worker-kv":
+            if ns.get("title") == kv_title:
                 async with WORKER_LOCK:
                     WORKER["kv_namespace_id"] = ns.get("id")
+                    WORKER["kv_namespace_title"] = kv_title
+                asyncio.create_task(save_state())
                 return ns.get("id")
-    # Create a new namespace.
+    # Create a fresh dedicated namespace for this worker.
     code, data = await _cf_api(
         "POST", f"/accounts/{acct}/storage/kv/namespaces",
-        cf_token, {"title": "white-worker-kv"}, email=WORKER.get("cf_email"),
+        cf_token, {"title": kv_title}, email="",
     )
     if code == 200 and data.get("result"):
         nid = data["result"].get("id")
         async with WORKER_LOCK:
             WORKER["kv_namespace_id"] = nid
+            WORKER["kv_namespace_title"] = kv_title
         asyncio.create_task(save_state())
         return nid
     return None
@@ -5484,7 +6130,7 @@ async def _worker_deploy() -> tuple:
     state file), so updates to the worker are shipped with a normal git deploy.
     The panel domain + a control token are injected at deploy time so the panel
     can control the worker via its admin API (Bearer token protected). Users and
-    the proxy pool live in the worker's KV namespace (SPIDER_KV) — the namespace
+    the proxy pool live in the worker's KV namespace (WHITE_KV) — the namespace
     is created/attached as a binding at deploy time.
     """
     try:
@@ -5501,18 +6147,21 @@ async def _worker_deploy() -> tuple:
     panel_domain = _safe_host(SETTINGS.get("domain"), get_host())
     async with WORKER_LOCK:
         WORKER["panel_domain"] = panel_domain
+    worker_domain = _worker_safe_domain(WORKER.get("worker_domain"))
     script = (template
               .replace("__PANEL_DOMAIN__", json.dumps(panel_domain))
+              .replace("__WORKER_DOMAIN__", json.dumps(worker_domain))
               .replace("__PANEL_TOKEN__", json.dumps(ctrl)))
     cf_token = str(WORKER.get("token") or "")
     if not cf_token:
         return 0, {"errors": [{"message": "Cloudflare API token is missing (worker not connected properly)"}]}
     kv_id = await _ensure_worker_kv()
-    email = str(WORKER.get("cf_email") or "")
-    # Use Global API Key auth (X-Auth-Email + X-Auth-Key) when the token has the
-    # cfk_/cf_ prefix (or is a 37-char hex GAK) or when an email is on file.
+    email = ""
+    # Use Global API Key auth (X-Auth-Email + X-Auth-Key) when the token is a
+    # real GAK (cfk_/cf_ prefix or 37-char hex); otherwise a Bearer token always
+    # goes through Authorization even if an email is on file.
     _is_gak = _is_cf_gak(cf_token)
-    if _is_gak or email:
+    if _is_gak:
         auth_headers = {"X-Auth-Email": email, "X-Auth-Key": cf_token}
     else:
         auth_headers = {"Authorization": f"Bearer {cf_token}"}
@@ -5520,14 +6169,14 @@ async def _worker_deploy() -> tuple:
         # ESM module worker: multipart upload using the `files` form field so
         # Cloudflare parses it as a module-syntax worker (Content-Type must be
         # application/javascript+module), with main_module metadata and the KV
-        # namespace binding (SPIDER_KV). The template uses the global connect()
+        # namespace binding (WHITE_KV). The template uses the global connect()
         # Socket API for outbound TCP, so no fetcher binding is needed.
         wname = WORKER.get("worker_name", "") or ""
         meta = json.dumps({
             "main_module": "worker.js",
             "compatibility_date": "2025-01-01",
             "bindings": [
-                {"name": "SPIDER_KV", "namespace_id": kv_id, "type": "kv_namespace"},
+                {"name": "WHITE_KV", "namespace_id": kv_id, "type": "kv_namespace"},
             ],
         })
         boundary = "----WhitePanel" + secrets.token_hex(8)
@@ -5555,6 +6204,13 @@ async def _worker_deploy() -> tuple:
         return r.status_code, deploy_json
     except Exception as e:
         return 0, {"errors": [{"message": str(e)}]}
+
+
+async def _worker_enable_workers_dev() -> dict:
+    acct=str(WORKER.get("account_id") or ""); name=str(WORKER.get("worker_name") or ""); token=str(WORKER.get("token") or "")
+    if not acct or not name or not token: return {"ok":False,"detail":"worker credentials missing"}
+    code,data=await _cf_api("POST",f"/accounts/{acct}/workers/scripts/{name}/subdomain",token,{"enabled":True,"previews_enabled":False},email="")
+    return {"ok":code==200 and bool(data.get("success")),"status":code,"data":data}
 
 
 async def _worker_sync_users() -> dict:
@@ -5610,13 +6266,66 @@ async def _worker_sync_users() -> dict:
                             "used_bytes": int(u.get("traffic_used_bytes") or 0),
                             "proxy_ip": "",
                             "concurrent_connections": int(u.get("concurrent_connections") or 0),
+                            "countries": list(u.get("proxy_countries") or ([u.get("proxy_country")] if u.get("proxy_country") else [])),
                         },
                     )
                 if r.status_code in (200, 204):
+                    if r.status_code == 200:
+                        try:
+                            payload = r.json().get("user") or {}
+                            if payload.get("configs") is not None:
+                                u["worker_configs"] = payload.get("configs") or []
+                            if payload.get("used_bytes") is not None:
+                                u["traffic_used_bytes"] = int(payload.get("used_bytes") or 0)
+                        except Exception:
+                            pass
                     synced += 1
             except Exception as e:
                 logger.warning(f"worker user sync failed for {uid}: {e}")
     return {"ok": True, "count": synced}
+
+
+async def _worker_pull_user(uid: str, u: dict) -> dict:
+    """Pull usage/expiry/country and worker-generated config metadata back from Worker."""
+    domain = str(WORKER.get("worker_domain") or "").strip().lower()
+    ctrl = str(WORKER.get("control_token") or "")
+    cuuid = u.get("config_uuid") or uid
+    if not domain or not ctrl or not cuuid:
+        return u
+    try:
+        async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
+            r = await client.get(f"https://{domain}/api/user/{cuuid}", headers={"Authorization": f"Bearer {ctrl}"})
+        if r.status_code != 200:
+            return u
+        data = r.json().get("user") or {}
+        if "used_bytes" in data:
+            u["traffic_used_bytes"] = int(data.get("used_bytes") or 0)
+        if data.get("expire"):
+            u["worker_expire"] = int(data.get("expire"))
+        if isinstance(data.get("countries"), list):
+            u["worker_countries"] = list(data.get("countries"))
+        if isinstance(data.get("configs"), list):
+            u["worker_configs"] = list(data.get("configs"))
+        return u
+    except Exception as e:
+        logger.warning(f"worker pull failed for {uid}: {e}")
+        return u
+
+async def _worker_pull_all_users() -> int:
+    count = 0
+    async with USERS_LOCK:
+        targets = [(uid, u) for uid, u in USERS.items() if _user_uses_worker_inbound(u)]
+    for uid, u in targets:
+        before = u.get("traffic_used_bytes")
+        out = await _worker_pull_user(uid, u)
+        if out is not u:
+            async with USERS_LOCK:
+                USERS[uid].update(out)
+        if out.get("traffic_used_bytes") != before or out.get("worker_configs") is not None:
+            count += 1
+    if count:
+        asyncio.create_task(save_state())
+    return count
 
 
 def _user_uses_worker_inbound(u: dict) -> bool:
@@ -5666,12 +6375,113 @@ async def _ensure_worker_inbound() -> bool:
     return True
 
 
+async def _worker_push_config() -> dict:
+    """Remote control: push the full panel config to the worker in one call.
+
+    POST /panel/config (Bearer control token) carries users (uuid, limit,
+    expire, used, countries), the proxy routes and settings. The worker stores
+    everything in its dedicated KV and answers with a summary. This is the
+    single "panel → worker" channel; individual /api/users calls stay for
+    incremental updates.
+    """
+    domain = str(WORKER.get("worker_domain") or "").strip().lower()
+    ctrl = str(WORKER.get("control_token") or "")
+    if not domain or not ctrl or domain in ("localhost", "0.0.0.0", "127.0.0.1"):
+        return {"ok": False, "detail": "worker not connected / no control token"}
+    wid = next((iid for iid, ib in INBOUNDS.items()
+                if ((ib or {}).get("protocol") or "").lower() == "worker"), None)
+    users = []
+    async with USERS_LOCK:
+        for uid, u in USERS.items():
+            iids = u.get("inbound_ids") or ([u.get("inbound_id")] if u.get("inbound_id") else [])
+            if wid and wid not in iids:
+                continue
+            cuuid = u.get("config_uuid") or uid
+            deadline = 0
+            if u.get("expire_at"):
+                try:
+                    deadline = int(datetime.fromisoformat(u["expire_at"]).timestamp())
+                except Exception:
+                    deadline = 0
+            users.append({
+                "uuid": cuuid,
+                "remark": u.get("username", uid),
+                "limit_bytes": int(u.get("traffic_limit_bytes") or 0),
+                "expire": deadline,
+                "used_bytes": int(u.get("traffic_used_bytes") or 0),
+                "concurrent_connections": int(u.get("concurrent_connections") or 0),
+                "countries": list(u.get("proxy_countries") or ([u.get("proxy_country")] if u.get("proxy_country") else [])),
+                "disabled": (u.get("status") or "active") != "active",
+            })
+    locations = []
+    for code, p in (WORKER.get("proxies") or {}).items():
+        locations.append({"code": code, "country": p.get("country", code.upper()),
+                          "proxy": p.get("proxy", ""), "port": p.get("port", 443),
+                          "proxies": p.get("proxies", [p.get("proxy")])})
+    try:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+            r = await client.post(
+                f"https://{domain}/panel/config",
+                headers={"Authorization": f"Bearer {ctrl}"},
+                json={"users": users, "routes": {"locations": locations}, "settings": {}},
+            )
+        if r.status_code == 200:
+            data = {}
+            try:
+                data = r.json()
+            except Exception:
+                pass
+            async with WORKER_LOCK:
+                WORKER["remote_status"] = "online"
+                WORKER["last_heartbeat"] = now_ir().isoformat(timespec="seconds")
+                WORKER["worker_user_count"] = int(data.get("users") or len(users))
+                WORKER["worker_traffic_bytes"] = int(data.get("traffic") or 0)
+                WORKER["worker_users_online"] = int(data.get("online") or 0)
+            asyncio.create_task(save_state())
+            return {"ok": True, "detail": "config pushed", "users": data.get("users", len(users))}
+        return {"ok": False, "detail": f"worker returned HTTP {r.status_code}: {r.text[:120]}"}
+    except Exception as e:
+        return {"ok": False, "detail": str(e)}
+
+async def _worker_pull_status() -> dict:
+    """Pull live status from the worker's GET /panel/status API.
+
+    Returns {ok, online, traffic, users} and records a heartbeat timestamp so
+    the UI can show how fresh the remote state is.
+    """
+    domain = str(WORKER.get("worker_domain") or "").strip().lower()
+    ctrl = str(WORKER.get("control_token") or "")
+    if not domain or not ctrl or domain in ("localhost", "0.0.0.0", "127.0.0.1"):
+        return {"ok": False, "detail": "worker not connected"}
+    try:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+            r = await client.get(f"https://{domain}/panel/status",
+                                 headers={"Authorization": f"Bearer {ctrl}"})
+        if r.status_code != 200:
+            async with WORKER_LOCK:
+                WORKER["remote_status"] = "unreachable"
+            return {"ok": False, "detail": f"HTTP {r.status_code}"}
+        data = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+        hb = now_ir().isoformat(timespec="seconds")
+        async with WORKER_LOCK:
+            WORKER["remote_status"] = "online"
+            WORKER["last_heartbeat"] = hb
+            WORKER["worker_user_count"] = int(data.get("users") or 0)
+            WORKER["worker_traffic_bytes"] = int(data.get("traffic") or 0)
+            WORKER["worker_users_online"] = int(data.get("online") or 0)
+        asyncio.create_task(save_state())
+        return {"ok": True, **data}
+    except Exception as e:
+        async with WORKER_LOCK:
+            WORKER["remote_status"] = "unreachable"
+        return {"ok": False, "detail": str(e)}
+
 async def _worker_control_update() -> dict:
     """Push the proxy pool to the deployed VLESS worker via its admin API.
 
     The worker only accepts calls carrying the control token that was baked in
     at deploy time (Bearer auth). The proxy pool is stored in the worker's KV
-    namespace (SPIDER_KV) and served from /api/locations.
+    namespace (WHITE_KV) and served from /api/locations.
     """
     domain = str(WORKER.get("worker_domain") or "").strip().lower()
     ctrl = str(WORKER.get("control_token") or "")
@@ -5858,43 +6668,83 @@ async def worker_get(_=Depends(require_auth)):
 
 @app.post("/api/worker/setup")
 async def worker_setup(request: Request, _=Depends(require_auth)):
-    """Connect to Cloudflare: verify token + account, auto-discover the worker
-    name and domain (the panel fetches them from the Cloudflare API), deploy the
-    worker script and store the connection. No manual worker-name/domain entry."""
+    """Create a brand-new managed worker on the user's Cloudflare account.
+
+    The panel never searches for an existing subdomain/worker. Instead it:
+      1. verifies the API token and auto-detects the account id,
+      2. ensures the account has a workers.dev subdomain (registers one if missing),
+      3. generates a fresh random worker name (white-xxxxxx),
+      4. creates a dedicated KV namespace ({name}-db) for that worker only,
+      5. deploys worker.js with the KV binding baked in,
+      6. enables workers.dev for the new script,
+      7. pushes users/routes via the remote-control API (/panel/config).
+    """
     body = await request.json()
     token = str(body.get("token") or "").strip()
-    account_id = str(body.get("account_id") or "").strip()
-    email = str(body.get("email") or "").strip()
-    if not token or not account_id:
-        raise HTTPException(status_code=400, detail="token and account_id are required")
+    # Account ID and Email are intentionally not collected from the user.
+    # The account is discovered from the supplied API token.
+    account_id = ""
+    email = ""
+    if not token:
+        raise HTTPException(status_code=400, detail="token is required")
 
-    # 1. Verify the API token. Global API Key (cfk_ + 37-char hex) is verified
-    #    at /user and needs the email too; modern Bearer tokens use /user/tokens/verify.
+    # 1. Verify the API token.
     _is_gak = _is_cf_gak(token)
-    verify_path = "/user/tokens/verify" if not (email or _is_gak) else "/user"
+    verify_path = "/user/tokens/verify" if not _is_gak else "/user"
     code, data = await _cf_api("GET", verify_path, token, email=email)
     if code != 200 or not data.get("success"):
         msg = (data.get("errors") or [{}])[0].get("message", "invalid token")
         raise HTTPException(status_code=400, detail=f"Cloudflare token rejected: {msg}")
 
-    # 2. Discover the worker name + subdomain from the account (the panel picks a
-    #    unique name automatically). If the script already exists, reuse it.
-    worker_name = str(body.get("worker_name") or "white-proxy").strip()
-    worker_domain = ""
+    # 2. Auto-detect account_id (list accounts and pick the first one).
+    code_acc, data_acc = await _cf_api("GET", "/accounts?page=1&per_page=50", token, email=email)
+    if code_acc == 200 and data_acc.get("result"):
+        accounts = data_acc["result"]
+        if isinstance(accounts, list) and len(accounts) > 0:
+            account_id = accounts[0].get("id", "")
+    if not account_id:
+        # Cloudflare returns 403/10000 here when the token is valid but lacks
+        # account-scoped Workers permissions. Surface the actual API error.
+        detail = "Could not auto-detect Cloudflare Account ID. Token must include account-scoped Workers Scripts/Routes/KV permissions."
+        errs = data_acc.get("errors") or []
+        if errs:
+            detail = "Cloudflare account lookup failed: " + "; ".join(str(e.get("message") or e.get("code") or "unknown error") for e in errs[:3])
+        raise HTTPException(status_code=400, detail=detail)
+
+    # 3. Ensure the account has a workers.dev subdomain; register one if absent
+    #    so the user never has to open the Cloudflare dashboard manually.
+    subdom = ""
     code, data = await _cf_api("GET", f"/accounts/{account_id}/workers/subdomain", token, email=email)
     if code == 200 and data.get("result"):
         subdom = str(data["result"].get("subdomain") or "").strip()
-        if subdom:
-            worker_domain = _worker_safe_domain(f"{worker_name}.{subdom}.workers.dev")
-    if not worker_domain:
-        # Fallback: try to read the existing script's domain (if it was deployed before).
-        code2, data2 = await _cf_api("GET", f"/accounts/{account_id}/workers/scripts/{worker_name}", token, email=email)
-        if code2 in (200, 404):
-            pass  # script check only; domain comes from subdomain above
-    if not worker_domain:
-        raise HTTPException(status_code=400, detail="could not resolve worker subdomain — check the API token has Workers:Edit permission")
+    if not subdom:
+        # No subdomain yet → register a fresh one derived from the account id.
+        reg_name = "white-" + account_id[:8].lower()
+        creg, dreg = await _cf_api(
+            "PUT", f"/accounts/{account_id}/workers/subdomain", token,
+            {"subdomain": reg_name}, email=email,
+        )
+        if creg in (200, 201) and dreg.get("result"):
+            subdom = str(dreg["result"].get("subdomain") or reg_name).strip()
+        else:
+            no_subdomain = any(e.get("code") == 10007 for e in (data.get("errors") or []))
+            if no_subdomain:
+                raise HTTPException(
+                    status_code=400,
+                    detail="ساخت workers.dev subdomain ناموفق بود — توکن باید Workers Scripts:Edit داشته باشد. "
+                           "(Could not register a workers.dev subdomain — the token needs Workers Scripts:Edit.)",
+                )
+            raise HTTPException(status_code=400, detail="could not resolve/register workers.dev subdomain — check the API token has Workers:Edit permission")
+    if not subdom:
+        raise HTTPException(status_code=400, detail="could not resolve workers.dev subdomain")
 
-    # 3. Save connection, then deploy the worker script.
+    # 4. Generate a fresh random worker name — every setup creates a NEW worker.
+    worker_name = str(body.get("worker_name") or "").strip().lower()
+    if not re.fullmatch(r"[a-z][a-z0-9-]{0,30}", worker_name or ""):
+        worker_name = "white-" + secrets.token_hex(3)
+    worker_domain = _worker_safe_domain(f"{worker_name}.{subdom}.workers.dev")
+
+    # 5. Save connection state, then create KV + deploy.
     async with WORKER_LOCK:
         WORKER.update({
             "connected": True,
@@ -5903,27 +6753,41 @@ async def worker_setup(request: Request, _=Depends(require_auth)):
             "worker_domain": worker_domain,
             "worker_url": f"https://{worker_domain}",
             "token": token,
-            "cf_email": email or "",
+            # A new worker starts with a fresh dedicated KV namespace.
+            "kv_namespace_id": "",
+            "kv_namespace_title": "",
+            "remote_status": "",
+            "last_heartbeat": "",
+            "worker_users_online": 0,
+            "worker_traffic_bytes": 0,
+            "worker_user_count": 0,
             "last_error": "",
         })
+    kv_id = await _ensure_worker_kv()
     sc, sd = await _worker_deploy()
+    await _worker_enable_workers_dev()
     if sc not in (200, 201, 409):
         msg = (sd.get("errors") or [{}])[0].get("message", "deploy failed")
         async with WORKER_LOCK:
             WORKER["last_error"] = msg
         asyncio.create_task(save_state())
         raise HTTPException(status_code=500, detail=f"Worker deploy failed: {msg}")
-    # Deployed with a fresh control token; tell the worker the proxy map now.
-    ctrl_res = await _worker_control_update()
+    # Deployed with a fresh control token; push the full config (users+routes).
+    ctrl_res = await _worker_push_config()
+    if not ctrl_res.get("ok"):
+        # Fall back to the per-user sync path when the bulk push failed.
+        await _worker_control_update()
+        await _worker_sync_users()
+    # Pull back the worker-generated configs (its own domain + /route paths)
+    # so each panel user's sub serves exactly what this worker accepts.
+    await _worker_pull_all_users()
     # Auto-create/refresh the default Worker inbound to the connected domain.
     await _ensure_worker_inbound()
-    # Push all panel users to the worker's KV so VLESS auth + quotas work.
-    await _worker_sync_users()
     async with WORKER_LOCK:
         WORKER["last_sync"] = now_ir().isoformat(timespec="seconds")
         WORKER["last_error"] = "" if ctrl_res.get("ok") else ctrl_res.get("detail", "")
     asyncio.create_task(save_state())
-    log_activity("worker", f"Worker متصل شد ({worker_name})", "ok")
+    log_activity("worker", f"Worker جدید ساخته شد ({worker_name} / KV: {WORKER.get('kv_namespace_title') or kv_id})", "ok")
     async with WORKER_LOCK:
         return {"ok": True, **_worker_public()}
 
@@ -5934,8 +6798,14 @@ async def worker_sync(_=Depends(require_auth)):
     if not WORKER.get("connected"):
         raise HTTPException(status_code=400, detail="worker is not connected")
     sc, sd = await _worker_deploy()
+    await _worker_enable_workers_dev()
     if sc in (200, 201, 409):
-        await _worker_sync_users()
+        # Prefer the single remote-control push; fall back to per-user sync.
+        push = await _worker_push_config()
+        if not push.get("ok"):
+            await _worker_control_update()
+            await _worker_sync_users()
+        await _worker_pull_all_users()
         await _ensure_worker_inbound()
     async with WORKER_LOCK:
         if sc in (200, 201, 409):
@@ -5976,6 +6846,17 @@ async def worker_settings(request: Request, _=Depends(require_auth)):
     return out
 
 
+@app.post("/api/worker/heartbeat")
+async def worker_heartbeat(_=Depends(require_auth)):
+    """Ping the worker's /panel/status and refresh remote counters (traffic,
+    online users, user count). Called by the UI on a timer."""
+    if not WORKER.get("connected"):
+        raise HTTPException(status_code=400, detail="worker is not connected")
+    res = await _worker_pull_status()
+    async with WORKER_LOCK:
+        out = {"ok": bool(res.get("ok")), "detail": res.get("detail", ""), **_worker_public()}
+    return out
+
 @app.delete("/api/worker")
 async def worker_disconnect(_=Depends(require_auth)):
     """Remove the worker connection (keeps nothing sensitive)."""
@@ -5988,6 +6869,13 @@ async def worker_disconnect(_=Depends(require_auth)):
             "worker_domain": "",
             "worker_url": "",
             "token": "",
+            "kv_namespace_id": "",
+            "kv_namespace_title": "",
+            "remote_status": "",
+            "last_heartbeat": "",
+            "worker_users_online": 0,
+            "worker_traffic_bytes": 0,
+            "worker_user_count": 0,
             "proxies": {},
             "last_sync": "",
             "last_error": "",
@@ -6086,6 +6974,32 @@ async def scanner_get_ips(ctype: str, _=Depends(require_auth)):
     if ctype not in _SCANNED_TYPES:
         raise HTTPException(status_code=400, detail="invalid scanner source")
     return {"ok": True, "type": ctype, "ips": _read_scanned_ips(ctype), "seq": SCANNED_SEQ.get(ctype, 0)}
+
+
+@app.get("/api/scanner/cf-subnets")
+async def scanner_cf_subnets(_=Depends(require_auth)):
+    """Return Cloudflare subnets from cf_subnets.txt for IP range generation."""
+    subnets_file = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "cf_subnets.txt"
+    if not subnets_file.is_file():
+        subnets_file = DATA_DIR / "cf_subnets.txt"
+    if not subnets_file.is_file():
+        return {"subnets": []}
+    lines = subnets_file.read_text(errors="ignore").splitlines()
+    subnets = [l.strip() for l in lines if l.strip() and not l.strip().startswith("#")]
+    return {"subnets": subnets}
+
+
+@app.get("/api/scanner/sni-list")
+async def scanner_sni_list(_=Depends(require_auth)):
+    """Return SNI list from sni-list.txt for spoof scanning."""
+    sni_file = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "sni-list.txt"
+    if not sni_file.is_file():
+        sni_file = DATA_DIR / "sni-list.txt"
+    if not sni_file.is_file():
+        return {"sni_list": []}
+    lines = sni_file.read_text(errors="ignore").splitlines()
+    snis = [l.strip() for l in lines if l.strip() and not l.strip().startswith("#")]
+    return {"sni_list": snis}
 
 
 @app.post("/api/scanner/save")
@@ -6190,6 +7104,145 @@ async def scanner_ping_batch(request: Request, _=Depends(require_auth)):
     results = await asyncio.gather(*(probe(t) for t in targets))
     results.sort(key=lambda r: (not r["ok"], r["latency_ms"] if r["latency_ms"] is not None else 10 ** 9))
     return {"ok": True, "count": len(results), "results": results}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SNI SCANNER endpoints — scan SNI list and find fastest for Reality
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _sni_scan_file() -> Path:
+    """Path to the SNI scan source file."""
+    p = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "sni_reality_for_scan.txt"
+    if p.is_file():
+        return p
+    return DATA_DIR / "sni_reality_for_scan.txt"
+
+
+def _sni_result_file() -> Path:
+    """Path to the SNI scan results file."""
+    p = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "sni_reality.txt"
+    if p.is_file():
+        return p
+    return DATA_DIR / "sni_reality.txt"
+
+
+def _read_sni_list() -> list:
+    """Read SNI list from the scan source file."""
+    f = _sni_scan_file()
+    if not f.is_file():
+        return []
+    out = []
+    for line in f.read_text(errors="ignore").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        # Clean markdown links: [text](url) → text
+        if line.startswith("[") and "](" in line:
+            line = line.split("](")[0].lstrip("[")
+        out.append(line)
+    return out
+
+
+def _read_sni_results() -> list:
+    """Read the fastest SNIs from the results file."""
+    f = _sni_result_file()
+    if not f.is_file():
+        return []
+    out = []
+    for line in f.read_text(errors="ignore").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split("|")
+        sni = parts[0].strip()
+        latency = int(parts[1].strip()) if len(parts) > 1 else 0
+        if sni:
+            out.append({"sni": sni, "latency_ms": latency})
+    return out
+
+
+@app.get("/api/scanner/sni-check")
+async def scanner_sni_check(host: str, port: int = 443, _=Depends(require_auth)):
+    """Perform a real TLS handshake using the supplied hostname as SNI."""
+    import ssl
+    host = str(host or "").strip().lower()
+    if not host or len(host) > 253 or any(ch.isspace() for ch in host) or "/" in host:
+        raise HTTPException(status_code=400, detail="invalid SNI host")
+    port = int(port or 443)
+    if port < 1 or port > 65535:
+        raise HTTPException(status_code=400, detail="invalid port")
+    started = time.perf_counter()
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    try:
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, port, ssl=ctx, server_hostname=host), timeout=3.0
+        )
+        ms = round((time.perf_counter() - started) * 1000, 2)
+        try:
+            writer.close(); await writer.wait_closed()
+        except Exception:
+            pass
+        return {"ok": True, "sni": host, "latency_ms": ms, "port": port}
+    except Exception as e:
+        return {"ok": False, "sni": host, "latency_ms": round((time.perf_counter()-started)*1000,2), "port": port, "error": str(e)[:180]}
+
+
+@app.get("/api/scanner/sni-scan-list")
+async def scanner_sni_scan_list(_=Depends(require_auth)):
+    """Return the SNI list for scanning."""
+    snis = _read_sni_list()
+    return {"ok": True, "snis": snis, "count": len(snis)}
+
+
+@app.get("/api/scanner/sni-results")
+async def scanner_sni_results(_=Depends(require_auth)):
+    """Return the fastest SNIs from previous scans."""
+    results = _read_sni_results()
+    return {"ok": True, "results": results}
+
+
+@app.post("/api/scanner/sni-clear-results")
+async def scanner_sni_clear_results(_=Depends(require_auth)):
+    """Clear live SNI results before a new manual/auto scan."""
+    f = _sni_result_file()
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text("# Fastest SNIs for Reality\n# Format: sni|latency_ms\n", encoding="utf-8")
+    return {"ok": True, "results": []}
+
+
+@app.post("/api/scanner/sni-save-results")
+async def scanner_sni_save_results(request: Request, _=Depends(require_auth)):
+    body = await request.json()
+    incoming = body.get("results") or []
+    top_n = max(1, min(int(body.get("top") or 3), 10))
+    merged = {}
+    for old in _read_sni_results():
+        name = str(old.get("sni") or "").strip().lower()
+        try: lat = float(old.get("latency_ms"))
+        except Exception: continue
+        if name and lat >= 0: merged[name] = lat
+    for r in incoming:
+        name = str(r.get("sni") or "").strip().lower()
+        try: lat = float(r.get("latency_ms"))
+        except Exception: continue
+        if name and lat >= 0 and (name not in merged or lat < merged[name]): merged[name] = lat
+    results = [{"sni":k,"latency_ms":round(v,2)} for k,v in merged.items()]
+    results.sort(key=lambda x:x["latency_ms"])
+    results = results[:top_n]
+    f=_sni_result_file(); f.parent.mkdir(parents=True,exist_ok=True)
+    f.write_text("# Fastest SNIs for Reality\n# Format: sni|latency_ms\n"+"\n".join(f"{r['sni']}|{r['latency_ms']}" for r in results)+"\n",encoding="utf-8")
+    return {"ok":True,"saved":len(results),"results":results}
+
+
+@app.get("/api/scanner/sni-fastest")
+async def scanner_sni_fastest(_=Depends(require_auth)):
+    """Return the single fastest SNI from results (for the lightning button)."""
+    results = _read_sni_results()
+    if results:
+        return {"ok": True, "sni": results[0]["sni"], "latency_ms": results[0].get("latency_ms", 0)}
+    return {"ok": False, "sni": "", "latency_ms": 0}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
