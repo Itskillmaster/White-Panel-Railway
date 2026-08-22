@@ -2274,7 +2274,7 @@ async def subscription_handler(identifier: str, request: Request):
             return Response(content=content, media_type="text/plain",
                             headers={"profile-title": quote(username),
                                       "profile-update-interval": "12",
-                                      "support-url": "https://t.me/spider_vpn1"})
+                                      "support-url": "https://t.me/killmaster_is_here"})
 
         # Fallback: check LINKS (legacy link UUID)
         async with LINKS_LOCK:
@@ -2285,7 +2285,7 @@ async def subscription_handler(identifier: str, request: Request):
             vless = generate_vless_link(identifier, host, remark=f"White-{link['label']}", protocol=proto)
             content = base64.b64encode(vless.encode()).decode()
             return Response(content=content, media_type="text/plain",
-                            headers={"profile-title": quote(link["label"]), "support-url": "https://t.me/spider_vpn1"})
+                            headers={"profile-title": quote(link["label"]), "support-url": "https://t.me/killmaster_is_here"})
 
         raise HTTPException(status_code=404, detail="not found")
 
@@ -2453,7 +2453,7 @@ async def sub_group_subscription(uuid_key: str, request: Request):
         media_type="text/plain",
         headers={
             "profile-title": quote(sub["name"]),
-            "support-url": "https://t.me/spider_vpn1",
+            "support-url": "https://t.me/killmaster_is_here",
             "profile-update-interval": "12",
         }
     )

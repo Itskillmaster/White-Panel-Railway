@@ -906,6 +906,58 @@ tr{animation:fadeIn .3s ease}
 @media(max-width:900px){.sidebar-backdrop.show{display:block}}
 .sidebar-tog{display:none}@media(max-width:900px){.sidebar-tog{display:inline-flex!important}}
 
+/* ══════════════ PREMIUM UI UPGRADE LAYER ══════════════ */
+:root{
+  --up-glass:rgba(10,10,17,.74);--up-border:rgba(255,255,255,.09);
+  --up-a1:#00e1c1;--up-a2:#2ef2d6;--up-violet:#818cf8;
+}
+html[data-theme="light"]{
+  --up-glass:rgba(255,255,255,.84);--up-border:rgba(0,0,0,.08);
+}
+/* Floating aurora orbs */
+.bg-fx::before,.bg-fx::after{content:"";position:absolute;border-radius:50%;filter:blur(95px);will-change:transform}
+.bg-fx::before{width:540px;height:540px;top:-150px;left:-130px;background:radial-gradient(circle,rgba(0,225,193,.19),transparent 65%);animation:orbA 26s ease-in-out infinite alternate}
+.bg-fx::after{width:480px;height:480px;bottom:-170px;right:-110px;background:radial-gradient(circle,rgba(129,140,248,.15),transparent 65%);animation:orbB 33s ease-in-out infinite alternate}
+@keyframes orbA{from{transform:translate(0,0) scale(1)}to{transform:translate(130px,90px) scale(1.16)}}
+@keyframes orbB{from{transform:translate(0,0) scale(1)}to{transform:translate(-110px,-80px) scale(1.22)}}
+html[data-theme="light"] .bg-fx::before,html[data-theme="light"] .bg-fx::after{opacity:.35}
+/* Glass surfaces */
+.sidebar,.topbar,.panel,.stat,.tbl,.u-card,.modal-c,.login-card{
+  background:var(--up-glass)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(155%);
+  backdrop-filter:blur(22px) saturate(155%);
+  border-color:var(--up-border)!important;
+}
+.panel:hover{border-color:rgba(0,225,193,.30)!important;box-shadow:0 14px 44px rgba(0,0,0,.62),0 0 26px -10px rgba(0,225,193,.30)}
+.login-card{box-shadow:0 24px 70px rgba(0,0,0,.65),0 0 60px -18px rgba(0,225,193,.35)!important}
+.stat::before{content:"";position:absolute;top:0;left:20%;right:20%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--up-a1),transparent)}
+.stat-icon{transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.stat:hover .stat-icon{transform:scale(1.18)}
+.stat:hover{border-color:rgba(0,225,193,.38)!important;box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 30px -12px rgba(0,225,193,.4)}
+/* Sidebar active accent bar */
+.nav-item.active::before{content:"";position:absolute;right:-10px;top:24%;bottom:24%;width:3px;border-radius:3px;background:linear-gradient(180deg,var(--up-a1),var(--up-a2));box-shadow:0 0 12px var(--up-a1)}
+.nav-item.active{box-shadow:inset 0 0 24px -14px var(--up-a1)}
+html[lang="en"] .nav-item.active::before{right:auto;left:-10px}
+/* Primary button gradient + shine sweep */
+.btn-p{background:linear-gradient(135deg,var(--up-a1),var(--up-a2))!important;overflow:hidden}
+.btn-p::after{content:"";position:absolute;top:0;bottom:0;width:42%;left:-65%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);transition:left .55s ease}
+.btn-p:hover::after{left:135%}
+.btn:not(.btn-p):hover{transform:translateY(-1px)}
+/* Topbar bottom hairline glow */
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,225,193,.45),transparent);pointer-events:none}
+/* Modal top gradient line */
+.modal-c::before{content:""!important;display:block;position:absolute;top:0;left:16%;right:16%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--up-a1),transparent)}
+/* Scrollbar + selection + focus */
+::-webkit-scrollbar-thumb{background:rgba(0,225,193,.28);border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,225,193,.55)}
+::selection{background:rgba(0,225,193,.30);color:#fff}
+.f-g input:focus,.f-g select:focus,.f-g textarea:focus,.input-glass:focus{
+  border-color:rgba(0,225,193,.55)!important;box-shadow:0 0 0 4px rgba(0,225,193,.09)!important;
+}
+html[data-theme="light"] .f-g input:focus,html[data-theme="light"] .f-g select:focus,html[data-theme="light"] .f-g textarea:focus,html[data-theme="light"] .input-glass:focus{
+  border-color:rgba(0,0,0,.55)!important;box-shadow:0 0 0 4px rgba(0,0,0,.07)!important;
+}
+
 </style>
 </head>
 <body>
