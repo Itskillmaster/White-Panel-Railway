@@ -1601,8 +1601,9 @@ def get_public_page_html(uuid_key: str) -> str:
 <title>White Panel · اشتراک</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="/static/premium.css?v=21">
 <style>
 :root{{
   --white-blue:#2B7FFF;--white-purple:#7B61FF;--white-red:#FF2352;
@@ -1732,4 +1733,5 @@ document.getElementById('root').innerHTML='<div class="info-card"><div class="in
 async function init(){{try{{var d=await loadData();if(d.locked){{renderLock(d.name);return}}renderContent(d)}}catch(e){{document.getElementById('root').innerHTML='<div class="empty"><i class="ti ti-alert-circle" style="color:var(--white-red)"></i><p>خطا در بارگذاری</p></div>'}}}}
 init();
 </script>
+<script src="/static/premium.js?v=21" defer></script>
 </body></html>"""
