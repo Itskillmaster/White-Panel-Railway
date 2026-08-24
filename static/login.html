@@ -6,7 +6,8 @@
 <title>White Panel Login</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/premium.css?v=21"/>
 <script>
         tailwind.config = {
             darkMode: "class",
@@ -76,12 +77,12 @@
                         "gutter": "24px"
                     },
                     "fontFamily": {
-                        "headline-md": ["Inter"],
+                        "headline-md": ["Space Grotesk", "Inter"],
                         "code-label": ["JetBrains Mono"],
-                        "body-sm": ["Inter"],
-                        "headline-lg-mobile": ["Inter"],
-                        "body-lg": ["Inter"],
-                        "headline-lg": ["Inter"]
+                        "body-sm": ["Inter", "Vazirmatn"],
+                        "headline-lg-mobile": ["Space Grotesk", "Inter"],
+                        "body-lg": ["Inter", "Vazirmatn"],
+                        "headline-lg": ["Space Grotesk", "Inter"]
                     },
                     "fontSize": {
                         "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
@@ -215,7 +216,16 @@
         .error-msg.show{animation:shake .5s cubic-bezier(.36,.07,.19,.97)}
         .foot-note{margin-top:4px;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.35);text-transform:uppercase;text-align:center}
         html[data-theme="light"] [data-login-theme] .foot-note{color:rgba(0,0,0,.35)}
-</style>
+        /* ── Premium motion accents (login) ── */
+        .logo-tile img{animation:wpFloat 6s ease-in-out infinite}
+        .brand-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:#00e1c1;display:inline-block;box-shadow:0 0 8px #00e1c1;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+        .btn-hover-effect:hover span.material-symbols-outlined{transform:translateX(4px)}
+        .btn-hover-effect span.material-symbols-outlined{transition:transform .3s var(--wp-ease, cubic-bezier(.22,1,.36,1))}
+        .input-glass{border-radius:18px}
+        .input-glass:focus~.material-symbols-outlined,
+        .input-wrapper:focus-within .material-symbols-outlined{color:#00e1c1!important}
+    </style>
 <script>
   document.documentElement.setAttribute('data-theme', localStorage.getItem('white-theme') === 'light' ? 'light' : 'dark');
 </script>
@@ -343,4 +353,5 @@ document.getElementById('login-form').addEventListener('submit', async function(
   }
 });
 </script>
+<script src="/static/premium.js?v=21" defer></script>
 </body></html>

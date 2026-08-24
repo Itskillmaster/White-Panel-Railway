@@ -959,6 +959,11 @@ html[data-theme="light"] .f-g input:focus,html[data-theme="light"] .f-g select:f
 }
 
 </style>
+<!-- ══════ PREMIUM TYPOGRAPHY + MOTION LAYER ══════ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/premium.css?v=21">
 </head>
 <body>
 
@@ -2074,6 +2079,7 @@ function switchTab(tab, el) {
     content.scrollLeft = 0;
   }
   target.classList.remove('hidden');
+  if (window.WPfx) { try { WPfx.tabIn(target); } catch(_) {} }
   target.style.setProperty('margin-top', '0px', 'important');
   target.style.setProperty('top', '0px', 'important');
   target.style.setProperty('transform', 'none', 'important');
@@ -2148,6 +2154,7 @@ async function loadDashboard() {
     html += '<span>Uptime: <strong style="color:var(--neon)" id="live-uptime">...</strong></span>';
     html += '</div></div>';
     $id('dashboard-content').innerHTML = html;
+    if (window.WPfx) { try { WPfx.counters($id('dashboard-content')); } catch(_) {} }
     startLiveStats();
   } catch(e) { $id('dashboard-content').innerHTML = '<div class="empty">' + t('errLoadStats') + '</div>'; }
 }
@@ -4287,5 +4294,6 @@ if (loginFormEl) {
 }
 
 </script>
+<script src="/static/premium.js?v=21" defer></script>
 </body>
 </html>

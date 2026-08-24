@@ -1,0 +1,148 @@
+/* ═══════════════════════════════════════════════════════════════════
+   WHITE PANEL · PREMIUM FX LAYER  (v2.1)
+   Typography: Vazirmatn (FA) · Space Grotesk (EN display)
+               Inter (EN body) · JetBrains Mono (code)
+   Motion:     expo-out entrances, staggered reveals, spring micro-fx,
+               spotlight cards, ink ripples, animated counters.
+   Loads AFTER page styles — safe additive layer, no layout resets.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  --wp-ease:cubic-bezier(.22,1,.36,1);
+  --wp-spring:cubic-bezier(.34,1.56,.64,1);
+  --wp-accent:var(--neon,#00e1c1);
+  --wp-spot:rgba(0,225,193,.075);
+  --wp-focus:rgba(0,225,193,.55);
+  --wp-ink:.16;
+}
+html[data-theme="light"]{
+  --wp-spot:rgba(0,0,0,.05);
+  --wp-focus:rgba(0,0,0,.45);
+}
+
+/* ─────────────────────────── TYPOGRAPHY ─────────────────────────── */
+body{
+  font-family:'Vazirmatn','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  font-optical-sizing:auto;
+}
+/* English UI → Inter body */
+html[lang="en"] body{font-family:'Inter','Vazirmatn',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+/* Display faces for headings & latin brand marks */
+h1,h2,h3,
+.login-title,.modal-t,.info-name,.lock-title,.brand-title,.sb-brand-t,
+.topbar-greet strong,.login-subtitle,.brand-chip{
+  font-family:'Space Grotesk','Vazirmatn','Inter',system-ui,sans-serif;
+}
+/* Numerals: tabular + display face so counters never jitter */
+.stat-v,.info-s-val,.srv-bar-pct,.usage-text{
+  font-family:'Space Grotesk','Vazirmatn',sans-serif;
+  font-variant-numeric:tabular-nums lining-nums;
+  font-feature-settings:"tnum" 1,"lnum" 1;
+}
+/* Code & machine values */
+.cfg-code,code,kbd,samp,.hint-value,.cfg-code *{
+  font-family:'JetBrains Mono','Vazirmatn',ui-monospace,monospace;
+}
+/* Latin-only tracking (never on Persian — breaks letter joining) */
+.sb-brand-t,.login-title,.foot-note,.brand-chip,.sidebar-logo-text{letter-spacing:.04em}
+
+/* ─────────────────────────── KEYFRAMES ─────────────────────────── */
+@keyframes wpUp{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes wpFade{from{opacity:0}to{opacity:1}}
+@keyframes wpPop{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes wpGradShift{0%,100%{background-position:0% center}50%{background-position:100% center}}
+@keyframes wpFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes wpShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── Entrance system (driven by premium.js) ── */
+.wp-go{animation:wpUp .58s var(--wp-ease) both;animation-delay:var(--wp-d,0ms)}
+.wp-go-row{animation:wpFade .45s var(--wp-ease) both;animation-delay:var(--wp-d,0ms)}
+.wp-go-pop{animation:wpPop .5s var(--wp-spring) both;animation-delay:var(--wp-d,0ms)}
+
+/* Modals: springy entrance + overlay fade (composes with page transforms) */
+.modal-c{animation:wpPop .46s var(--wp-spring) both}
+.modal.show{animation:wpFade .22s ease both}
+
+/* Brand shimmer on existing gradient text */
+.login-title,.sb-brand-t,.brand-title{
+  background-size:220% auto;
+  animation:wpGradShift 9s ease infinite;
+  will-change:background-position;
+}
+
+/* Logo gentle float */
+.login-icon,.logo-tile img,.sb-brand img,.white-svg,.sidebar-logo svg{
+  animation:wpFloat 6s ease-in-out infinite;
+}
+
+/* Status dot glow */
+.dot.pulse,[class*="dot-"]{box-shadow:0 0 10px -2px currentColor}
+
+/* ─────────────── MICRO-INTERACTIONS ─────────────── */
+/* Buttons: crisp press + spring hover lift where page allows */
+.btn:active,.ctrl-btn:active,.qa-btn:active,.scn-tab:active,
+.mob-btn:active,.theme-toggle:active,.theme-btn:active,.lang-btn:active{
+  transition-duration:.08s!important;
+  transform:translateY(0) scale(.965)!important;
+}
+.btn-p,.btn-primary{will-change:transform}
+/* Sidebar icons: springy nudge */
+.nav-item .nav-ic,.nav-item i{transition:transform .45s var(--wp-spring)}
+.nav-item:hover .nav-ic,.nav-item:hover i{transform:scale(1.18) rotate(-4deg)}
+.nav-item.active:hover .nav-ic,.nav-item.active:hover i{transform:scale(1.12) rotate(0deg)}
+/* Table rows: soft hover slide */
+tr{transition:background-color .2s ease}
+/* Inputs: focus ring unification */
+.f-g input:focus-visible,.f-g select:focus-visible,.f-g textarea:focus-visible,
+.input-glass:focus-visible,.form-input:focus-visible,.form-select:focus-visible,
+.form-textarea:focus-visible,.lock-input:focus-visible,.input-wrap input:focus-visible{
+  outline:none;
+  border-color:var(--wp-focus)!important;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--wp-focus) 18%,transparent)!important;
+}
+:focus-visible{outline:2px solid var(--wp-focus);outline-offset:2px;border-radius:4px}
+
+/* ── Spotlight cards (JS feeds --wx/--wy in px) ── */
+.wp-spot{position:relative}
+.wp-spot::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;z-index:0;
+  background:radial-gradient(340px circle at var(--wx,50%) var(--wy,50%),var(--wp-spot),transparent 62%);
+  opacity:0;transition:opacity .4s ease;pointer-events:none;
+}
+.wp-spot:hover::after{opacity:1}
+.wp-spot>*{position:relative;z-index:1}
+
+/* ── Ink ripple host + particle (JS spawns .wp-ink) ── */
+.wp-rp{position:relative!important;overflow:hidden!important}
+.wp-ink{
+  position:absolute;border-radius:50%;pointer-events:none;
+  background:currentColor;opacity:var(--wp-ink);transform:scale(0);
+  will-change:transform,opacity;
+}
+
+/* ── Skeleton shimmer utility ── */
+.wp-skel{
+  background:linear-gradient(90deg,rgba(127,127,127,.08) 25%,rgba(127,127,127,.17) 37%,rgba(127,127,127,.08) 63%);
+  background-size:400% 100%;
+  animation:wpShimmer 1.35s linear infinite;
+  border-radius:8px;color:transparent!important;
+}
+
+/* ── Scrollbar / selection polish for non-index pages ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--wp-accent) 30%,transparent);border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--wp-accent) 55%,transparent)}
+::selection{background:color-mix(in srgb,var(--wp-accent) 28%,transparent)}
+
+/* html smooth scroll (pages opt-out inline where needed) */
+html{scroll-behavior:smooth}
+
+/* ── Reduced motion: kill the whole layer gracefully ── */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .wp-go,.wp-go-row,.wp-go-pop{animation:none!important;opacity:1!important;transform:none!important}
+}
