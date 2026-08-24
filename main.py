@@ -5,6 +5,7 @@ import re
 import random
 import sys
 import hashlib
+import hmac
 
 # Ensure the app directory is on the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -12,7 +13,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import secrets
 import time
 import uuid
-import aiofiles
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from urllib.parse import quote
@@ -72,9 +72,20 @@ app.add_middleware(
 )
 
 # ── Persistence ───────────────────────────────────────────────────────────────
+# SQLite (WAL) is now the system of record. The in-memory dicts below remain as
+# a hot read cache for the relay/sub hot paths; every mutation is persisted
+# through the async CRUD layer in database.py (write-through), and save_state()
+# is a COALESCED full-snapshot sync shim that keeps legacy call sites durable.
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
-DATA_FILE = DATA_DIR / "white_state.json"
-SAVE_LOCK = asyncio.Lock()
+LEGACY_STATE_FILE = DATA_DIR / "white_state.json"   # pre-migration snapshot
+DB_FILE = DATA_DIR / "white_panel.db"
+SAVE_LOCK = asyncio.Lock()          # single-flight guard for persist_snapshot()
+_SAVE_COALESCED = {"scheduled": False}
+
+from database import Database  # noqa: E402  (after DATA_DIR)
+from migrate_json_to_sqlite import migrate_json_to_sqlite, load_legacy_state  # noqa: E402
+
+db = Database(DB_FILE, reader_count=int(os.environ.get("DB_READERS", 4)))
 
 # ── IP scanner live-saved files (first 10 working IPs per source) ─────────────
 SCANNED_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / "data" / "scanned"
@@ -156,34 +167,70 @@ def _save_scanned_ips(ctype: str, entries: list, replace: bool = False) -> list:
 
 async def load_state():
     global LINKS, AUTH, SUBS, USERS, SETTINGS, GROUPS, IP_POOL, IP_BLACKLIST, INBOUNDS
-    try:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        if DATA_FILE.exists():
-            async with aiofiles.open(DATA_FILE, "r", encoding="utf-8") as f:
-                raw = await f.read()
-            data = json.loads(raw)
-            LINKS.update(data.get("links", {}))
-            SUBS.update(data.get("subs", {}))
-            USERS.update(data.get("users", {}))
-            # Always load saved password hash (no secret-key guard — causes password reset bugs)
-            if "password_hash" in data:
-                AUTH["password_hash"] = data["password_hash"]
-            # Also store saved_secret so future saves remain consistent
-            if "saved_secret" in data:
-                CONFIG["secret"] = data["saved_secret"]
-            if "settings" in data:
-                SETTINGS.update(data["settings"])
-            GROUPS.update(data.get("groups", {}))
-            INBOUNDS.update(data.get("inbounds", {}))
-            IP_POOL.clear()
-            IP_POOL.extend(data.get("ip_pool", []))
-            IP_BLACKLIST.clear()
-            IP_BLACKLIST.update(data.get("ip_blacklist", []))
-            if isinstance(data.get("worker"), dict):
-                WORKER.update(data["worker"])
-            logger.info(f"State loaded: {len(LINKS)} links, {len(SUBS)} subs, {len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, {len(INBOUNDS)} inbounds")
-    except Exception as e:
-        logger.warning(f"Could not load state: {e}")
+    # ── Bootstrap the database ──
+    await db.initialize()
+    counts = await db.counts()
+    if (counts.get("users", 0) == 0 and counts.get("links", 0) == 0
+            and LEGACY_STATE_FILE.exists()):
+        # First boot after upgrade: transparently migrate the JSON snapshot.
+        logger.info("Empty DB + legacy white_state.json found → migrating…")
+        try:
+            legacy = load_legacy_state(LEGACY_STATE_FILE)
+            report = await migrate_json_to_sqlite(
+                db, legacy,
+                password_hash=legacy.get("password_hash") or "",
+                saved_secret=legacy.get("saved_secret") or "",
+            )
+            if report.get("ok"):
+                log_activity("system", "داده‌های JSON با موفقیت به SQLite منتقل شد", "ok")
+            else:
+                logger.error("Legacy migration reported problems: %s",
+                             report.get("problems"))
+        except Exception as e:
+            logger.error("Legacy JSON migration failed: %s", e)
+
+    # ── Hydrate the hot caches from SQLite ──
+    loaded = await db.load_app_settings() or (None, None, None)
+    app_settings, auth_hash, saved_secret = loaded
+    # Merge OVER the factory defaults (never wipe them — an empty/partial row
+    # must not erase reality/xhttp default blocks).
+    if isinstance(app_settings, dict):
+        SETTINGS.update(app_settings)
+    if auth_hash:
+        AUTH["password_hash"] = auth_hash
+    if saved_secret:
+        CONFIG["secret"] = saved_secret
+
+    async with USERS_LOCK:
+        USERS.clear()
+        USERS.update(await db.list_users())
+    async with LINKS_LOCK:
+        LINKS.clear()
+        LINKS.update(await db.list_links())
+    async with SUBS_LOCK:
+        SUBS.clear()
+        SUBS.update(await db.list_subs())
+    async with INBOUNDS_LOCK:
+        INBOUNDS.clear()
+        INBOUNDS.update(await db.list_inbounds())
+    async with GROUPS_LOCK:
+        GROUPS.clear()
+        GROUPS.update(await db.list_groups())
+    async with EDGES_LOCK:
+        EDGES.clear()
+        EDGES.update(await db.list_edges())
+    IP_POOL.clear()
+    IP_POOL.extend(await db.list_ip_pool())
+    IP_BLACKLIST.clear()
+    IP_BLACKLIST.update(await db.list_blacklist())
+    worker_row = await db.load_worker()
+    if isinstance(worker_row, dict) and worker_row:
+        WORKER.clear()
+        WORKER.update(worker_row)
+
+    logger.info(f"State loaded from SQLite: {len(LINKS)} links, {len(SUBS)} subs, "
+                f"{len(USERS)} users, {len(GROUPS)} groups, {len(IP_POOL)} ips, "
+                f"{len(INBOUNDS)} inbounds")
     # Rebuild path index from all users and links
     _rebuild_path_index()
     # Migrate: auto-create links for users that have config_uuid but no link
@@ -291,29 +338,44 @@ def _rebuild_path_index():
     logger.info(f"PATH_INDEX rebuilt: {len(PATH_INDEX)} entries")
 
 async def save_state():
+    """Durability shim — coalesced full-snapshot sync into SQLite.
+
+    Legacy code paths call this after mutating the caches. Instead of writing
+    a JSON file it now flushes the ENTIRE working set to SQLite inside one
+    transaction. Bursts are single-flight: while a sync is running, further
+    requests just set a flag and the running loop re-syncs once more with the
+    freshest state (no queue buildup, no write storms).
+    Hot-path mutations (user CRUD, traffic deltas) bypass this entirely via
+    targeted db.* calls in database.py.
+    """
+    if SAVE_LOCK.locked():
+        _SAVE_COALESCED["scheduled"] = True
+        return
     async with SAVE_LOCK:
-        try:
-            DATA_DIR.mkdir(parents=True, exist_ok=True)
-            data = {
-                "links": dict(LINKS),
-                "users": dict(USERS),
-                "subs": dict(SUBS),
-                "settings": dict(SETTINGS),
-                "groups": dict(GROUPS),
-                "inbounds": dict(INBOUNDS),
-                "ip_pool": list(IP_POOL),
-                "ip_blacklist": list(IP_BLACKLIST),
-                "worker": dict(WORKER),
-                "password_hash": AUTH["password_hash"],
-                "saved_secret": CONFIG["secret"],
-                "saved_at": datetime.now().isoformat(),
-            }
-            tmp = DATA_FILE.with_suffix(".tmp")
-            async with aiofiles.open(tmp, "w", encoding="utf-8") as f:
-                await f.write(json.dumps(data, ensure_ascii=False, indent=2))
-            tmp.replace(DATA_FILE)
-        except Exception as e:
-            logger.warning(f"Could not save state: {e}")
+        while True:
+            _SAVE_COALESCED["scheduled"] = False
+            # Every persisted mutation invalidates the edge snapshot cache.
+            bump_edge_revision()
+            try:
+                await db.sync_snapshot(
+                    users=USERS,
+                    links=LINKS,
+                    subs=SUBS,
+                    settings=SETTINGS,
+                    groups=GROUPS,
+                    inbounds=INBOUNDS,
+                    ip_pool=list(IP_POOL),
+                    ip_blacklist=set(IP_BLACKLIST),
+                    edges=EDGES,
+                    worker=WORKER,
+                    password_hash=AUTH.get("password_hash", ""),
+                    saved_secret=CONFIG.get("secret", ""),
+                )
+            except Exception as e:
+                logger.warning(f"state sync to SQLite failed: {e}")
+                return
+            if not _SAVE_COALESCED["scheduled"]:
+                return
 
 # ── In-memory state ───────────────────────────────────────────────────────────
 connections: dict = {}
@@ -444,7 +506,21 @@ TG_PROXY_INSTANCES: dict = {}
 # پروتکل‌های پشتیبانی‌شده برای هر کانفیگ
 PROTOCOLS = ("vless-ws", "xhttp-packet-up", "xhttp-stream-up", "xhttp-stream-one")
 
-USER_PROTOCOLS = ("vless", "vmess", "trojan", "shadowsocks", "reality")
+# Enterprise protocol registry — defined once in shared.py so bot.py, edge nodes
+# and the panel all agree on the supported set (Hysteria2 / TUIC v5 / XTLS-Vision).
+import shared
+from shared import (
+    USER_PROTOCOLS as _SHARED_USER_PROTOCOLS,
+    XTLS_VISION_FLOW,
+    UDP_PROTOCOLS,
+    derive_proto_password,
+    edge_token_hash,
+    EDGES, EDGES_LOCK,
+    EDGE_TRAFFIC_QUEUE, bump_edge_revision,
+)
+# NOTE: read live counters via shared.EDGE_REVISION (module attribute) — ints are
+# immutable so a `from shared import EDGE_REVISION` would freeze a stale value.
+USER_PROTOCOLS = _SHARED_USER_PROTOCOLS
 DEFAULT_PROTOCOL = "vless-ws"
 
 def log_activity(kind: str, message: str, level: str = "info"):
@@ -1332,6 +1408,18 @@ async def startup():
     asyncio.create_task(_worker_proxy_sync_loop())
     asyncio.create_task(_worker_auto_sync_loop())
     asyncio.create_task(_xray_client_audit_loop())
+    # Master–Edge: drain edge-reported traffic into user records (batched)
+    asyncio.create_task(_edge_traffic_flush_loop())
+
+    # Optional in-process Telegram admin bot. For production run `python bot.py`
+    # as a separate process; this hook covers single-container deployments.
+    if os.environ.get("BOT_TOKEN"):
+        try:
+            from bot import run_bot_task
+            asyncio.create_task(run_bot_task())
+            logger.info("Telegram admin bot started in-process (BOT_TOKEN set)")
+        except Exception as e:
+            logger.warning(f"Telegram bot failed to start: {e}")
 
     # Start Telegram Proxy instances for all existing TG inbounds
     await _start_all_telegram_proxies()
@@ -1448,13 +1536,15 @@ async def _restart_telegram_proxy(inbound_id: str):
 
 
 async def _sync_tg_traffic(user_id: str, nbytes: int):
-    """Sync Telegram proxy traffic back to the user record."""
+    """Sync Telegram proxy traffic back to the user record (cache + DB delta)."""
     try:
         async with USERS_LOCK:
             u = USERS.get(user_id)
-            if u:
-                u["traffic_used_bytes"] = u.get("traffic_used_bytes", 0) + nbytes
-        asyncio.create_task(save_state())
+            if not u:
+                return
+            u["traffic_used_bytes"] = u.get("traffic_used_bytes", 0) + nbytes
+        # Atomic single-row increment — never a full snapshot on the hot path.
+        asyncio.create_task(db.bump_user_traffic(user_id, nbytes))
     except Exception:
         pass
 
@@ -1513,7 +1603,14 @@ async def shutdown():
     # Stop all Telegram Proxy instances
     for iid in list(TG_PROXY_INSTANCES.keys()):
         await _stop_telegram_proxy(iid)
-    await save_state()
+    # Final durability barrier: flush the working set, fold the WAL, then
+    # close every pooled connection.
+    try:
+        await save_state()
+        await db.checkpoint()
+    except Exception as e:
+        logger.warning(f"final state sync failed: {e}")
+    await db.close()
     if http_client:
         await http_client.aclose()
 
@@ -1734,6 +1831,77 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
         if not inbound:
             return ""
         return generate_telegram_proxy_link(user_id, user, inbound, remark_tag)
+
+    # ── HYSTERIA2 (QUIC/UDP — served by the sing-box core) ───────────────────
+    # hysteria2://password@host:port/?sni=&insecure=&obfs=salamander&obfs-password=#remark
+    if proto == "hysteria2":
+        ext_domain = str(inbound.get("external_domain") or "").strip() if inbound else ""
+        ext_port = str(inbound.get("external_port") or "").strip() if inbound else ""
+        ib_port = str(inbound.get("port") or "") if inbound else ""
+        host = addr_ip or ext_domain or _safe_host(SETTINGS.get("domain"), get_host())
+        port = addr_port or ext_port or ib_port or "8443"
+        sni = (inbound.get("sni") if inbound else "") or host
+        # Deterministic per-user auth string (never stored, no migration needed)
+        auth = derive_proto_password(config_uuid, CONFIG["secret"], "hy2")
+        hsettings = (inbound.get("hysteria2_settings") or {}) if isinstance(inbound, dict) else {}
+        params = [f"sni={quote(sni)}", "insecure=0"]
+        obfs_pw = str(hsettings.get("obfs_password") or "").strip()
+        if obfs_pw:
+            params.append("obfs=salamander")
+            params.append(f"obfs-password={quote(obfs_pw)}")
+        up = str(hsettings.get("up_mbps") or "").strip()
+        down = str(hsettings.get("down_mbps") or "").strip()
+        if up:
+            params.append(f"up={up}")
+        if down:
+            params.append(f"down={down}")
+        return f"hysteria2://{auth}@{host}:{port}/?{'&'.join(params)}#{remark}"
+
+    # ── TUIC v5 (QUIC/UDP — served by the sing-box core) ─────────────────────
+    # tuic://uuid:password@host:port?congestion_control=bbr&udp_relay_mode=native&alpn=h3&sni=#remark
+    if proto == "tuic":
+        ext_domain = str(inbound.get("external_domain") or "").strip() if inbound else ""
+        ext_port = str(inbound.get("external_port") or "").strip() if inbound else ""
+        ib_port = str(inbound.get("port") or "") if inbound else ""
+        host = addr_ip or ext_domain or _safe_host(SETTINGS.get("domain"), get_host())
+        port = addr_port or ext_port or ib_port or "2443"
+        sni = (inbound.get("sni") if inbound else "") or host
+        tsettings = (inbound.get("tuic_settings") or {}) if isinstance(inbound, dict) else {}
+        cc = str(tsettings.get("congestion_control") or "bbr").strip().lower()
+        if cc not in ("bbr", "cubic", "new_reno"):
+            cc = "bbr"
+        udp_mode = str(tsettings.get("udp_relay_mode") or "native").strip().lower()
+        if udp_mode not in ("native", "quic"):
+            udp_mode = "native"
+        tuic_password = derive_proto_password(config_uuid, CONFIG["secret"], "tuic")
+        params = (f"congestion_control={cc}&udp_relay_mode={udp_mode}"
+                  f"&alpn=h3&sni={quote(sni)}&allow_insecure=0")
+        return f"tuic://{config_uuid}:{tuic_password}@{host}:{port}?{params}#{remark}"
+
+    # ── XTLS-VISION (VLESS + flow over TCP TLS/Reality — Xray-core native) ───
+    if proto == "xtls-vision":
+        if not inbound:
+            return ""
+        use_reality = ((inbound.get("security") or "").lower() == "reality")
+        ext_domain = str(inbound.get("external_domain") or "").strip()
+        ext_port = str(inbound.get("external_port") or "").strip()
+        host = addr_ip or ext_domain or _safe_host(SETTINGS.get("domain"), get_host())
+        port = addr_port or ext_port or str(inbound.get("port") or "443")
+        fp = inbound.get("fingerprint") or "chrome"
+        if use_reality:
+            rs = inbound.get("reality_settings") or SETTINGS.get("reality") or {}
+            priv_key = rs.get("private_key") or ""
+            pbk = _xray_x25519_public_key(priv_key) if priv_key else (rs.get("public_key") or "")
+            sid = rs.get("short_id") or ""
+            spx = rs.get("spiderx") or "/"
+            sni = inbound.get("sni") or rs.get("sni") or "is1-ssl.mzstatic.com"
+            params = (f"encryption=none&flow={XTLS_VISION_FLOW}&security=reality&type=tcp"
+                      f"&sni={quote(sni)}&fp={fp}&pbk={pbk}&sid={sid}&spx={spx}")
+        else:
+            sni = inbound.get("sni") or _safe_host(SETTINGS.get("domain"), get_host())
+            params = (f"encryption=none&flow={XTLS_VISION_FLOW}&security=tls&type=tcp"
+                      f"&sni={quote(sni)}&fp={fp}&alpn=h2,http/1.1")
+        return f"vless://{config_uuid}@{host}:{port}?{params}#{remark}"
 
     # ── REALITY (served by Xray core) ──
     if proto == "reality" or sec == "reality":
@@ -2838,7 +3006,8 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
     body = await request.json()
     name = (body.get("name") or "اینباند جدید").strip()[:60]
     protocol = str(body.get("protocol") or "vless").lower()
-    if protocol not in ("vless", "vmess", "trojan", "reality", "worker", "wireguard", "telegram"):
+    if protocol not in ("vless", "vmess", "trojan", "reality", "worker", "wireguard", "telegram",
+                        "hysteria2", "tuic", "xtls-vision"):
         raise HTTPException(status_code=400, detail="Invalid protocol")
     network = str(body.get("network") or "ws").lower()
     security = str(body.get("security") or "tls").lower()
@@ -2860,6 +3029,17 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
         external_domain = wdom
         sni = wdom
 
+    # XTLS-Vision flow is only defined for raw TCP transport.
+    if protocol == "xtls-vision":
+        network = "tcp"
+
+    # Hysteria2 / TUIC are UDP(QUIC): keep their own settings dicts handy and
+    # default security to tls (QUIC always runs over its own TLS 1.3).
+    if protocol in UDP_PROTOCOLS:
+        security = "tls"
+        if not isinstance(body.get(f"{protocol}_settings"), dict):
+            body[f"{protocol}_settings"] = {}
+
     # Telegram uses the explicit internal listener from telegram_settings.
     if protocol == "telegram":
         port = int(body.get("port") or 0)
@@ -2867,6 +3047,11 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
     elif protocol == "wireguard":
         port = 0
         external_port = 0
+    elif protocol in UDP_PROTOCOLS:
+        # Hysteria2 / TUIC are QUIC (UDP) listeners served by the sing-box core —
+        # never on 443/TCP relay; default to standard QUIC proxy ports.
+        port = int(body.get("port") or (8443 if protocol == "hysteria2" else 2443))
+        external_port = int(body.get("external_port") or port)
     else:
         port = int(body.get("port") or 443)
         external_port = int(body.get("external_port") or 443)
@@ -2921,8 +3106,10 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
     else:
         # For TLS WS/XHTTP (non-reality, non-worker): external_domain and external_port should be empty
         # The panel domain is used via SETTINGS["domain"] in generate_user_config
-        external_domain = ""
-        external_port = ""
+        # Hysteria2/TUIC keep their own real listen/external ports (QUIC listeners).
+        if protocol not in UDP_PROTOCOLS:
+            external_domain = ""
+            external_port = ""
     # WireGuard has no TCP listener here; Telegram keeps its real internal listener port.
     if protocol == "wireguard":
         port = 0
@@ -2952,6 +3139,9 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
             "grpc_settings": grpc_settings,
             "wireguard_settings": wireguard_settings,
             "telegram_settings": telegram_settings,
+            # Hysteria2 / TUIC v5 (QUIC) per-inbound settings
+            "hysteria2_settings": body.get("hysteria2_settings") if isinstance(body.get("hysteria2_settings"), dict) else {},
+            "tuic_settings": body.get("tuic_settings") if isinstance(body.get("tuic_settings"), dict) else {},
             "created_at": datetime.now().isoformat(),
         }
     if protocol == "reality" and network == "xhttp" and not xhttp_settings.get("path"):
@@ -2959,9 +3149,16 @@ async def create_inbound(request: Request, _=Depends(require_auth)):
         xhttp_settings.setdefault("mode", "stream-up")
         xhttp_settings.setdefault("xPaddingBytes", "100-1000")
         xhttp_settings.setdefault("scMaxEachPostBytes", "1000000")
-    await save_state()
+    # Write-through: single inbound row upsert
+    try:
+        await db.upsert_inbound(inbound_id, INBOUNDS[inbound_id])
+        bump_edge_revision()
+    except Exception as e:
+        logger.warning(f"inbound persist failed for {inbound_id}: {e}")
+        await save_state()
     log_activity("inbound", f"اینباند «{name}» با پروتکل {protocol.upper()} ساخته شد", "ok")
     asyncio.create_task(_xray_apply())  # (re)start Xray with the new inbound
+    asyncio.create_task(_singbox_apply())  # keep the QUIC core in sync too
     # Start Telegram Proxy if this is a telegram inbound
     if protocol == "telegram":
         asyncio.create_task(_start_telegram_proxy(inbound_id, INBOUNDS[inbound_id]))
@@ -2980,7 +3177,8 @@ async def update_inbound(inbound_id: str, request: Request, _=Depends(require_au
             ib["name"] = str(body["name"]).strip()[:60]
         if "protocol" in body:
             p = str(body["protocol"]).lower()
-            if p in ("vless", "vmess", "trojan", "reality", "worker", "wireguard", "telegram"):
+            if p in ("vless", "vmess", "trojan", "reality", "worker", "wireguard", "telegram",
+                     "hysteria2", "tuic", "xtls-vision"):
                 ib["protocol"] = p
         # A worker inbound always targets the connected worker domain; if the
         # inbound's domain is stale/empty, refresh it automatically.
@@ -3073,7 +3271,13 @@ async def update_inbound(inbound_id: str, request: Request, _=Depends(require_au
         ib["external_domain"] = ""
         ib["external_port"] = ""
 
-    await save_state()
+    # Write-through: single inbound row upsert
+    try:
+        await db.upsert_inbound(inbound_id, ib)
+        bump_edge_revision()
+    except Exception as e:
+        logger.warning(f"inbound persist failed for {inbound_id}: {e}")
+        await save_state()
     log_activity("inbound", f"اینباند «{ib.get('name', inbound_id)}» ویرایش شد", "info")
     asyncio.create_task(_xray_apply())
     # Restart Telegram Proxy if this is a telegram inbound
@@ -3144,7 +3348,12 @@ async def delete_inbound(inbound_id: str, _=Depends(require_auth)):
     # Stop Telegram Proxy if this was a telegram inbound
     if (ib.get("protocol") or "").lower() == "telegram":
         await _stop_telegram_proxy(inbound_id)
-    asyncio.create_task(save_state())
+    try:
+        await db.delete_inbound(inbound_id)
+        bump_edge_revision()
+    except Exception as err:
+        logger.warning(f"inbound delete persist failed for {inbound_id}: {err}")
+        asyncio.create_task(save_state())
     log_activity("inbound", f"اینباند «{name}» حذف شد", "err")
     return {"ok": True, "deleted": inbound_id}
 
@@ -3405,7 +3614,15 @@ async def create_user(request: Request, _=Depends(require_auth)):
         if _path:
             PATH_INDEX[_path.lstrip("/")] = config_uuid
 
-    asyncio.create_task(save_state())
+    # Write-through persistence (SQLite): user row + inbound memberships + link
+    try:
+        await db.upsert_user(user_id, USERS[user_id])
+        await db.upsert_link(LINKS[config_uuid], config_uuid)
+        bump_edge_revision()
+    except Exception as e:
+        logger.error(f"user persist failed ({username}): {e}")
+        raise HTTPException(status_code=500, detail="database write failed")
+
     log_activity("user", f"کاربر «{username}» با پروتکل {protocol} ساخته شد", "ok")
     # If the user picked the worker inbound, sync them to the worker so VLESS
     # auth + quotas work on the Cloudflare side too.
@@ -3466,7 +3683,16 @@ async def toggle_user(user_id: str, _=Depends(require_auth)):
             if config_uuid in LINKS:
                 LINKS[config_uuid]["active"] = (new_status == "active")
 
-    asyncio.create_task(save_state())
+    # Write-through: single-row UPDATE (no full snapshot needed)
+    try:
+        await db.update_user_status(user_id, new_status)
+        if config_uuid and config_uuid in LINKS:
+            await db.upsert_link(LINKS[config_uuid], config_uuid)
+        bump_edge_revision()
+    except Exception as e:
+        logger.warning(f"toggle persist failed for {user_id}: {e}")
+        asyncio.create_task(save_state())  # fallback: coalesced snapshot
+
     log_activity("user", f"کاربر «{u['username']}» {'غیرفعال' if new_status == 'disabled' else 'فعال'} شد", "ok" if new_status == "active" else "warn")
     # Reflect enable/disable on the worker side too.
     if WORKER.get("connected") and _user_uses_worker_inbound(u):
@@ -3487,7 +3713,12 @@ async def reset_user_traffic(user_id: str, _=Depends(require_auth)):
         asyncio.create_task(_worker_sync_users())
     for _tg_iid in [i for i in (u.get("inbound_ids") or []) if (INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram"]:
         asyncio.create_task(_restart_telegram_proxy(_tg_iid))
-    asyncio.create_task(save_state())
+    try:
+        await db.reset_user_traffic(user_id)
+        bump_edge_revision()
+    except Exception as e:
+        logger.warning(f"traffic-reset persist failed for {user_id}: {e}")
+        asyncio.create_task(save_state())
     log_activity("user", f"مصرف کاربر «{username}» ریست شد", "info")
     return {"ok": True, "user_id": user_id, "traffic_used_bytes": 0}
 
@@ -3607,7 +3838,16 @@ async def delete_user(user_id: str, _=Depends(require_auth)):
     # If the deleted user used the worker inbound, tell the worker to drop them.
     if WORKER.get("connected") and _user_uses_worker_inbound(u):
         asyncio.create_task(_worker_sync_users())
-    asyncio.create_task(save_state())
+    # Write-through delete: removes the user row + its config_uuid-keyed link
+    # in one transaction (FKs cascade user_inbounds / group memberships).
+    try:
+        await db.delete_user(user_id)
+        if config_uuid and config_uuid != user_id:
+            await db.delete_link(config_uuid)
+        bump_edge_revision()
+    except Exception as e:
+        logger.warning(f"delete persist failed for {user_id}: {e}")
+        asyncio.create_task(save_state())
     log_activity("user", f"کاربر «{username}» حذف شد", "err")
     return {"ok": True, "deleted": user_id}
 
@@ -3691,7 +3931,13 @@ async def edit_user(user_id: str, request: Request, _=Depends(require_auth)):
             if not re.fullmatch(r"[0-9a-f]{32}", cur_secret):
                 u["telegram_secret"] = derive_secret_from_uuid(u.get("config_uuid", user_id))
 
-    asyncio.create_task(save_state())
+    # Write-through: full row upsert (admin-frequency operation)
+    try:
+        await db.upsert_user(user_id, u)
+        bump_edge_revision()
+    except Exception as e:
+        logger.warning(f"edit persist failed for {user_id}: {e}")
+        asyncio.create_task(save_state())
     for _tg_iid in [i for i in (u.get("inbound_ids") or []) if (INBOUNDS.get(i, {}).get("protocol") or "").lower() == "telegram"]:
         asyncio.create_task(_restart_telegram_proxy(_tg_iid))
     log_activity("user", f"کاربر «{old_username}» ویرایش شد", "info")
@@ -5371,16 +5617,43 @@ def generate_xray_server_config(inbound_id: str = None) -> dict:
 def _add_inbound_to_xray(cfg: dict, ib: dict, iid: str, host: str):
     """Add a single inbound to an Xray config dict.
 
-    Only REALITY inbounds are served by Xray: WS/XHTTP TLS inbounds are handled
-    by the FastAPI relay (Railway terminates TLS on the public port), and the
-    Worker inbound is handled by the Cloudflare Worker. Adding TLS inbounds with
-    a fake /etc/xray/cert.pem made Xray fail on Railway (no cert file), which
-    took down Reality too.
+    REALITY / XTLS-Vision inbounds are served by Xray core. WS/XHTTP TLS
+    inbounds are handled by the FastAPI relay (Railway terminates TLS on the
+    public port), and the Worker inbound is handled by the Cloudflare Worker.
+    Adding TLS inbounds with a fake /etc/xray/cert.pem made Xray fail on
+    Railway (no cert file), which took down Reality too.
+
+    Hysteria2/TUIC are QUIC (UDP) protocols stock Xray-core cannot serve;
+    they are injected into the JSON structure below (tagged for traceability)
+    AND translated into the parallel sing-box config generated by
+    generate_singbox_server_config() which is applied by _singbox_apply().
     """
     protocol = ib.get("protocol", "vless")
     security = ib.get("security", "tls")
+    # ── Hysteria2 / TUIC v5 → injected marker entry + real sing-box config ──
+    if protocol in UDP_PROTOCOLS:
+        cfg["inbounds"].append({
+            "tag": f"inbound-{iid}",
+            "_core": "sing-box",
+            "protocol": protocol,
+            "listen": "0.0.0.0",
+            "port": int(ib.get("port") or 0),
+            "users": [
+                {
+                    "name": u.get("config_uuid"),
+                    # Deterministic per-user credential (matches share-link)
+                    "password": derive_proto_password(u.get("config_uuid", ""), CONFIG["secret"], protocol),
+                }
+                for u in USERS.values()
+                if u.get("config_uuid")
+                and iid in (u.get("inbound_ids") or ([u.get("inbound_id")] if u.get("inbound_id") else []))
+                and is_user_allowed(u)
+            ],
+        })
+        return
     is_reality = protocol == "reality" or security == "reality"
-    if not is_reality:
+    is_vision = protocol == "xtls-vision"
+    if not (is_reality or is_vision):
         return  # WS/XHTTP-TLS + worker inbounds are NOT Xray's job
     # A reality inbound without a configured port is not ready yet — skip it
     # so Xray doesn't start on a wrong/default port.
@@ -5416,7 +5689,7 @@ def _add_inbound_to_xray(cfg: dict, ib: dict, iid: str, host: str):
     # Only users that are currently allowed (active + not expired + quota left)
     # are served — expired/disabled/quota-exceeded users are dropped so Xray
     # rejects their connections (real expiry/volume enforcement for Reality).
-    if protocol in ("vless", "reality", "vmess", "trojan"):
+    if protocol in ("vless", "reality", "vmess", "trojan", "xtls-vision"):
         client_ids = set()
         for u in USERS.values():
             uids = u.get("inbound_ids") or ([u.get("inbound_id")] if u.get("inbound_id") else [])
@@ -5429,7 +5702,10 @@ def _add_inbound_to_xray(cfg: dict, ib: dict, iid: str, host: str):
         clients = []
         for uid in client_ids:
             client = {"id": uid}
-            if protocol in ("vless", "reality"):
+            if is_vision:
+                # XTLS-Vision: the flow is mandatory on BOTH ends
+                client["flow"] = XTLS_VISION_FLOW
+            elif protocol in ("vless", "reality"):
                 client["flow"] = ""
             elif protocol == "vmess":
                 client["alterId"] = 0
@@ -5538,12 +5814,14 @@ _xray_last_served: set = set()
 
 
 def _expected_xray_client_uuids() -> set:
-    """Real users Xray should currently serve on reality inbounds."""
+    """Real users Xray should currently serve on reality/vision inbounds."""
     out = set()
     for iid, ib in INBOUNDS.items():
-        is_reality = ((ib.get("protocol") or "").lower() == "reality"
-                      or (ib.get("security") or "").lower() == "reality")
-        if not is_reality:
+        _proto = (ib.get("protocol") or "").lower()
+        is_xray_served = (_proto == "reality"
+                          or (ib.get("security") or "").lower() == "reality"
+                          or _proto == "xtls-vision")
+        if not is_xray_served:
             continue
         for u in USERS.values():
             uids = u.get("inbound_ids") or ([u.get("inbound_id")] if u.get("inbound_id") else [])
@@ -5639,6 +5917,168 @@ async def _xray_apply():
     config = generate_xray_server_config()
     await _xray_start(config)
     _xray_last_served = _expected_xray_client_uuids()
+    # Keep the QUIC core (Hysteria2/TUIC) in sync with the same lifecycle.
+    await _singbox_apply()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SING-BOX CORE (Hysteria2 + TUIC v5) — the dual-core runtime
+# ══════════════════════════════════════════════════════════════════════════════
+# Stock Xray-core cannot bind QUIC listeners, so UDP_PROTOCOLS inbounds are
+# translated 1:1 into a sing-box config. The panel manages both processes with
+# the same apply/audit lifecycle; if the sing-box binary is absent the config
+# is still generated (exportable) but no process is started.
+
+def generate_singbox_server_config() -> dict:
+    """Build a complete sing-box config for all Hysteria2/TUIC inbounds."""
+    inbounds: list = []
+    users_by_inbound: dict = {}
+    for iid, ib in INBOUNDS.items():
+        proto = (ib.get("protocol") or "").lower()
+        if proto not in UDP_PROTOCOLS:
+            continue
+        try:
+            listen_port = int(ib.get("port") or 0)
+        except (TypeError, ValueError):
+            continue
+        if listen_port <= 0:
+            continue
+        users = []
+        for u in USERS.values():
+            uids = u.get("inbound_ids") or ([u.get("inbound_id")] if u.get("inbound_id") else [])
+            cuuid = u.get("config_uuid") or ""
+            if iid in uids and cuuid and is_user_allowed(u):
+                users.append({
+                    "name": u.get("username", cuuid),
+                    "password": derive_proto_password(cuuid, CONFIG["secret"], proto),
+                })
+        users_by_inbound[iid] = users
+        domain = ib.get("domain") or _safe_host(SETTINGS.get("domain"), get_host())
+        sni_val = ib.get("sni") or domain or "is1-ssl.mzstatic.com"
+        tls_block = {
+            "enabled": True,
+            "server_name": sni_val,
+            "insecure": False,
+            "alpn": ["h3"],
+        }
+        if proto == "hysteria2":
+            hset = ib.get("hysteria2_settings") or {}
+            obfs_pw = str(hset.get("obfs_password") or "").strip()
+            entry: dict = {
+                "type": "hysteria2",
+                "tag": f"inbound-{iid}",
+                "listen": "::",
+                "listen_port": listen_port,
+                "users": users,
+                "tls": tls_block,
+            }
+            if obfs_pw:
+                entry["obfs"] = {"type": "salamander", "password": obfs_pw}
+            up = hset.get("up_mbps")
+            down = hset.get("down_mbps")
+            if up or down:
+                entry["up_mbps"] = int(up) if up else 0
+                entry["down_mbps"] = int(down) if down else 0
+            inbounds.append(entry)
+        elif proto == "tuic":
+            tset = ib.get("tuic_settings") or {}
+            cc = str(tset.get("congestion_control") or "bbr").lower()
+            if cc not in ("bbr", "cubic", "new_reno"):
+                cc = "bbr"
+            inbounds.append({
+                "type": "tuic",
+                "tag": f"inbound-{iid}",
+                "listen": "::",
+                "listen_port": listen_port,
+                "users": [
+                    {
+                        "name": u.get("config_uuid"),
+                        "uuid": u.get("config_uuid"),
+                        "password": derive_proto_password(u.get("config_uuid"), CONFIG["secret"], "tuic"),
+                    }
+                    for u in USERS.values()
+                    if u.get("config_uuid")
+                    and iid in (u.get("inbound_ids") or ([u.get("inbound_id")] if u.get("inbound_id") else []))
+                    and is_user_allowed(u)
+                ],
+                "congestion_control": cc,
+                "udp_relay_mode": str(tset.get("udp_relay_mode") or "native").lower(),
+                "zero_rtt_handshake": bool(tset.get("zero_rtt_handshake")),
+                "tls": tls_block,
+            })
+    return {
+        "log": {"level": "warn", "timestamp": True},
+        "inbounds": inbounds,
+        "outbounds": [{"type": "direct", "tag": "direct"}],
+        "route": {"rules": [], "final": "direct"},
+    }
+
+
+_singbox_proc: asyncio.subprocess.Process | None = None
+_singbox_restart_lock = asyncio.Lock()
+
+
+def _singbox_bin_path() -> Path:
+    return Path(os.path.dirname(os.path.abspath(__file__))) / "sing-box" / "sing-box"
+
+
+async def _singbox_apply():
+    """Regenerate the sing-box config; start/restart its process when needed."""
+    global _singbox_proc
+    config = generate_singbox_server_config()
+    bin_path = _singbox_bin_path()
+    cfg_path = bin_path.parent / "config.json"
+    has_quic_inbounds = bool(config.get("inbounds"))
+    try:
+        cfg_path.parent.mkdir(parents=True, exist_ok=True)
+        cfg_path.write_text(json.dumps(config, indent=2, ensure_ascii=False))
+    except Exception as e:
+        logger.warning(f"sing-box config write failed: {e}")
+        return False
+    if not has_quic_inbounds:
+        # Nothing to serve — stop any running instance to free ports.
+        if _singbox_proc and _singbox_proc.returncode is None:
+            try:
+                _singbox_proc.terminate()
+            except Exception:
+                pass
+        return False
+    if not bin_path.exists():
+        logger.info("sing-box binary not present; Hysteria2/TUIC configs exported only "
+                    "(place binary at sing-box/sing-box to activate)")
+        return False
+    async with _singbox_restart_lock:
+        if _singbox_proc and _singbox_proc.returncode is None:
+            try:
+                _singbox_proc.terminate()
+                await asyncio.wait_for(_singbox_proc.wait(), timeout=3)
+            except Exception:
+                try:
+                    _singbox_proc.kill()
+                except Exception:
+                    pass
+        try:
+            log_path = bin_path.parent / "singbox-runtime.log"
+            log_fp = open(log_path, "ab", buffering=0)
+            _singbox_proc = await asyncio.create_subprocess_exec(
+                str(bin_path), "run", "-c", str(cfg_path),
+                stdout=log_fp,
+                stderr=asyncio.subprocess.STDOUT,
+            )
+            await asyncio.sleep(0.8)
+            if _singbox_proc.returncode is not None:
+                tail = ""
+                try:
+                    tail = log_path.read_text(errors="ignore")[-3000:]
+                except Exception:
+                    pass
+                logger.error(f"sing-box exited immediately (code={_singbox_proc.returncode}). {tail}")
+                return False
+            logger.info(f"sing-box started (pid={_singbox_proc.pid}) serving Hysteria2/TUIC")
+            return True
+        except Exception as e:
+            logger.warning(f"sing-box start failed: {e}")
+            return False
 
 
 @app.post("/api/tools/generate-xray-config")
@@ -7250,6 +7690,275 @@ async def scanner_sni_fastest(_=Depends(require_auth)):
 # ══════════════════════════════════════════════════════════════════════════════
 
 # (removed dead proxy-ips endpoints — proxy source is now the daily GitHub list)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MASTER–EDGE (MULTI-NODE) ARCHITECTURE
+# ══════════════════════════════════════════════════════════════════════════════
+# This panel is the MASTER (control plane + state of record). External EDGE
+# nodes (VPS boxes running Xray/sing-box/relay) authenticate with a per-node
+# bearer token, pull the user/inbound snapshot and report live traffic back.
+#
+#   POST   /api/edge/nodes            (admin)  register node → {node_id, token}
+#   GET    /api/edge/nodes            (admin)  list nodes + health
+#   DELETE /api/edge/nodes/{node_id}  (admin)  revoke node
+#   GET    /api/edge/revision         (edge)   cheap drift check
+#   GET    /api/edge/pull             (edge)   full snapshot (users+inbounds)
+#   POST   /api/edge/report           (edge)   traffic deltas + health metrics
+#
+# Traffic reports are pushed into shared.EDGE_TRAFFIC_QUEUE (lock-free deque)
+# and drained every 2s in ONE batched USERS_LOCK pass → report handlers never
+# contend with the relay hot path (high-concurrency ingestion).
+
+EDGE_TRAFFIC_FLUSH_INTERVAL = float(os.environ.get("EDGE_TRAFFIC_FLUSH_INTERVAL", 2.0))
+
+
+def require_edge_auth(request: Request):
+    """Authenticate an edge node via X-Edge-Node + X-Edge-Token headers."""
+    node_id = request.headers.get("x-edge-node", "").strip()
+    token = request.headers.get("x-edge-token", "").strip()
+    if not node_id or not token:
+        raise HTTPException(status_code=401, detail="edge credentials required")
+    edge = EDGES.get(node_id)
+    if not edge:
+        raise HTTPException(status_code=401, detail="unknown edge node")
+    if hmac.compare_digest(str(edge.get("token_hash") or ""), edge_token_hash(token)):
+        return node_id
+    raise HTTPException(status_code=401, detail="invalid edge token")
+
+
+@app.post("/api/edge/nodes")
+async def edge_register_node(request: Request, _=Depends(require_auth)):
+    """(Admin) Register an edge node. The raw token is returned ONCE."""
+    body = await request.json() if (await request.body()) else {}
+    name = str((body or {}).get("name") or "edge-node").strip()[:60]
+    node_id = f"edge-{secrets.token_hex(4)}"
+    raw_token = secrets.token_urlsafe(32)
+    async with EDGES_LOCK:
+        EDGES[node_id] = {
+            "name": name,
+            "token_hash": edge_token_hash(raw_token),
+            "token_hint": raw_token[:6] + "…",
+            "status": "pending",
+            "last_seen": "",
+            "ip": "",
+            "version": "",
+            "connections": 0,
+            "cpu_percent": 0,
+            "ram_percent": 0,
+            "traffic_reported_bytes": 0,
+            "reports_count": 0,
+            "created_at": datetime.now().isoformat(),
+        }
+    try:
+        await db.upsert_edge(node_id, EDGES[node_id])
+        bump_edge_revision()
+    except Exception as e:
+        logger.warning(f"edge register persist failed for {node_id}: {e}")
+        await save_state()
+    log_activity("edge", f"گره Edge «{name}» ثبت شد", "ok")
+    return {"ok": True, "node_id": node_id, "token": raw_token,
+            "hint": "token is shown only once — store it on the edge node"}
+
+
+@app.get("/api/edge/nodes")
+async def edge_list_nodes(_=Depends(require_auth)):
+    """(Admin) List all registered edge nodes with live health."""
+    now = time.time()
+    out = []
+    async with EDGES_LOCK:
+        snap = {k: dict(v) for k, v in EDGES.items()}
+    for nid, e in snap.items():
+        e.pop("token_hash", None)  # never leak hashes to the UI
+        last = e.get("last_seen") or ""
+        try:
+            age = now - datetime.fromisoformat(last).timestamp() if last else None
+        except Exception:
+            age = None
+        e["online"] = bool(age is not None and age < 90)
+        e["last_seen_age_secs"] = int(age) if age is not None else None
+        e["node_id"] = nid
+        out.append(e)
+    return {"ok": True, "nodes": out, "revision": shared.EDGE_REVISION}
+
+
+@app.delete("/api/edge/nodes/{node_id}")
+async def edge_delete_node(node_id: str, _=Depends(require_auth)):
+    """(Admin) Revoke an edge node — its token stops working immediately."""
+    async with EDGES_LOCK:
+        e = EDGES.pop(node_id, None)
+    if not e:
+        raise HTTPException(status_code=404, detail="node not found")
+    try:
+        await db.delete_edge(node_id)
+        bump_edge_revision()
+    except Exception as err:
+        logger.warning(f"edge revoke persist failed for {node_id}: {err}")
+        await save_state()
+    log_activity("edge", f"گره Edge «{e.get('name', node_id)}» لغو شد", "warn")
+    return {"ok": True}
+
+
+def _edge_user_payload(u: dict) -> dict:
+    """Serialize a user for edge consumption (credentials included)."""
+    proto = (u.get("protocol") or "").lower()
+    cuuid = u.get("config_uuid") or ""
+    payload = {
+        "user_id": next((k for k, v in USERS.items() if v is u), ""),
+        "username": u.get("username"),
+        "config_uuid": cuuid,
+        "protocol": proto,
+        "transport_type": u.get("transport_type"),
+        "path": u.get("path"),
+        "inbound_ids": u.get("inbound_ids") or ([u["inbound_id"]] if u.get("inbound_id") else []),
+        "allowed": is_user_allowed(u),
+        "traffic_limit_bytes": u.get("traffic_limit_bytes", 0),
+        "traffic_used_bytes": u.get("traffic_used_bytes", 0),
+        "expire_at": u.get("expire_at"),
+        "concurrent_connections": u.get("concurrent_connections", 3),
+        "telegram_secret": u.get("telegram_secret", ""),
+    }
+    if proto == "hysteria2":
+        payload["hysteria2_password"] = derive_proto_password(cuuid, CONFIG["secret"], "hysteria2")
+    if proto == "tuic":
+        payload["tuic_password"] = derive_proto_password(cuuid, CONFIG["secret"], "tuic")
+        payload["tuic_uuid"] = cuuid
+    return payload
+
+
+@app.get("/api/edge/revision")
+async def edge_revision(request: Request):
+    require_edge_auth(request)
+    return {"ok": True, "revision": shared.EDGE_REVISION}
+
+
+@app.get("/api/edge/pull")
+async def edge_pull(request: Request):
+    """Edge fetches the full config snapshot (users + inbounds + domain)."""
+    node_id = require_edge_auth(request)
+    async with EDGES_LOCK:
+        if node_id in EDGES:
+            EDGES[node_id]["status"] = "online"
+            EDGES[node_id]["last_seen"] = datetime.now().isoformat()
+    async with INBOUNDS_LOCK:
+        inbounds_snap = json.loads(json.dumps(INBOUNDS))  # deep copy snapshot
+    async with USERS_LOCK:
+        users_snap = [_edge_user_payload(u) for u in USERS.values()]
+    host = _safe_host(SETTINGS.get("domain"), get_host())
+    return {
+        "ok": True,
+        "revision": shared.EDGE_REVISION,
+        "panel_domain": host,
+        "secret_fingerprint": hashlib.sha256(CONFIG["secret"].encode()).hexdigest()[:16],
+        "users": [u for u in users_snap if u["user_id"]],
+        "inbounds": inbounds_snap,
+        "server_time": datetime.now().isoformat(),
+    }
+
+
+@app.post("/api/edge/report")
+async def edge_report(request: Request):
+    """Edge pushes traffic deltas + health. Returns immediately after enqueue.
+
+    Body: {
+      "traffic": [{"config_uuid"|"user_id": "...", "bytes": int}, ...],
+      "connections": int, "cpu_percent": float, "ram_percent": float,
+      "version": "str"
+    }
+    """
+    node_id = require_edge_auth(request)
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid JSON body")
+    reported_total = 0
+    for item in (body.get("traffic") or [])[:10_000]:
+        if not isinstance(item, dict):
+            continue
+        try:
+            nbytes = max(0, int(item.get("bytes") or 0))
+        except (TypeError, ValueError):
+            continue
+        if nbytes <= 0:
+            continue
+        reported_total += nbytes
+        EDGE_TRAFFIC_QUEUE.append({
+            "user_id": str(item.get("user_id") or ""),
+            "config_uuid": str(item.get("config_uuid") or ""),
+            "bytes": nbytes,
+        })
+    stats["total_bytes"] += reported_total
+    async with EDGES_LOCK:
+        e = EDGES.get(node_id)
+        if e:
+            e["status"] = "online"
+            e["last_seen"] = datetime.now().isoformat()
+            e["ip"] = client_ip(request)
+            e["version"] = str(body.get("version") or e.get("version") or "")
+            e["connections"] = max(0, int(body.get("connections") or 0))
+            e["cpu_percent"] = float(body.get("cpu_percent") or 0)
+            e["ram_percent"] = float(body.get("ram_percent") or 0)
+            e["traffic_reported_bytes"] = e.get("traffic_reported_bytes", 0) + reported_total
+            e["reports_count"] = e.get("reports_count", 0) + 1
+    return {"ok": True, "queued_bytes": reported_total,
+            "queue_depth": len(EDGE_TRAFFIC_QUEUE), "revision": shared.EDGE_REVISION}
+
+
+async def _edge_traffic_flush_loop():
+    """Drain EDGE_TRAFFIC_QUEUE into user records — batched, single-transaction.
+
+    Per flush cycle:
+      1. Drain the lock-free deque into a per-user delta map (no locks held).
+      2. ONE USERS_LOCK pass: resolve config_uuid→user_id, update the cache
+         and collect (user_id, nbytes) tuples.
+      3. ONE SQLite transaction with executemany UPDATE (database.apply_
+         traffic_deltas) + one executemany for edge health rows.
+
+    Lock contention is O(1) per cycle regardless of report rate, and the DB
+    sees a single commit instead of N row commits.
+    """
+    while True:
+        await asyncio.sleep(EDGE_TRAFFIC_FLUSH_INTERVAL)
+        if not EDGE_TRAFFIC_QUEUE:
+            continue
+        deltas: dict = {}
+        n = len(EDGE_TRAFFIC_QUEUE)
+        for _ in range(n):
+            try:
+                item = EDGE_TRAFFIC_QUEUE.popleft()
+            except IndexError:
+                break
+            key = item.get("user_id") or item.get("config_uuid")
+            if not key:
+                continue
+            deltas[key] = deltas.get(key, 0) + item.get("bytes", 0)
+        if not deltas:
+            continue
+        applied: list = []
+        async with USERS_LOCK:
+            uuid_to_uid = {u.get("config_uuid"): uid for uid, u in USERS.items()}
+            for key, nbytes in deltas.items():
+                uid = key if key in USERS else uuid_to_uid.get(key)
+                if not uid or uid not in USERS:
+                    continue  # stale report for a deleted user
+                u = USERS[uid]
+                u["traffic_used_bytes"] = u.get("traffic_used_bytes", 0) + nbytes
+                auto_check_user_expiry(u)
+                applied.append((uid, nbytes))
+        if not applied:
+            continue
+        try:
+            # Bulk async UPDATE — one BEGIN IMMEDIATE / COMMIT for the batch.
+            await db.apply_traffic_deltas(applied)
+            await db.persist_edges_health(EDGES)
+            # Quota consumption invalidates edge snapshots (allowed flags may
+            # flip when a user crosses their limit) → bump drift revision.
+            bump_edge_revision()
+        except Exception as e:
+            logger.warning(f"edge traffic flush DB error: {e}")
+            asyncio.create_task(save_state())  # fallback: coalesced snapshot
+        logger.info(f"Edge traffic flush: applied {len(applied)} user deltas "
+                    f"({sum(n for _, n in applied)} bytes)")
 
 
 if __name__ == "__main__":

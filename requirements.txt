@@ -10,3 +10,5 @@ psutil
 cryptography
 pysocks>=1.7.1
 APScheduler==3.10.4
+aiogram>=3.15,<4
+aiosqlite>=0.20
