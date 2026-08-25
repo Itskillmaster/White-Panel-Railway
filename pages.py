@@ -881,6 +881,33 @@ a{color:inherit;text-decoration:none}
         </div>
       </div>
     </div>
+
+    <div class="table-wrap">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--border)">
+        <div class="server-title" style="margin-bottom:0"><i class="ti ti-brand-telegram"></i> ربات مدیریت تلگرام</div>
+      </div>
+      <div style="padding:18px 22px">
+        <div class="form-row">
+          <div class="form-field">
+            <label><i class="ti ti-key"></i> BOT_TOKEN</label>
+            <input class="form-input" id="bot-token" type="password" placeholder="123456789:AAHfk…" dir="ltr" autocomplete="new-password">
+          </div>
+          <div class="form-field">
+            <label><i class="ti ti-users-group"></i> ADMIN_TELEGRAM_IDS</label>
+            <input class="form-input" id="bot-admin-ids" placeholder="111111111,222222222" dir="ltr">
+          </div>
+        </div>
+        <div class="form-field">
+          <label>راهنما</label>
+          <div style="font-size:11.5px;color:var(--text-secondary);line-height:1.8">توکن را از @BotFather بگیرید؛ شناسه‌های عددی تلگرام ادمین‌ها را با کاما جدا کنید. ذخیره = اجرای مجدد ربات.</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:12px" id="bot-status">—</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="saveBotSettings(this)"><i class="ti ti-device-floppy"></i> ذخیره و اجرای ربات</button>
+          <button class="btn btn-ghost" onclick="loadBotSettings()"><i class="ti ti-refresh"></i> بازخوانی</button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- WORKER PAGE -->
@@ -1353,6 +1380,8 @@ async function loadSettings(){
     document.getElementById('set-real-sni').value=real.sni||d.domain||'';
     document.getElementById('set-real-ext-domain').value=real.external_domain||d.domain||'';
     document.getElementById('set-real-ext-port').value=real.external_port||443;
+    // Telegram Admin Bot
+    loadBotSettings();
   }catch(e){console.error(e)}
 }
 
@@ -1405,6 +1434,37 @@ async function generateRealityKeys(){
 }
 
 function updateProtoCheckboxes(){/* no-op hook for UI */}
+
+/* ============ TELEGRAM ADMIN BOT ============ */
+async function loadBotSettings(){
+  try{
+    var r=await authFetch('/api/bot/settings'),d=await r.json();
+    var tok=document.getElementById('bot-token');
+    if(!tok)return;
+    tok.value='';
+    tok.placeholder=d.bot_token||'123456789:AAHfk…';
+    document.getElementById('bot-admin-ids').value=(d.admin_telegram_ids||[]).join(',');
+    var st=document.getElementById('bot-status');
+    st.textContent=d.running?'● ربات در حال اجراست':(d.configured?'○ توکن ذخیره شده — برای اجرا/بروزرسانی ذخیره کنید':'ربات هنوز پیکربندی نشده است');
+    st.style.color=d.running?'var(--success)':'var(--text-secondary)';
+  }catch(e){console.error(e)}
+}
+
+async function saveBotSettings(btn){
+  if(btn)btn.disabled=true;
+  try{
+    var r=await authFetch('/api/bot/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      bot_token:document.getElementById('bot-token').value.trim(),
+      admin_telegram_ids:document.getElementById('bot-admin-ids').value.trim()
+    })});
+    var d=await r.json();
+    if(!r.ok||!d.ok)throw new Error();
+    toast(d.running?'ربات ذخیره و اجرا شد ✓':'تنظیمات ربات ذخیره شد ✓','ok');
+    document.getElementById('bot-token').value='';
+    loadBotSettings();
+  }catch(e){toast('خطا در ذخیره تنظیمات ربات','err')}
+  if(btn)btn.disabled=false;
+}
 
 /* ============ WORKER PAGE ============ */
 async function loadWorker(){

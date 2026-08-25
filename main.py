@@ -1413,11 +1413,11 @@ async def startup():
 
     # Optional in-process Telegram admin bot. For production run `python bot.py`
     # as a separate process; this hook covers single-container deployments.
-    if os.environ.get("BOT_TOKEN"):
+    # Token comes from the BOT_TOKEN env var or from Settings ▸ Telegram Admin
+    # Bot in the web UI (persisted in SETTINGS["bot_token"]).
+    if os.environ.get("BOT_TOKEN") or SETTINGS.get("bot_token"):
         try:
-            from bot import run_bot_task
-            asyncio.create_task(run_bot_task())
-            logger.info("Telegram admin bot started in-process (BOT_TOKEN set)")
+            await _start_embedded_bot()
         except Exception as e:
             logger.warning(f"Telegram bot failed to start: {e}")
 
@@ -4532,6 +4532,103 @@ async def rotate_security_token(_=Depends(require_auth)):
     asyncio.create_task(save_state())
     log_activity("settings", "توکن امنیتی جدید تولید شد", "ok")
     return {"ok": True, "security_token": SETTINGS["security_token"]}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TELEGRAM ADMIN BOT MANAGEMENT (Settings ▸ Telegram Admin Bot)
+# Credentials persist inside SETTINGS (synced to SQLite as part of the "app"
+# document) so both the embedded bot and a standalone `python bot.py` can pick
+# them up without touching environment variables.
+# ══════════════════════════════════════════════════════════════════════════════
+
+BOT_TASK: asyncio.Task | None = None
+
+
+def _mask_bot_token(token: str) -> str:
+    token = str(token or "").strip()
+    if not token:
+        return ""
+    if len(token) <= 10:
+        return "••••••"
+    return f"{token[:6]}••••••{token[-4:]}"
+
+
+async def _start_embedded_bot(force_restart: bool = False) -> bool:
+    """Start (or restart) the in-process Telegram admin bot.
+
+    Returns True when a polling task ends up running.
+    """
+    global BOT_TASK
+    async with SETTINGS_LOCK:
+        token = str(SETTINGS.get("bot_token") or os.environ.get("BOT_TOKEN", "")).strip()
+    if not token:
+        return False
+    if BOT_TASK and not BOT_TASK.done():
+        if not force_restart:
+            return True
+        BOT_TASK.cancel()
+        try:
+            await BOT_TASK
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logger.warning(f"previous bot task ended with: {e}")
+    try:
+        from bot import run_bot_task  # aiogram optional dependency
+    except Exception as e:
+        logger.warning(f"Telegram bot import failed (is aiogram installed?): {e}")
+        return False
+    BOT_TASK = asyncio.create_task(run_bot_task())
+    logger.info("Telegram admin bot started from panel settings")
+    return True
+
+
+async def _bot_settings_payload() -> dict:
+    async with SETTINGS_LOCK:
+        token = str(SETTINGS.get("bot_token") or "")
+        admins = list(SETTINGS.get("admin_telegram_ids") or [])
+    return {
+        "configured": bool(token or os.environ.get("BOT_TOKEN")),
+        "bot_token": _mask_bot_token(token),
+        "admin_telegram_ids": admins,
+        "running": bool(BOT_TASK and not BOT_TASK.done()),
+    }
+
+
+@app.get("/api/bot/settings")
+async def get_bot_settings(_=Depends(require_auth)):
+    """Current Telegram admin-bot configuration (token masked)."""
+    return await _bot_settings_payload()
+
+
+@app.post("/api/bot/settings")
+async def set_bot_settings(request: Request, _=Depends(require_auth)):
+    """Save BOT_TOKEN / ADMIN_TELEGRAM_IDS and (re)start the embedded bot.
+
+    An empty bot_token keeps the previously stored one, so admins can update
+    just the ID list without re-entering the secret.
+    """
+    body = await request.json()
+    async with SETTINGS_LOCK:
+        new_token = str(body.get("bot_token") or "").strip()
+        if new_token:
+            SETTINGS["bot_token"] = new_token
+        if "admin_telegram_ids" in body:
+            raw = body.get("admin_telegram_ids") or []
+            if isinstance(raw, str):
+                raw = [x for x in raw.replace(" ", "").split(",") if x]
+            ids: list[int] = []
+            for x in raw:
+                sx = str(x).strip()
+                if sx.lstrip("-").isdigit() and int(sx) not in ids:
+                    ids.append(int(sx))
+            SETTINGS["admin_telegram_ids"] = ids
+    asyncio.create_task(save_state())
+    started = await _start_embedded_bot(force_restart=True)
+    log_activity("settings", "تنظیمات ربات تلگرام ذخیره شد", "ok")
+    payload = await _bot_settings_payload()
+    payload.update({"ok": True, "running": started})
+    return payload
 
 
 

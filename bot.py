@@ -264,18 +264,47 @@ def delete_confirm_kb(uid: str) -> InlineKeyboardMarkup:
 
 
 PROTOCOLS = ("vless", "vmess", "trojan", "shadowsocks", "reality",
-             "hysteria2", "tuic", "xtls-vision")
+             "hysteria2", "tuic", "xtls-vision",
+             "telegram", "wireguard", "worker")
+
+# Friendly labels shown on the Telegram inline keyboard (protocol → label).
+PROTO_LABELS = {
+    "vless": "⚡ VLESS",
+    "vmess": "🌐 VMess",
+    "trojan": "🐴 Trojan",
+    "shadowsocks": "🧦 Shadowsocks",
+    "reality": "🛡 Reality",
+    "hysteria2": "💨 Hysteria2",
+    "tuic": "🚀 TUIC",
+    "xtls-vision": "👁 XTLS-Vision",
+    "telegram": "✈️ Telegram Proxy",
+    "wireguard": "🔒 WireGuard",
+    "worker": "☁️ CF Worker",
+}
+
+# These entries are inbound TYPES rather than user protocols: the panel keeps
+# the API-level user protocol at "vless" and routes traffic through inbounds
+# whose protocol matches (MTProxy listener / WG endpoint / Worker route).
+INBOUND_TYPE_PROTOCOLS = ("telegram", "wireguard", "worker")
 
 
 def proto_kb() -> InlineKeyboardMarkup:
+    """Protocol picker: core Xray/sing-box protocols 3-per-row, then the
+    special inbound-type protocols (Telegram/WireGuard/Worker) on their own
+    full-width row so they stand out."""
     rows, row = [], []
-    for p in PROTOCOLS:
-        row.append(InlineKeyboardButton(text=p.upper(), callback_data=f"proto:{p}"))
+    core = [p for p in PROTOCOLS if p not in INBOUND_TYPE_PROTOCOLS]
+    for p in core:
+        row.append(InlineKeyboardButton(
+            text=PROTO_LABELS.get(p, p.upper()), callback_data=f"proto:{p}"))
         if len(row) == 3:
             rows.append(row)
             row = []
     if row:
         rows.append(row)
+    for p in INBOUND_TYPE_PROTOCOLS:
+        rows.append([InlineKeyboardButton(
+            text=PROTO_LABELS.get(p, p.upper()), callback_data=f"proto:{p}")])
     rows.append([InlineKeyboardButton(text="❌ Cancel", callback_data="create:cancel")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
@@ -537,6 +566,58 @@ async def cb_user_action(cb: CallbackQuery):
 _pending_creates: dict = {}
 
 
+async def _fetch_inbounds() -> dict:
+    """Return {inbound_id: inbound_dict} from the panel."""
+    data = await api.get("/api/inbounds")
+    return {str(ib.get("inbound_id")): ib for ib in (data.get("inbounds") or [])}
+
+
+def _inbounds_kb(draft: dict, candidates: dict) -> InlineKeyboardMarkup:
+    """Multi-select keyboard over candidate inbounds (one button per row —
+    names can be long; ✅ marks picked rows)."""
+    chosen = set(draft.get("inbound_ids") or [])
+    rows = []
+    for iid, ib in candidates.items():
+        mark = "✅ " if iid in chosen else "▫️ "
+        label = f"{mark}{ib.get('name') or iid} ({(ib.get('protocol') or '?').upper()})"
+        rows.append([InlineKeyboardButton(text=label[:60], callback_data=f"cib:{iid}")])
+    rows.append([
+        InlineKeyboardButton(text="✅ تأیید", callback_data="cib:done"),
+        InlineKeyboardButton(text="⏭ بدون اینباند", callback_data="cib:skip"),
+    ])
+    rows.append([InlineKeyboardButton(text="❌ Cancel", callback_data="create:cancel")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _confirm_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="✅ Create", callback_data="create:do"),
+        InlineKeyboardButton(text="❌ Cancel", callback_data="create:cancel"),
+    ]])
+
+
+async def _show_create_confirm(cb: CallbackQuery):
+    """Render the final confirmation screen from the current draft."""
+    d = _pending_creates.setdefault(cb.from_user.id, {})
+    ids = d.get("inbound_ids") or []
+    cache = d.get("ib_cache") or {}
+    if ids:
+        names = ", ".join(str((cache.get(i) or {}).get("name") or i) for i in ids)
+        inb_line = f"├ Inbounds: <b>{esc(len(ids))}</b> (<code>{esc(names[:120])}</code>)\n"
+    else:
+        inb_line = "├ Inbounds: <i>پیش‌فرض پنل</i>\n"
+    confirm_text = (
+        f"📋 <b>تایید نهایی</b>\n"
+        f"├ Username: <b>{esc(d.get('username'))}</b>\n"
+        f"├ Traffic: <b>{d.get('traffic_gb')} GB</b>\n"
+        f"├ Expiry: <b>{d.get('expire_days')} روز</b>\n"
+        f"{inb_line}"
+        f"└ Protocol: <b>{esc(d.get('protocol', '')).upper()}</b>\n\n"
+        "برای ساخت تایید کنید:"
+    )
+    await safe_edit(cb, confirm_text, _confirm_kb())
+
+
 @router.callback_query(F.data == "create")
 async def cb_create(cb: CallbackQuery, state: FSMContext):
     await state.set_state(CreateWizard.username)
@@ -557,23 +638,92 @@ async def cb_pick_protocol(cb: CallbackQuery, state: FSMContext):
     proto = cb.data.split(":", 1)[1]
     draft = _pending_creates.setdefault(cb.from_user.id, {})
     draft["protocol"] = proto
+    # Telegram/WireGuard/Worker are inbound types: the API-level user protocol
+    # stays "vless"; traffic rides the selected inbound(s).
+    draft["protocol_api"] = "vless" if proto in INBOUND_TYPE_PROTOCOLS else proto
+    draft["inbound_ids"] = []
+    draft["ib_cache"] = {}
     await state.set_state(CreateWizard.protocol)
-    d = draft
-    confirm_text = (
-        f"📋 <b>تایید نهایی</b>\n"
-        f"├ Username: <b>{esc(d.get('username'))}</b>\n"
-        f"├ Traffic: <b>{d.get('traffic_gb')} GB</b>\n"
-        f"├ Expiry: <b>{d.get('expire_days')} روز</b>\n"
-        f"└ Protocol: <b>{esc(proto).upper()}</b>\n\n"
-        "برای ساخت تایید کنید:"
-    )
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Create", callback_data="create:do"),
-            InlineKeyboardButton(text="❌ Cancel", callback_data="create:cancel"),
-        ],
-    ])
-    await safe_edit(cb, confirm_text, kb)
+
+    try:
+        inbounds = await _fetch_inbounds()
+    except PanelError as e:
+        if proto in INBOUND_TYPE_PROTOCOLS:
+            await safe_edit(
+                cb,
+                f"❌ خطا در گرفتن اینباندها:\n{esc(e)}\n"
+                f"ابتدا یک اینباند <b>{esc(proto.upper())}</b> در پنل بسازید.",
+                back_menu())
+            await cb.answer()
+            return
+        inbounds = {}
+
+    if proto in INBOUND_TYPE_PROTOCOLS:
+        candidates = {iid: ib for iid, ib in inbounds.items()
+                      if (ib.get("protocol") or "").lower() == proto}
+        if not candidates:
+            await safe_edit(
+                cb,
+                f"⚠️ هیچ اینباندی از نوع <b>{esc(proto.upper())}</b> پیدا نشد.\n"
+                "اول از بخش Inbounds پنل یکی بسازید، بعد دوباره تلاش کنید.",
+                back_menu())
+            await cb.answer()
+            return
+        hint = ("یک یا چند اینباند را انتخاب کنید "
+                "(روی هرکدام بزنید تا علامت بخورد):")
+    else:
+        candidates = inbounds
+        hint = ("اینباندها را انتخاب کنید (اختیاری، چندتایی) — "
+                "خالی = پیش‌فرض پنل:")
+
+    draft["ib_candidates"] = list(candidates.keys())
+    draft["ib_hint"] = hint
+    for iid, ib in candidates.items():
+        draft["ib_cache"][iid] = {
+            "name": ib.get("name"),
+            "protocol": ib.get("protocol"),
+            "port": ib.get("port"),
+            "external_domain": ib.get("external_domain"),
+            "external_port": ib.get("external_port"),
+            "telegram_settings": ib.get("telegram_settings") or {},
+        }
+    await safe_edit(cb, f"🔗 <b>انتخاب اینباند</b>\n{hint}", _inbounds_kb(draft, candidates))
+    await cb.answer()
+
+
+@router.callback_query(F.data.startswith("cib:"))
+async def cb_pick_inbound(cb: CallbackQuery, state: FSMContext):
+    action = cb.data.split(":", 1)[1]
+    d = _pending_creates.setdefault(cb.from_user.id, {})
+
+    if action == "done":
+        if not d.get("inbound_ids"):
+            await cb.answer("حداقل یک اینباند انتخاب کنید", show_alert=True)
+            return
+        await _show_create_confirm(cb)
+        await cb.answer()
+        return
+    if action == "skip":
+        d["inbound_ids"] = []
+        await _show_create_confirm(cb)
+        await cb.answer()
+        return
+
+    # Toggle one inbound on/off.
+    chosen = set(d.get("inbound_ids") or [])
+    if action in chosen:
+        chosen.discard(action)
+    else:
+        chosen.add(action)
+    # Preserve a stable order matching the candidate list.
+    d["inbound_ids"] = [i for i in (d.get("ib_candidates") or []) if i in chosen]
+    try:
+        inbounds = await _fetch_inbounds()
+    except PanelError:
+        inbounds = {i: d["ib_cache"].get(i, {}) for i in (d.get("ib_candidates") or [])}
+    candidates = {i: ib for i, ib in inbounds.items() if i in (d.get("ib_candidates") or [])}
+    hint = d.get("ib_hint") or "اینباندها را انتخاب کنید:"
+    await safe_edit(cb, f"🔗 <b>انتخاب اینباند</b>\n{hint}", _inbounds_kb(d, candidates))
     await cb.answer()
 
 
@@ -584,25 +734,61 @@ async def cb_create_do(cb: CallbackQuery, state: FSMContext):
         await cb.answer("اطلاعات ناقص — دوباره شروع کنید", show_alert=True)
         return
     await cb.answer("در حال ساخت…")
+
+    inbound_ids = [str(x) for x in (d.get("inbound_ids") or [])]
+    payload = {
+        "username": d.get("username"),
+        "traffic_limit_gb": float(d.get("traffic_gb") or 0),
+        "expire_days": int(d.get("expire_days") or 0),
+        "protocol": d.get("protocol_api") or d.get("protocol", "vless"),
+        # Multi-inbound support: first id becomes the primary inbound_id.
+        "inbound_ids": inbound_ids,
+    }
+    if inbound_ids:
+        payload["inbound_id"] = inbound_ids[0]
+
     try:
-        r = await api.post("/api/users", {
-            "username": d.get("username"),
-            "traffic_limit_gb": float(d.get("traffic_gb") or 0),
-            "expire_days": int(d.get("expire_days") or 0),
-            "protocol": d.get("protocol", "vless"),
-        })
+        r = await api.post("/api/users", payload)
     except PanelError as e:
         await safe_edit(cb, f"❌ ساخت ناموفق:\n{esc(e)}", back_menu())
         return
     await state.clear()
+
     cfg = r.get("config") or ""
     sub_url = r.get("subscription_url") or ""
     body = (
         f"✅ <b>کانفیگ ساخته شد</b> — <b>{esc(r.get('username'))}</b>\n"
-        f"Protocol: <b>{esc(r.get('protocol', '')).upper()}</b>\n\n"
+        f"Protocol: <b>{esc(r.get('protocol', '')).upper()}</b>"
+        + (f" · Inbounds: <b>{len(inbound_ids)}</b>" if inbound_ids else "")
+        + "\n\n"
         + (f"<code>{esc(cfg[:1200])}</code>\n\n" if cfg else "")
-        + (f"🔗 Sub: {esc(sub_url)}" if sub_url else "")
     )
+
+    # Telegram Proxy users get an instant t.me/proxy deep link generated from
+    # their per-user secret + the inbound's external domain/port.
+    tg_secret = str(r.get("telegram_secret") or "").strip()
+    if tg_secret:
+        cache = d.get("ib_cache") or {}
+        tg_inbound = next((cache[i] for i in inbound_ids
+                           if (cache.get(i) or {}).get("protocol") == "telegram"), None)
+        link = None
+        if tg_inbound:
+            tgs = tg_inbound.get("telegram_settings") or {}
+            domain = str(tgs.get("external_domain") or tg_inbound.get("external_domain") or "").strip()
+            try:
+                port = int(tgs.get("external_port") or tg_inbound.get("external_port") or 0)
+            except Exception:
+                port = 0
+            if domain and port:
+                link = f"https://t.me/proxy?server={domain}&port={port}&secret={tg_secret}"
+        body += (
+            "✈️ <b>Telegram Proxy</b>\n"
+            f"Secret: <code>{esc(tg_secret)}</code>\n"
+            + (f"👉 <a href='{link}'>اتصال با یک کلیک</a>\n" if link else "")
+            + "\n"
+        )
+
+    body += (f"🔗 Sub: {esc(sub_url)}" if sub_url else "")
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="👥 Back to Users", callback_data="users:p0")],
         [InlineKeyboardButton(text="🔙 Main Menu", callback_data="menu")],
@@ -780,10 +966,24 @@ async def run_bot_task():
 
     Embedded mode (from main.py startup): handle_signals=False so uvicorn
     keeps ownership of signal handling.
+    Credentials come from BOT_TOKEN / ADMIN_TELEGRAM_IDS env vars; when the
+    token is missing they fall back to the credentials stored from the web UI
+    (Settings ▸ Telegram Admin Bot → GET /api/bot/settings).
     """
     global BOT_TOKEN
     if not BOT_TOKEN:
-        raise RuntimeError("BOT_TOKEN env var is required")
+        try:
+            s = await api.get("/api/bot/settings")
+            BOT_TOKEN = str(s.get("bot_token") or "").strip()
+            for x in (s.get("admin_telegram_ids") or []):
+                sx = str(x).strip()
+                if sx.lstrip("-").isdigit() and int(sx) not in ADMIN_IDS:
+                    ADMIN_IDS.add(int(sx))
+        except Exception as e:
+            logger.warning(f"could not load bot settings from panel: {e}")
+    if not BOT_TOKEN:
+        raise RuntimeError(
+            "BOT_TOKEN is required (env var or Settings ▸ Telegram Admin Bot)")
     if not ADMIN_IDS:
         logger.warning("ADMIN_TELEGRAM_IDS is empty — no one can use admin features")
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
