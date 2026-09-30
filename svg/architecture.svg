@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-labelledby="t d">
+<title id="t">WhitePanel architecture</title><desc id="d">WhitePanel architecture diagram showing web panel, FastAPI backend, Xray, data and Telegram integrations.</desc>
+<rect x="10" y="10" width="1180" height="460" rx="30" fill="#050506" stroke="#f4f4f5" stroke-width="4"/>
+<g font-family="Inter,Arial,sans-serif" font-weight="800" fill="#fff">
+<text x="55" y="65" font-size="22">WHITEPANEL · HIGH-LEVEL ARCHITECTURE</text>
+<rect x="70" y="110" width="285" height="135" rx="24" fill="#111116" stroke="#34343f" stroke-width="3"/><text x="92" y="146" font-size="20">WEB UI</text><text x="92" y="181" fill="#aaaab8" font-size="16">HTML / CSS / JS</text><text x="92" y="210" fill="#aaaab8" font-size="16">Dashboard · Scanner · Bot</text>
+<rect x="455" y="90" width="300" height="175" rx="24" fill="#111116" stroke="#8b5cf6" stroke-width="4"/><text x="485" y="132" font-size="21">FASTAPI CORE</text><text x="485" y="170" fill="#aaaab8" font-size="16">Auth · Users · Nodes</text><text x="485" y="198" fill="#aaaab8" font-size="16">Subscriptions · Scanner</text><text x="485" y="226" fill="#aaaab8" font-size="16">Telegram · Worker APIs</text>
+<rect x="860" y="95" width="250" height="125" rx="24" fill="#111116" stroke="#34343f" stroke-width="3"/><text x="885" y="132" font-size="20">XRAY / MTProxy</text><text x="885" y="168" fill="#aaaab8" font-size="16">Proxy runtime</text><text x="885" y="196" fill="#aaaab8" font-size="16">Config + routing</text>
+<rect x="110" y="315" width="235" height="90" rx="20" fill="#111116" stroke="#34343f"/><text x="132" y="350" font-size="19">DATA</text><text x="132" y="379" fill="#aaaab8" font-size="15">users · settings · results</text>
+<rect x="485" y="315" width="235" height="90" rx="20" fill="#111116" stroke="#34343f"/><text x="507" y="350" font-size="19">WORKERS / NODES</text><text x="507" y="379" fill="#aaaab8" font-size="15">health · sync · tunnels</text>
+<rect x="860" y="315" width="250" height="90" rx="20" fill="#111116" stroke="#34343f"/><text x="885" y="350" font-size="19">TELEGRAM</text><text x="885" y="379" fill="#aaaab8" font-size="15">Bot API · sales · delivery</text>
+<g stroke="#f4f4f5" stroke-width="4" fill="none" stroke-linecap="round"><path d="M355 178H455"/><path d="M755 178H860"/><path d="M575 265V315"/><path d="M690 265l70 50"/><path d="M485 360H345"/><path d="M755 360H860"/></g>
+<g fill="#f4f4f5"><circle cx="405" cy="178" r="7"/><circle cx="805" cy="178" r="7"/><circle cx="575" cy="290" r="7"/><circle cx="750" cy="312" r="7"/></g>
+</g></svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 460" role="img" aria-labelledby="t d">
+<title id="t">WhitePanel hero banner</title><desc id="d">A bold black and violet WhitePanel banner with dashboard and networking motifs.</desc>
+<defs>
+  <linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#d946ef"/></linearGradient>
+  <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="14" stdDeviation="0" flood-color="#8b5cf6" flood-opacity=".9"/></filter>
+</defs>
+<rect x="10" y="10" width="1380" height="440" rx="34" fill="#050506" stroke="#f2f2f2" stroke-width="4"/>
+<path d="M40 330 L300 90 L640 300 L1000 70 L1360 280" fill="none" stroke="#1f1f25" stroke-width="3"/>
+<circle cx="300" cy="90" r="10" fill="#f2f2f2"/><circle cx="640" cy="300" r="10" fill="#8b5cf6"/><circle cx="1000" cy="70" r="10" fill="#f2f2f2"/>
+<rect x="68" y="70" width="420" height="300" rx="26" fill="#0d0d12" stroke="#3a3a46" stroke-width="3"/>
+<rect x="92" y="96" width="372" height="42" rx="12" fill="#17171f" stroke="#4a4a58"/>
+<rect x="92" y="162" width="110" height="164" rx="18" fill="#121219" stroke="#363642"/>
+<rect x="218" y="162" width="246" height="74" rx="18" fill="#121219" stroke="#363642"/>
+<rect x="218" y="252" width="118" height="74" rx="18" fill="#121219" stroke="#363642"/>
+<rect x="346" y="252" width="118" height="74" rx="18" fill="#121219" stroke="#363642"/>
+<circle cx="147" cy="132" r="8" fill="#8b5cf6"/>
+<circle cx="173" cy="132" r="8" fill="#d946ef"/>
+<text x="222" y="123" fill="#f4f4f5" font-family="Inter,Arial,sans-serif" font-size="17" font-weight="800">WHITEPANEL</text>
+<text x="550" y="185" fill="#a78bfa" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="800" letter-spacing="4">XRAY · PANEL · TELEGRAM</text>
+<text x="550" y="245" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="62" font-weight="900">WHITE</text>
+<text x="550" y="302" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="34" font-weight="800">Control Panel</text>
+<text x="550" y="348" fill="#b6b6c4" font-family="Inter,Arial,sans-serif" font-size="20">Deploy. Manage. Scan. Sell. Subscribe.</text>
+<rect x="550" y="378" width="260" height="36" rx="18" fill="url(#g)" filter="url(#s)"/>
+<text x="680" y="402" text-anchor="middle" fill="#09090b" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="900">PORT 8080</text>
+<path d="M1120 118h180M1120 154h126M1120 190h154" stroke="#e4e4e7" stroke-width="10" stroke-linecap="round"/>
+<path d="M1120 260h180M1120 296h142M1120 332h166" stroke="#2f2f39" stroke-width="10" stroke-linecap="round"/>
+</svg>

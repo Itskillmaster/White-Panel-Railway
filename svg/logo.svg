@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 160" role="img" aria-labelledby="t d">
+<title id="t">White Panel logo</title>
+<desc id="d">White Panel silver W monogram and wordmark.</desc>
+<defs>
+<linearGradient id="wpTile2" x1="18" y1="18" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#141418"/>
+<stop offset="1" stop-color="#050507"/>
+</linearGradient>
+<linearGradient id="wpSilver2" x1="40" y1="46" x2="106" y2="104" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#ffffff"/>
+<stop offset="0.45" stop-color="#f1f1f5"/>
+<stop offset="1" stop-color="#a6a6b5"/>
+</linearGradient>
+<linearGradient id="wpBar" x1="145" y1="118" x2="325" y2="124" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#ffffff"/>
+<stop offset="1" stop-color="#a6a6b5"/>
+</linearGradient>
+</defs>
+<rect width="420" height="160" rx="24" fill="#050506"/>
+<rect x="18" y="18" width="110" height="110" rx="26" fill="url(#wpTile2)"/>
+<polyline points="44,50 64,96 73,62 82,96 102,50" fill="none" stroke="url(#wpSilver2)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="145" y="72" fill="#f4f4f5" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700">WHITE</text>
+<text x="148" y="105" fill="#a1a1aa" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" letter-spacing="4">PANEL</text>
+<rect x="145" y="118" width="180" height="6" rx="3" fill="url(#wpBar)"/>
+</svg>

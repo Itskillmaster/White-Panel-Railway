@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 330" role="img" aria-labelledby="t d">
+<title id="t">WhitePanel deployment flow</title><desc id="d">Deployment flow from GitHub or VPS to port 8080 and the WhitePanel interface.</desc>
+<rect x="10" y="10" width="1180" height="310" rx="30" fill="#050506" stroke="#f4f4f5" stroke-width="4"/>
+<g font-family="Inter,Arial,sans-serif" font-weight="800">
+<g transform="translate(55 85)"><rect width="220" height="150" rx="24" fill="#111116" stroke="#34343f" stroke-width="3"/><text x="24" y="42" fill="#fff" font-size="20">1 · SOURCE</text><text x="24" y="78" fill="#aaaab8" font-size="16">GitHub repository</text><text x="24" y="106" fill="#aaaab8" font-size="16">or VPS installer</text><circle cx="178" cy="108" r="24" fill="#8b5cf6"/><path d="M168 108h20M178 98v20" stroke="#09090b" stroke-width="5"/></g>
+<path d="M290 160h90" stroke="#f4f4f5" stroke-width="5" stroke-linecap="round"/><path d="M366 150l14 10-14 10" fill="none" stroke="#f4f4f5" stroke-width="5"/>
+<g transform="translate(400 85)"><rect width="220" height="150" rx="24" fill="#111116" stroke="#34343f" stroke-width="3"/><text x="24" y="42" fill="#fff" font-size="20">2 · BUILD</text><text x="24" y="78" fill="#aaaab8" font-size="16">Docker / Python</text><text x="24" y="106" fill="#aaaab8" font-size="16">automatic setup</text><rect x="24" y="120" width="120" height="12" rx="6" fill="#8b5cf6"/></g>
+<path d="M635 160h90" stroke="#f4f4f5" stroke-width="5" stroke-linecap="round"/><path d="M711 150l14 10-14 10" fill="none" stroke="#f4f4f5" stroke-width="5"/>
+<g transform="translate(745 85)"><rect width="180" height="150" rx="24" fill="#111116" stroke="#34343f" stroke-width="3"/><text x="24" y="42" fill="#fff" font-size="20">3 · PORT</text><text x="24" y="84" fill="#aaaab8" font-size="18">8080</text><rect x="24" y="105" width="132" height="20" rx="10" fill="#d946ef"/></g>
+<path d="M940 160h90" stroke="#f4f4f5" stroke-width="5" stroke-linecap="round"/><path d="M1016 150l14 10-14 10" fill="none" stroke="#f4f4f5" stroke-width="5"/>
+<g transform="translate(1030 85)"><rect width="115" height="150" rx="24" fill="#8b5cf6" stroke="#f4f4f5" stroke-width="3"/><text x="57" y="72" text-anchor="middle" fill="#09090b" font-size="18">WHITE</text><text x="57" y="98" text-anchor="middle" fill="#09090b" font-size="18">PANEL</text></g>
+</g></svg>
