@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="wpTitle wpDesc">
+<title id="wpTitle">White Panel</title>
+<desc id="wpDesc">Silver W monogram on a dark rounded tile.</desc>
+<defs>
+<linearGradient id="wpTile" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#141418"/>
+<stop offset="1" stop-color="#050507"/>
+</linearGradient>
+<linearGradient id="wpSilver" x1="56" y1="56" x2="200" y2="204" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#ffffff"/>
+<stop offset="0.45" stop-color="#f1f1f5"/>
+<stop offset="1" stop-color="#a6a6b5"/>
+</linearGradient>
+</defs>
+<rect width="256" height="256" rx="56" fill="url(#wpTile)"/>
+<polyline points="60,74 108,186 128,96 148,186 196,74" fill="none" stroke="url(#wpSilver)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

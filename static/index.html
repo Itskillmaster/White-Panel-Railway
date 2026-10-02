@@ -86,7 +86,6 @@ html, body {
 [data-theme="light"] .sidebar,
 [data-theme="light"] .topbar,
 [data-theme="light"] .modal-c,
-[data-theme="light"] .contact-bubble,
 [data-theme="light"] .login-card{background:#ffffff}
 [data-theme="light"] .f-g input,[data-theme="light"] .f-g select,[data-theme="light"] .f-g textarea,
 [data-theme="light"] .input-glass{background:#ffffff;color:#000000;border-color:rgba(0,0,0,.16)}
@@ -499,6 +498,8 @@ input,select,button,textarea{font-family:inherit}
 .nav-item.active{color:var(--nav-color);background:var(--nav-bg);border:1px solid var(--border-glow)}
 .nav-item .nav-ic{width:20px;height:20px;display:inline-flex;flex-shrink:0}
 .sb-foot{padding:16px 22px;border-top:1px solid var(--border);font-size:11px;color:var(--txt2)}
+.sb-foot a{color:var(--neon);font-weight:700;text-decoration:none}
+.sb-foot a:hover{text-decoration:underline}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-left:6px;animation:pulse 2s infinite}
 
 /* Main area */
@@ -516,8 +517,8 @@ input,select,button,textarea{font-family:inherit}
 .tab-content{flex:1;display:flex;flex-direction:column;min-height:0;}
 .tab-content.hidden{display:none!important}
 .tab-content:not(.hidden){display:flex;flex-direction:column;position:static!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important;width:100%;margin-top:0!important;align-self:stretch;}
-/* Settings / Contact / Worker must always start at the top of the content area. */
-#tab-worker,#tab-settings,#tab-contact{
+/* Settings / Worker must always start at the top of the content area. */
+#tab-worker,#tab-settings{
   position:static!important;top:0!important;right:auto!important;bottom:auto!important;left:auto!important;
   transform:none!important;width:100%!important;margin:0!important;padding:0!important;
   align-self:flex-start!important;flex:none!important;min-height:0!important;height:auto!important;
@@ -525,14 +526,13 @@ input,select,button,textarea{font-family:inherit}
   justify-content:flex-start!important;align-items:stretch!important;
   scroll-margin-top:0!important;overflow-anchor:none!important;
 }
-#tab-worker.hidden,#tab-settings.hidden,#tab-contact.hidden{display:none!important;}
-#tab-worker>.panel,#tab-settings>.panel,#tab-contact>.panel{
+#tab-worker.hidden,#tab-settings.hidden{display:none!important;}
+#tab-worker>.panel,#tab-settings>.panel{
   display:block!important;box-sizing:border-box!important;float:none!important;position:static!important;
   top:auto!important;bottom:auto!important;transform:none!important;
   margin:0 0 14px 0!important;max-height:none!important;overflow:visible!important;
 }
-#tab-worker .panel:first-child,#tab-contact .panel:first-child{margin-top:0!important;}
-#tab-contact .contact-panel{height:auto!important;min-height:0!important;max-height:none!important;}
+#tab-worker .panel:first-child{margin-top:0!important;}
 .bot-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
 .bot-tab{border:1px solid var(--border);background:var(--input-bg);color:var(--txt2);border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:700}
 .bot-tab.active{background:var(--tab-bg);color:var(--tab-color);border-color:transparent}
@@ -841,37 +841,6 @@ tr{animation:fadeIn .3s ease}
 .theme-dot.active{border-color:var(--neon);box-shadow:0 0 12px var(--neon)}
 .theme-dot.red{background:#ff1744}.theme-dot.green{background:#00ff41}.theme-dot.blue{background:#448aff}
 
-/* Contact Me bubbles */
-.contact-panel{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-start;min-height:auto;width:100%;height:100%}
-.contact-sub{font-size:12px;color:var(--txt2);margin-bottom:18px}
-.contact-bubbles{display:flex;gap:28px;justify-content:center;align-items:center;flex-wrap:wrap;padding:16px 0 8px;width:100%;align-self:flex-start}
-.contact-bubble{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  width:150px;height:150px;border-radius:50%;
-  background:#0a0a0d;
-  border:1.5px solid var(--border);color:var(--txt);text-decoration:none;
-  box-shadow:var(--shadow-md);transition:all .3s ease;position:relative;overflow:hidden;flex-shrink:0
-}
-.contact-bubble{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  width:150px;height:150px;border-radius:50%;
-  background:#0a0a0d;
-  border:1.5px solid var(--border);color:var(--txt);text-decoration:none;
-  box-shadow:var(--shadow-md);transition:all .3s ease;position:relative;overflow:hidden;
-}
-.contact-bubble::before{content:none}
-.contact-bubble svg{width:40px;height:40px;color:var(--neon);transition:transform .3s ease}
-.contact-bubble span{font-size:13px;font-weight:700}
-.contact-bubble small{font-size:10px;color:var(--txt2);direction:ltr}
-.contact-bubble:hover{transform:translateY(-6px);border-color:var(--border-glow);box-shadow:var(--shadow-lg)}
-.contact-bubble:hover svg{transform:scale(1.15)}
-.contact-bubble.tg:hover svg{color:#229ED9}
-.contact-bubble.gh:hover svg{color:#a5a5a5}
-.contact-bubble.yt:hover svg{color:#FF0000}
-.contact-bubble.tg::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(34,158,217,.14),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none}
-.contact-bubble.gh::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(148,148,148,.14),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none}
-.contact-bubble:hover::after{opacity:1}
-
 .hidden{display:none!important}
 
 /* Separator */
@@ -1027,7 +996,7 @@ tr{animation:fadeIn .3s ease}
 [data-theme="dark"]{--bg:#000000;--bg2:#000000;--bg3:#000000;--txt:#ffffff;--txt2:#cfcfcf;--input-bg:#111111;--border:#2a2a2a;--neon:#ffffff;--green:#ffffff;--blue:#ffffff;--purple:#ffffff;--red:#ffffff;--danger:#ffffff;--gold:#ffffff;--success:#ffffff;--tab-bg:#ffffff;--tab-color:#000000;--nav-bg:#1a1a1a;--nav-color:#ffffff;--border-glow:#ffffff;--grad1:#ffffff;--grad2:#ffffff;--grad:#ffffff;--gradient:#ffffff}
 [data-theme="light"]{--bg:#ffffff;--bg2:#ffffff;--bg3:#ffffff;--txt:#000000;--txt2:#3a3a3a;--input-bg:#ffffff;--border:#cfcfcf;--neon:#000000;--green:#000000;--blue:#000000;--purple:#000000;--red:#000000;--danger:#000000;--gold:#000000;--success:#000000;--tab-bg:#000000;--tab-color:#ffffff;--nav-bg:#f1f1f1;--nav-color:#000000;--border-glow:#000000;--grad1:#000000;--grad2:#000000;--grad:#000000;--gradient:#000000}
 
-.bg-fx,.bg-grid,#particles,#shader-canvas,.login-bg{display:none!important}
+.bg-fx,.bg-grid,#particles,#shader-canvas,.login-bg{display:block!important}
 .sidebar,.topbar,.panel,.stat,.tbl,.u-card,.modal-c,.login-card,.settings-box{background:#000000!important;border-color:#2a2a2a!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:0 10px 28px rgba(0,0,0,.55)!important}
 [data-theme="light"] .sidebar,[data-theme="light"] .topbar,[data-theme="light"] .panel,[data-theme="light"] .stat,[data-theme="light"] .tbl,[data-theme="light"] .u-card,[data-theme="light"] .modal-c,[data-theme="light"] .login-card,[data-theme="light"] .settings-box{background:#ffffff!important;border-color:#cfcfcf!important;box-shadow:0 10px 28px rgba(0,0,0,.14)!important}
 .btn-p{background:#ffffff!important;color:#000000!important;box-shadow:0 6px 18px rgba(0,0,0,.45)!important}
@@ -1054,7 +1023,7 @@ tr{animation:fadeIn .3s ease}
 [data-theme="light"] .country-tick.selected .ck{background:#000!important;color:#fff!important;border-color:#000!important}
 .country-tick .country-name{display:inline-block;line-height:1.2;white-space:nowrap}
 .panel-h .glow,.panel-h .glow *{color:var(--neon)!important;text-shadow:none!important}
-.stat-v,.stat-icon,.topbar-greet strong,.contact-bubble svg{color:var(--neon)!important}
+.stat-v,.stat-icon,.topbar-greet strong{color:var(--neon)!important}
 .settings-inner-block{padding-top:14px;margin-top:14px;border-top:1px solid var(--border)}
 .settings-inner-block:first-of-type{padding-top:0;margin-top:0;border-top:0}
 
@@ -1220,7 +1189,64 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   outline-offset: 2px;
 }
 
+/* =========================================
+   ULTRA GLASSMORPHISM & MODERN FONT
+   ========================================= */
+:root {
+    --glass-bg: rgba(15, 15, 20, 0.35);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-blur: blur(28px) saturate(200%);
+    --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    --glass-inner: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+[data-theme="light"] {
+    --glass-bg: rgba(255, 255, 255, 0.45);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-blur: blur(28px) saturate(220%);
+    --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+    --glass-inner: inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* Override Font Globally */
+html[lang="fa"] body, body, * {
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Glass Panels */
+.sidebar, .topbar, .panel, .stat, .tbl, .u-card, .modal-c, .login-card, .settings-box, .spd-acc, .bot-acc-body, .nav-accordion, #server-info-wrap {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur) !important;
+    -webkit-backdrop-filter: var(--glass-blur) !important;
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--glass-shadow), var(--glass-inner) !important;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    border-radius: var(--radius-xl) !important;
+}
+
+/* 3D Hover Effects */
+.stat:hover, .panel:hover, .u-card:hover {
+    transform: translateY(-4px) scale(1.005) !important;
+    border-color: rgba(0, 225, 193, 0.5) !important;
+    box-shadow: 0 20px 50px rgba(0, 225, 193, 0.15), var(--glass-inner) !important;
+}
+
+/* Menu Items */
+.nav-item { background: transparent !important; backdrop-filter: none !important; transition: all 0.3s ease !important; border: 1px solid transparent !important; }
+.nav-item:hover { background: rgba(255, 255, 255, 0.08) !important; transform: translateX(6px) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+.nav-item.active { background: rgba(0, 225, 193, 0.15) !important; border: 1px solid rgba(0, 225, 193, 0.4) !important; box-shadow: 0 0 20px rgba(0, 225, 193, 0.2) !important; text-shadow: 0 0 8px rgba(0, 225, 193, 0.5) !important; font-weight: 700 !important; }
+
+/* Deep Glass Inputs */
+.input-glass, .f-g input, .f-g select, .f-g textarea { background: rgba(0, 0, 0, 0.25) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 12px !important; transition: all 0.3s ease !important; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2) !important; }
+[data-theme="light"] .input-glass, [data-theme="light"] .f-g input, [data-theme="light"] .f-g select, [data-theme="light"] .f-g textarea { background: rgba(255, 255, 255, 0.4) !important; border: 1px solid rgba(0, 0, 0, 0.15) !important; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05) !important; }
+.input-glass:focus, .f-g input:focus, .f-g select:focus, .f-g textarea:focus { border-color: var(--neon) !important; box-shadow: 0 0 20px rgba(0, 225, 193, 0.25), inset 0 2px 5px rgba(0,0,0,0.2) !important; background: rgba(0, 0, 0, 0.45) !important; }
+
+/* Glowing Buttons */
+.btn-p, .login-btn { background: linear-gradient(135deg, rgba(0, 225, 193, 0.75), rgba(46, 242, 214, 0.75)) !important; backdrop-filter: blur(8px) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; color: #000 !important; box-shadow: 0 8px 24px rgba(0, 225, 193, 0.4), inset 0 1px 1px rgba(255,255,255,0.6) !important; transition: all 0.3s ease !important; font-weight: 700 !important; }
+.btn-p:hover, .login-btn:hover { transform: translateY(-3px) !important; box-shadow: 0 12px 32px rgba(0, 225, 193, 0.6), inset 0 1px 1px rgba(255,255,255,0.8) !important; filter: brightness(1.1) !important; }
+.glow, .panel-h, .stat-v { text-shadow: 0 0 20px rgba(0, 225, 193, 0.5) !important; }
+
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -1277,8 +1303,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div class="sb-brand">
       <img src="/static/white-logo.svg" alt="White Panel Logo" onerror="this.style.display='none'" style="width:56px;height:56px;flex-shrink:0">
       <div>
-        <div class="sb-brand-t"><span>S</span>PIDER</div>
-        <div class="sb-brand-s">PANEL v8</div>
+        <div class="sb-brand-t"><span>W</span>HITE PANEL</div>
+        <div class="sb-brand-s">v8.0</div>
       </div>
     </div>
     <nav class="sb-nav">
@@ -1337,7 +1363,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <span data-i18n="logout">خروج</span>
       </div>
     </nav>
-    <div class="sb-foot"><span class="dot"></span> White Panel v8.0</div>
+    <div class="sb-foot"><span class="dot"></span> White Panel v8.0 · <a href="https://github.com/Itskillmaster/White-Panel-Railway" target="_blank" rel="noopener noreferrer" title="سازنده White Panel">سازنده</a></div>
   </aside>
 
   <!-- MAIN -->
@@ -1763,6 +1789,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <div id="server-info-wrap" style="padding:4px 0"></div>
           </div>
           <div class="settings-inner-block">
+            <div class="panel-h"><span class="glow">بروزرسانی پنل</span></div>
+            <div class="set-row"><span class="set-lbl">نسخه فعلی</span><span dir="ltr" style="font-size:12px;font-family:monospace">v8.0 (24d7594)</span></div>
+            <div class="set-row"><span class="set-lbl">وضعیت</span><span id="update-status" style="font-size:12px;font-weight:700">—</span></div>
+            <button type="button" class="btn btn-p" style="width:100%;margin-top:10px" onclick="checkUpdate(false)">بررسی بروزرسانی</button>
+            <div id="update-wrap" style="display:none;margin-top:10px;font-size:12px;line-height:1.9"></div>
+          </div>
+          <div class="settings-inner-block">
             <div class="panel-h"><span class="glow" data-i18n="changePassword">Change Password</span></div>
             <form onsubmit="changePassword(event)">
               <div class="f-g"><label data-i18n="curPass">رمز فعلی</label><input type="password" id="cp-old" required></div>
@@ -2089,7 +2122,7 @@ var selectedTheme = localStorage.getItem('white-theme') || 'dark';
 var LANG = localStorage.getItem('white-lang') || 'fa';
 var I18N = {
   fa: {
-    'dash': 'داشبورد', 'navGroup': 'مدیریت', 'advanced': 'پیشرفته', 'networkTotal': 'مجموع ارسال + دریافت', 'users': 'کاربران', 'inbounds': 'اینباندها', 'scanner': 'اسکنر IP', 'worker': 'Worker', 'settings': 'تنظیمات', 'contact': 'Contact Me', 'logout': 'خروج',
+    'dash': 'داشبورد', 'navGroup': 'مدیریت', 'advanced': 'پیشرفته', 'networkTotal': 'مجموع ارسال + دریافت', 'users': 'کاربران', 'inbounds': 'اینباندها', 'scanner': 'اسکنر IP', 'worker': 'Worker', 'settings': 'تنظیمات', 'logout': 'خروج',
     'workerSetupTip': 'پنل را به Cloudflare متصل کنید تا یک پروژه Pages اختصاصی ساخته شود، worker.js داخل آن Deploy شود و یک KV اختصاصی به آن متصل شود.', 'cfToken': 'Cloudflare API Token', 'getToken': 'گرفتن توکن', 'cfAccountId': 'Account ID', 'cfWorkerName': 'Worker Name', 'cfWorkerDomain': 'Worker Domain', 'createNewWorker': 'ساخت Worker جدید', 'cfConnect': 'اتصال و Deploy', 'connected': 'متصل', 'disconnected': 'قطع', 'workerStatus': 'وضعیت', 'remoteStatus': 'وضعیت ریموت', 'lastHeartbeat': 'آخرین Heartbeat', 'workerId': 'Pages Project', 'kvId': 'KV ID', 'onlineUsers': 'کاربران آنلاین', 'workerTraffic': 'مصرف Worker', 'workerUrl': 'Worker URL', 'lastSync': 'آخرین Sync', 'lastError': 'آخرین خطا', 'proxyPool': 'Proxy IP Pool', 'addProxy': 'افزودن کشور', 'workerSettings': 'تنظیمات Worker', 'removeConn': 'حذف اتصال Worker', 'noProxyYet': 'هنوز کشوری اضافه نکرده‌اید', 'connecting': 'در حال ساخت...', 'workerConnected': 'Worker جدید ساخته و Deploy شد', 'syncing': 'در حال Sync...', 'synced': 'Sync شد', 'confirmRemoveWorker': 'اتصال Worker حذف شود؟', 'workerRemoved': 'اتصال Worker حذف شد', 'proxyCodePrompt': 'کد کشور (مثلا de):', 'proxyCountryPrompt': 'نام کشور:', 'proxyHostPrompt': 'آدرس Proxy IP (مثلا de.example.com):', 'proxyPortPrompt': 'پورت Proxy IP:', 'proxySaved': 'کشور ذخیره و Worker بروزرسانی شد', 'confirmDelProxy': 'این کشور حذف شود؟', 'proxyDeleted': 'کشور حذف شد', 'workerFillAll': 'همه فیلدها را پر کنید', 'workerProxyEnabled': 'Worker Proxy IP', 'workerProxyNone': 'بدون Proxy', 'workerRouteTip': 'کانفیگ کاربر روی دامنه Pages با مسیر /ws/{uuid} ساخته می‌شود و از Railway عبور نمی‌کند.', 'workerAutoName': 'یک پروژه Pages جدید با نام تصادفی (white-xxxxxx) و KV اختصاصی ساخته می‌شود — نیازی به ورود نام نیست.', 'proxySource': 'منبع پروکسی روزانه', 'autoSyncHourly': 'بروزرسانی خودکار (ساعتی)', 'updateNow': 'بروزرسانی از منبع', 'updatingFromSource': 'در حال بروزرسانی از منبع', 'sourceUpdated': 'بروزرسانی شد', 'sourceError': 'خطا در بروزرسانی منبع', 'countries': 'کشور', 'syncsDone': 'تعداد بروزرسانی‌ها', 'pickCountry': 'یک کشور انتخاب کنید',
     'tab.dash': 'داشبورد', 'tab.users': 'مدیریت کاربران', 'tab.inbounds': 'مدیریت اینباندها', 'tab.scanner': 'اسکنر آی‌پی', 'tab.settings': 'تنظیمات',
     'inboundFixedHint': 'فقط اینباندهای پیش‌فرض پنل استفاده می‌شوند. WS/TLS به‌صورت خودکار با دامنه اصلی پنل آماده است؛ Reality را با دامنه و پورت خودتان تکمیل کنید (کلید pbk به‌صورت خودکار ساخته می‌شود).', 'inboundFixed': 'افزودن اینباند غیرفعال است — فقط اینباندهای پیش‌فرض.', 'inboundAuto': 'این اینباند خودکار است و نیازی به تنظیم ندارد.',
@@ -2104,9 +2137,7 @@ var I18N = {
     'addDomain': 'افزودن دامنه', 'checkDomains': 'شروع بررسی دامنه‌ها', 'checking': 'در حال بررسی...', 'checkingDomains': 'در حال بررسی دامنه‌ها...',
     'appearance': 'تنظیمات ظاهری', 'themeMode': 'حالت نمایش', 'fixedTheme': 'فونت و رنگ هماهنگ با صفحه ساب + iOS است.', 'theme': 'تم', 'dark': 'تاریک', 'light': 'روشن', 'color': 'رنگ', 'lightMode': 'حالت روشن فعال شد', 'darkMode': 'حالت تاریک فعال شد',
     'red': 'قرمز', 'green': 'سبز', 'blue': 'آبی',
-    'panelMusic': 'Panel Music', 'bgMusic': 'Background Music', 'toggleMusic': 'روشن/خاموش', 'changePassword': 'Change Password', 'curPass': 'رمز فعلی', 'newPass': 'رمز جدید', 'changePassBtn': 'تغییر رمز',
-    'contactSub': 'برای پشتیبانی و همکاری با من در ارتباط باشید',
-    'createUser': 'ایجاد کاربر جدید', 'editUser': 'ویرایش کاربر', 'username': 'نام کاربری', 'conn': 'اتصال همزمان', 'volume': 'حجم', 'unit': 'واحد', 'expire': 'اعتبار', 'day': 'روز', 'month': 'ماه',
+    'panelMusic': 'Panel Music', 'bgMusic': 'Background Music', 'toggleMusic': 'روشن/خاموش', 'changePassword': 'Change Password', 'curPass': 'رمز فعلی', 'newPass': 'رمز جدید', 'changePassBtn': 'تغییر رمز',    'createUser': 'ایجاد کاربر جدید', 'editUser': 'ویرایش کاربر', 'username': 'نام کاربری', 'conn': 'اتصال همزمان', 'volume': 'حجم', 'unit': 'واحد', 'expire': 'اعتبار', 'day': 'روز', 'month': 'ماه',
     'inboundsMulti': 'اینباندها (چندتایی)', 'noInboundOpt': 'اینباندی وجود ندارد',
     'inboundPickHint': 'برای هر اینباند، گزینه‌های مخصوصش نمایش داده می‌شود: Worker → انتخاب کشور؛ VLESS غیرپیش‌فرض → Cloudflare و Railway؛ Reality → بدون گزینه.',
     'workerCountries': 'کشورهای چندمنطقه‌ای (برای هر کشور یک تیک فعال کنید):',
@@ -2148,7 +2179,7 @@ var I18N = {
     'login': { 'signIn': 'Sign In' }
   },
   en: {
-    'dash': 'Dashboard', 'navGroup': 'Management', 'advanced': 'Advanced', 'networkTotal': 'Total sent + received', 'users': 'Users', 'inbounds': 'Inbounds', 'scanner': 'IP Scanner', 'worker': 'Worker', 'settings': 'Settings', 'contact': 'Contact Me', 'logout': 'Logout',
+    'dash': 'Dashboard', 'navGroup': 'Management', 'advanced': 'Advanced', 'networkTotal': 'Total sent + received', 'users': 'Users', 'inbounds': 'Inbounds', 'scanner': 'IP Scanner', 'worker': 'Worker', 'settings': 'Settings', 'logout': 'Logout',
     'workerSetupTip': 'Connect the panel to Cloudflare to create a dedicated Pages project, deploy worker.js, and attach a private KV namespace automatically.', 'cfToken': 'Cloudflare API Token', 'getToken': 'Get Token', 'cfAccountId': 'Account ID', 'cfWorkerName': 'Worker Name', 'cfWorkerDomain': 'Worker Domain', 'createNewWorker': 'Create New Worker', 'cfConnect': 'Connect & Deploy', 'connected': 'Connected', 'disconnected': 'Disconnected', 'workerStatus': 'Status', 'remoteStatus': 'Remote Status', 'lastHeartbeat': 'Last Heartbeat', 'workerId': 'Pages Project', 'kvId': 'KV ID', 'onlineUsers': 'Online Users', 'workerTraffic': 'Worker Traffic', 'workerUrl': 'Worker URL', 'lastSync': 'Last Sync', 'lastError': 'Last Error', 'proxyPool': 'Proxy IP Pool', 'addProxy': 'Add Country', 'workerSettings': 'Worker Settings', 'removeConn': 'Remove Worker Connection', 'noProxyYet': 'No country added yet', 'connecting': 'Creating...', 'workerConnected': 'New worker created & deployed', 'syncing': 'Syncing...', 'synced': 'Synced', 'confirmRemoveWorker': 'Remove the Worker connection?', 'workerRemoved': 'Worker connection removed', 'proxyCodePrompt': 'Country code (e.g. de):', 'proxyCountryPrompt': 'Country name:', 'proxyHostPrompt': 'Proxy IP host (e.g. de.example.com):', 'proxyPortPrompt': 'Proxy IP port:', 'proxySaved': 'Country saved, worker updated', 'confirmDelProxy': 'Delete this country?', 'proxyDeleted': 'Country deleted', 'workerFillAll': 'Fill in all fields', 'workerProxyEnabled': 'Worker Proxy IP', 'workerProxyNone': 'No Proxy', 'workerRouteTip': 'The user config is built on the Pages Worker domain with the /ws/{uuid} path.', 'workerAutoName': 'A dedicated Pages project is created with a random name (white-xxxxxx) and its own dedicated KV — no project name is needed.', 'proxySource': 'Daily Proxy Source', 'autoSyncHourly': 'Auto-update (hourly)', 'updateNow': 'Update Now', 'updatingFromSource': 'Updating from source', 'sourceUpdated': 'Updated', 'sourceError': 'Failed to update source', 'countries': 'countries', 'syncsDone': 'Syncs done', 'pickCountry': 'Pick a country',
     'tab.dash': 'Dashboard', 'tab.users': 'Manage Users', 'tab.inbounds': 'Manage Inbounds', 'tab.scanner': 'IP Scanner', 'tab.settings': 'Settings',
     'inboundFixedHint': 'Only the panel’s default inbounds are used. WS/TLS is ready automatically with the panel’s main domain; fill Reality’s domain & ports yourself (pbk is auto-generated).', 'inboundFixed': 'Adding inbounds is disabled — only the default inbounds.', 'inboundAuto': 'This inbound is automatic — nothing to configure.',
@@ -2163,9 +2194,7 @@ var I18N = {
     'addDomain': 'Add Domain', 'checkDomains': 'Check Domains', 'checking': 'Checking...', 'checkingDomains': 'Checking domains...',
     'appearance': 'Appearance', 'themeMode': 'Display Mode', 'fixedTheme': 'Font & colors matched to the sub page + iOS.', 'theme': 'Theme', 'dark': 'Dark', 'light': 'Light', 'color': 'Color', 'lightMode': 'Light mode enabled', 'darkMode': 'Dark mode enabled',
     'red': 'Red', 'green': 'Green', 'blue': 'Blue',
-    'panelMusic': 'Panel Music', 'bgMusic': 'Background Music', 'toggleMusic': 'On/Off', 'changePassword': 'Change Password', 'curPass': 'Current Password', 'newPass': 'New Password', 'changePassBtn': 'Change Password',
-    'contactSub': 'Get in touch with me for support and collaboration',
-    'createUser': 'Create New User', 'editUser': 'Edit User', 'username': 'Username', 'conn': 'Concurrent Connections', 'volume': 'Traffic', 'unit': 'Unit', 'expire': 'Expiry', 'day': 'Day', 'month': 'Month',
+    'panelMusic': 'Panel Music', 'bgMusic': 'Background Music', 'toggleMusic': 'On/Off', 'changePassword': 'Change Password', 'curPass': 'Current Password', 'newPass': 'New Password', 'changePassBtn': 'Change Password',    'createUser': 'Create New User', 'editUser': 'Edit User', 'username': 'Username', 'conn': 'Concurrent Connections', 'volume': 'Traffic', 'unit': 'Unit', 'expire': 'Expiry', 'day': 'Day', 'month': 'Month',
     'inboundsMulti': 'Inbounds (multi-select)', 'noInboundOpt': 'No inbounds available',
     'inboundPickHint': 'Each inbound shows its own options: Worker → choose countries, TLS → scanned-IP switch, Reality → no extra options.',
     'workerCountries': 'Multi-location countries (tick each country you want):',
@@ -2499,7 +2528,7 @@ function switchTab(tab, el) {
   if (!target) return;
 
   // Prevent the previous tab's scroll position / scroll anchoring from
-  // pushing Worker or Contact below the viewport.
+  // pushing Worker or Settings below the viewport.
   if (content) {
     content.style.scrollBehavior = 'auto';
     content.scrollTop = 0;
@@ -2509,7 +2538,7 @@ function switchTab(tab, el) {
   target.style.setProperty('margin-top', '0px', 'important');
   target.style.setProperty('top', '0px', 'important');
   target.style.setProperty('transform', 'none', 'important');
-  if (tab === 'worker' || tab === 'contact' || tab === 'settings' || tab === 'nodes') {
+  if (tab === 'worker' || tab === 'settings' || tab === 'nodes') {
     target.style.setProperty('position', 'static', 'important');
     target.style.setProperty('flex', 'none', 'important');
   }
@@ -4844,7 +4873,7 @@ function openNodeModal(nodeId) {
     var fields = [
       {id:'node-name', label:'Name', type:'text', placeholder:'Germany'},
       {id:'node-domain', label:'Domain', type:'text', placeholder:'example.com'},
-      {id:'node-apikey', label:'SPI Key', type:'password', placeholder:'spdr_xxxxxxxxx'}
+      {id:'node-apikey', label:'SPI Key', type:'password', placeholder:'white_xxxxxxxxx'}
     ];
     fields.forEach(function(f){
       var g = document.createElement('div'); g.className='f-g';
@@ -4868,7 +4897,7 @@ function openNodeModal(nodeId) {
   $id('node-apikey').value='';
   $id('node-apikey').required=!EDITING_NODE_ID;
   $id('node-domain').required=true;
-  $id('node-apikey').placeholder=node && node.api_key_masked ? node.api_key_masked : 'spdr_xxxxxxxxx';
+  $id('node-apikey').placeholder=node && node.api_key_masked ? node.api_key_masked : 'white_xxxxxxxxx';
   modal.classList.add('show');
 }
 
@@ -5045,10 +5074,84 @@ async function generateApiKey() {
   } catch(e) { toast(e.message || 'خطا', 'err'); }
 }
 
+// ─── UPDATE CHECK (creator GitHub repo) ──────────────────────────────────────
+function fmtUpdateDate(iso) {
+  if (!iso) return '--';
+  try { return new Date(iso).toLocaleString('fa-IR', {dateStyle: 'medium', timeStyle: 'short'}); }
+  catch(e) { return iso; }
+}
+
+function renderUpdate(d, silent) {
+  var st = $id('update-status'), wrap = $id('update-wrap');
+  var repoUrl = (d && d.repo_url) || 'https://github.com/Itskillmaster/White-Panel-Railway';
+  if (!d || (!d.latest && d.error)) {
+    var why = (d && d.error === 'rate_limited') ? 'محدودیت درخواست GitHub' : 'ارتباط با GitHub برقرار نشد';
+    if (st) { st.textContent = why; st.style.color = 'var(--warning)'; }
+    if (wrap) {
+      wrap.style.display = 'block';
+      wrap.innerHTML = '<span style="color:var(--txt2)">' + esc(why) + '. بعداً دوباره تلاش کنید یا ' +
+        '<a href="' + repoUrl + '" target="_blank" rel="noopener noreferrer" style="color:var(--neon)">ریپوی سازنده</a> را ببینید.</span>';
+    }
+    if (!silent) toast(why, 'err');
+    return;
+  }
+  var latest = d.latest || {};
+  var upd = d.update_available === true;
+  if (st) {
+    st.textContent = upd ? 'بروزرسانی جدید موجود است' : 'شما به‌روز هستید';
+    st.style.color = upd ? 'var(--warning)' : 'var(--success)';
+  }
+  if (wrap) {
+    wrap.style.display = 'block';
+    var html = '<div>' +
+      '<div>آخرین کامیت ریپو: <b dir="ltr">' + esc(latest.commit || '--') + '</b> — ' + esc(fmtUpdateDate(latest.date)) + '</div>' +
+      (latest.message ? '<div style="color:var(--txt2)">' + esc(latest.message) + '</div>' : '');
+    if (upd) {
+      html += '<div style="color:var(--warning);font-weight:700;margin-top:4px">' +
+        (d.new_commits ? d.new_commits + ' کامیت جدید منتشر شده است' : 'کامیت‌های جدیدی منتشر شده است') + '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:8px">' +
+        '<a class="btn btn-g" style="flex:1;text-align:center;display:inline-flex;align-items:center;justify-content:center;text-decoration:none" href="' +
+        esc(d.compare_url || repoUrl) + '" target="_blank" rel="noopener noreferrer">مشاهده در GitHub</a>' +
+        '<button type="button" class="btn btn-g" style="flex:1" onclick="ackUpdate()">دیده شد</button>' +
+        '</div>';
+    }
+    html += '</div>';
+    wrap.innerHTML = html;
+  }
+  if (upd) toast('نسخه جدید White Panel موجود است' + (d.new_commits ? ' (' + d.new_commits + ' کامیت جدید)' : ''), 'ok');
+  else if (!silent) toast('شما از آخرین نسخه به‌روز هستید', 'ok');
+}
+
+async function checkUpdate(silent) {
+  var st = $id('update-status');
+  if (st && (!silent || st.textContent === '—')) st.textContent = 'در حال بررسی…';
+  try {
+    var d = await api('/api/update-check' + (silent ? '' : '?force=true'));
+    renderUpdate(d, silent);
+  } catch(e) {
+    if (st) { st.textContent = 'در دسترس نیست'; st.style.color = 'var(--warning)'; }
+    var wrap = $id('update-wrap');
+    if (wrap) {
+      wrap.style.display = 'block';
+      wrap.innerHTML = '<span style="color:var(--red)">' + esc(e.message || 'خطا در بررسی بروزرسانی') + '</span>';
+    }
+    if (!silent) toast(e.message || 'خطا در بررسی بروزرسانی', 'err');
+  }
+}
+
+async function ackUpdate() {
+  try {
+    await api('/api/update-check/ack', {method: 'POST'});
+    await checkUpdate(false);
+    toast('بروزرسانی علامت‌گذاری شد', 'ok');
+  } catch(e) { toast(e.message || 'خطا', 'err'); }
+}
+
 // Add server info to settings on load
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(loadServerInfo, 500);
   setTimeout(loadBot, 600);
+  setTimeout(function() { checkUpdate(true); }, 1200);
 });
 
 // Start neon bars when tab opens
