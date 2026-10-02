@@ -8,6 +8,7 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400..800&family=Orbitron:wght@400..900&family=Reem+Kufi:wght@400..700&family=Space+Grotesk:wght@300..700&family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet"/>
 
 <script>
 tailwind.config = {
@@ -20,10 +21,10 @@ tailwind.config = {
                 "background": "#000000"
             },
             fontFamily: {
-                "headline-lg": ["Inter"],
-                "body-sm": ["Inter"],
-                "body-lg": ["Inter"],
-                "code-label": ["JetBrains Mono"]
+                "headline-lg": ["Space Grotesk", "Vazirmatn", "sans-serif"],
+                "body-sm": ["Space Grotesk", "Vazirmatn", "sans-serif"],
+                "body-lg": ["Space Grotesk", "Vazirmatn", "sans-serif"],
+                "code-label": ["JetBrains Mono", "monospace"]
             }
         }
     }
@@ -264,9 +265,93 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   outline-offset: 2px;
 }
 
+/* ═══════════ ULTRA GLASS 2.0 + MULTI FONTS ═══════════ */
+:root{
+    --font-en:'Space Grotesk','Inter',-apple-system,sans-serif;
+    --font-fa:'Vazirmatn','Space Grotesk',sans-serif;
+    --font-logo:'Orbitron','Space Grotesk',sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,monospace;
+    --teal:#00e1c1;--teal-2:#2ef2d6;--violet:#8b5cf6;
+}
+body{font-family:var(--font-en)!important}
+
+/* Aurora floating orbs */
+.aurora-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.aurora-bg .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:orb-drift 24s ease-in-out infinite alternate;will-change:transform}
+.aurora-bg .orb-a{width:52vw;height:52vw;left:-8vw;top:-12vh;background:radial-gradient(circle at 40% 40%,rgba(0,225,193,.28),transparent 62%)}
+.aurora-bg .orb-b{width:44vw;height:44vw;right:-6vw;bottom:-10vh;background:radial-gradient(circle at 60% 60%,rgba(139,92,246,.26),transparent 62%);animation-duration:30s;animation-delay:-8s}
+.aurora-bg .orb-c{width:30vw;height:30vw;left:38vw;top:52vh;background:radial-gradient(circle at 50% 50%,rgba(64,120,255,.20),transparent 60%);animation-duration:36s;animation-delay:-16s}
+@keyframes orb-drift{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(6vw,-5vh,0) scale(1.12)}100%{transform:translate3d(-5vw,6vh,0) scale(1.05)}}
+@media (prefers-reduced-motion:reduce){.aurora-bg .orb{animation:none}}
+
+/* Logo typography */
+.login-title{
+    font-family:var(--font-logo)!important;letter-spacing:.18em!important;font-weight:800!important;
+    background:linear-gradient(90deg,#ffffff 35%,#00e1c1 78%,#2ef2d6);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent!important;
+    text-shadow:none!important;filter:drop-shadow(0 0 16px rgba(0,225,193,.35));
+}
+.login-sub{font-family:var(--font-mono)!important;letter-spacing:.32em!important;text-transform:uppercase;color:rgba(255,255,255,.55)!important}
+
+/* Badge accent */
+.badge-bar .badge-item:last-child{color:var(--teal);border-color:rgba(0,225,193,.45);box-shadow:0 0 14px rgba(0,225,193,.25)}
+
+/* کارت شیشه‌ای با لبه گرادیانی */
+.glass-card {
+    background:linear-gradient(rgba(10,10,15,.62),rgba(10,10,15,.62)) padding-box,
+               linear-gradient(140deg,rgba(0,225,193,.6),rgba(255,255,255,.10) 45%,rgba(139,92,246,.5)) border-box !important;
+    border:1px solid transparent !important;
+    backdrop-filter:blur(30px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(30px) saturate(190%) !important;
+    box-shadow:0 30px 70px rgba(0,0,0,.7),inset 0 1px 1px rgba(255,255,255,.16) !important;
+    animation:card-float 8s ease-in-out infinite;
+}
+@keyframes card-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@media (prefers-reduced-motion:reduce){.glass-card{animation:none}}
+
+/* ورودی فرم */
+.input-glass:focus {
+    border-color:rgba(0,225,193,.75) !important;
+    box-shadow:0 0 22px rgba(0,225,193,.3),inset 0 2px 6px rgba(0,0,0,.35) !important;
+    background:rgba(0,0,0,.55) !important;
+    outline:none !important;
+}
+
+/* دکمه ورود */
+.btn-submit {
+    background:linear-gradient(135deg,#00e1c1,#2ef2d6) !important;
+    color:#000000 !important;
+    border:1px solid rgba(255,255,255,.35) !important;
+    box-shadow:0 12px 30px rgba(0,225,193,.45),inset 0 1px 1px rgba(255,255,255,.6) !important;
+    letter-spacing:.06em !important;
+    font-weight:800 !important;
+    transition:all .28s ease;
+}
+.btn-submit:hover {
+    background:linear-gradient(135deg,#00e1c1,#2ef2d6) !important;
+    transform:translateY(-3px) !important;
+    box-shadow:0 18px 42px rgba(0,225,193,.6),inset 0 1px 1px rgba(255,255,255,.85) !important;
+    filter:brightness(1.06) !important;
+}
+
+/* هاله دور مجسمه — نئونی */
+.hero-halo {
+    border-color:rgba(0,225,193,.4) !important;
+    box-shadow:0 0 60px rgba(0,225,193,.22),inset 0 0 60px rgba(139,92,246,.14);
+}
+
+/* کلمه عمودی WHITE */
+.hero-vertical-text {
+    color:rgba(255,255,255,.85) !important;
+    text-shadow:0 0 22px rgba(0,225,193,.55),0 2px 12px rgba(0,0,0,.9) !important;
+}
+
 </style>
 </head>
 <body class="h-screen w-screen overflow-hidden flex items-center justify-center relative">
+
+<!-- لایه اورورا شناور -->
+<div class="aurora-bg" aria-hidden="true"><span class="orb orb-a"></span><span class="orb orb-b"></span><span class="orb orb-c"></span></div>
 
 <!-- نوار شناور بالا (بدون کلید release) -->
 <div class="badge-bar">
@@ -286,8 +371,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <!-- Header -->
     <div class="flex flex-col items-center gap-2 text-center">
         <img src="/static/white-logo.svg" alt="White Panel Logo" onerror="this.style.display='none'" style="width:96px;height:96px;margin-bottom:2px">
-        <h1 class="text-2xl font-bold tracking-wider text-white">WHITE PANEL</h1>
-        <p class="text-xs text-on-surface-variant font-medium">High Performance Panel</p>
+        <h1 class="text-2xl font-bold tracking-wider text-white login-title">WHITE PANEL</h1>
+        <p class="text-xs text-on-surface-variant font-medium login-sub">High Performance Panel</p>
     </div>
 
     <!-- Error -->
