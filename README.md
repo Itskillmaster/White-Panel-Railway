@@ -24,6 +24,7 @@
 - [UI details](#-ui-details)
 - [Security notes](#-security-notes)
 - [Development](#-development)
+- [Creator](#creator)
 - [مستندات فارسی](#-مستندات-فارسی)
 
 </details>
@@ -246,8 +247,7 @@ FastAPI application
 │   └── architecture.svg
 ├── worker/
 │   ├── worker.js
-│   ├── _worker.js
-│   └── _worker.js.bak
+│   └── _worker.js
 ├── Dockerfile
 ├── railway.toml
 ├── requirements.txt
@@ -522,6 +522,15 @@ http://127.0.0.1:8080/white
 - پنل عمومی را با HTTPS اجرا کنید.
 - دسترسی ادمین را محدود نگه دارید.
 - لینک Subscription را قبل از انتشار عمومی بررسی کنید.
+
+---
+
+## Creator
+
+Developed & maintained by **[Itskillmaster](https://github.com/Itskillmaster/White-Panel-Railway)**.
+
+- Repository: <https://github.com/Itskillmaster/White-Panel-Railway>
+- The panel's built-in update checker (**Settings → بروزرسانی پنل**) compares your install against this repository's latest commit.
 
 ---
 

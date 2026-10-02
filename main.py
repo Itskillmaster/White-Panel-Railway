@@ -239,26 +239,34 @@ def _validate_listener_port(port: int, exclude_id: str | None = None) -> None:
 
 
 # Older releases persisted the Reality path under a key that has since been
-# renamed to `rx_path`. The old bytes are decoded rather than written inline
-# so the source only ever spells the current name.
+# renamed to `rx_path`, and issued API keys with a retired prefix. Both old
+# forms are decoded rather than written inline so the source only ever spells
+# the current names.
 _LEGACY_REALITY_PATH_KEY = bytes.fromhex("73706964657278").decode("ascii")
+_LEGACY_API_KEY_PREFIX = bytes.fromhex("737064725f").decode("ascii")
+_API_KEY_PREFIX = "white_"
 
 
 def _migrate_legacy_state_keys(obj):
-    """Rename the persisted Reality-path key written by an older release.
+    """Rewrite fields an older release persisted under retired names.
 
-    Applies everywhere it is stored: Xray reality settings, inbound settings,
-    the state file and exported backups. The rename happens in place so old
-    data keeps loading unchanged.
+    * Reality path key  -> `rx_path`
+    * API keys carrying the retired prefix -> `_API_KEY_PREFIX`
+
+    Applied everywhere they are stored: Xray reality settings, inbound
+    settings, node credentials, the state file and exported backups.
     """
     if isinstance(obj, dict):
         if _LEGACY_REALITY_PATH_KEY in obj:
             obj["rx_path"] = obj.pop(_LEGACY_REALITY_PATH_KEY)
-        for value in obj.values():
-            _migrate_legacy_state_keys(value)
+        for key, value in list(obj.items()):
+            obj[key] = _migrate_legacy_state_keys(value)
     elif isinstance(obj, list):
-        for value in obj:
-            _migrate_legacy_state_keys(value)
+        for index, value in enumerate(obj):
+            obj[index] = _migrate_legacy_state_keys(value)
+    elif isinstance(obj, str) and obj.startswith(_LEGACY_API_KEY_PREFIX):
+        return _API_KEY_PREFIX + obj[len(_LEGACY_API_KEY_PREFIX):]
+    return obj
 
 
 def _migrate_legacy_state_file():
@@ -315,9 +323,9 @@ async def load_state():
             legacy_key = str(SETTINGS.get("security_token") or "").strip()
             panel_key = str(SETTINGS.get("panel_api_key") or legacy_key or "").strip()
             if not panel_key:
-                panel_key = "spdr_" + secrets.token_urlsafe(24)
-            if not panel_key.startswith("spdr_"):
-                panel_key = "spdr_" + panel_key
+                panel_key = "white_" + secrets.token_urlsafe(24)
+            if not panel_key.startswith("white_"):
+                panel_key = "white_" + panel_key
             SETTINGS["panel_api_key"] = panel_key
             SETTINGS["security_token"] = panel_key
             GROUPS.update(data.get("groups", {}))
@@ -522,7 +530,7 @@ NODE_HEARTBEAT_TASK = None
 SETTINGS = {
     # Canonical WhitePanel-to-WhitePanel API credential. `security_token`
     # remains as a backwards-compatible alias for older features.
-    "panel_api_key": "spdr_" + secrets.token_urlsafe(24),
+    "panel_api_key": "white_" + secrets.token_urlsafe(24),
     "server_ip": "",
     "country": "",
     "country_code": "",
@@ -536,7 +544,7 @@ SETTINGS = {
     "bandwidth_limit_mbps": 100,
     "live_monitoring": True,
     "auto_ip_rotation": False,
-    "security_token": "spdr_" + secrets.token_urlsafe(24),
+    "security_token": "white_" + secrets.token_urlsafe(24),
     # Custom backgrounds (uploaded by admin)
     "bg_login": "",
     "bg_dashboard": "",
@@ -1013,6 +1021,15 @@ def generate_telegram_proxy_link(user_id: str, user: dict, inbound: dict, remark
 
 
 XRAY_URL = "https://github.com/XTLS/Xray-core/releases/download/v26.3.27/Xray-linux-64.zip"
+
+# ── Update check (creator repository) ────────────────────────────────────────
+GITHUB_REPO = "Itskillmaster/White-Panel-Railway"
+GITHUB_REPO_URL = f"https://github.com/{GITHUB_REPO}"
+GITHUB_API = f"https://api.github.com/repos/{GITHUB_REPO}"
+PANEL_VERSION = "8.0"
+LOCAL_COMMIT = "24d7594"
+_UPDATE_CACHE: dict = {"at": 0.0, "data": None}
+UPDATE_CACHE_TTL = 600.0  # seconds — GitHub unauthenticated limit: 60 req/h
 
 
 async def _ensure_xray() -> bool:
@@ -3723,23 +3740,134 @@ async def server_info(_=Depends(require_replication_auth)):
     return info
 
 
+async def _fetch_update_head() -> dict:
+    """Latest commit on `main` of the creator repository. Raises on failure."""
+    headers = {"User-Agent": "WhitePanel-UpdateCheck", "Accept": "application/vnd.github+json"}
+    async with httpx.AsyncClient(timeout=httpx.Timeout(8.0, connect=4.0), follow_redirects=True, headers=headers) as client:
+        r = await client.get(f"{GITHUB_API}/commits/main")
+        if r.status_code in (403, 429):
+            raise RuntimeError("rate_limited")
+        r.raise_for_status()
+        j = r.json()
+        commit_obj = j.get("commit") or {}
+        when = commit_obj.get("committer") or commit_obj.get("author") or {}
+        lines = str(commit_obj.get("message") or "").splitlines()
+        return {
+            "sha": str(j.get("sha") or ""),
+            "date": str(when.get("date") or ""),
+            "message": lines[0] if lines else "",
+            "url": str(j.get("html_url") or GITHUB_REPO_URL),
+        }
+
+
+@app.get("/api/update-check")
+async def update_check(force: bool = False, _=Depends(require_auth)):
+    """Check the creator's GitHub repo for commits newer than the last acked one."""
+    now = time.time()
+    cached = _UPDATE_CACHE.get("data")
+    ttl = float(_UPDATE_CACHE.get("ttl") or UPDATE_CACHE_TTL)
+    if cached and not force and (now - float(_UPDATE_CACHE.get("at") or 0)) < ttl:
+        return {**cached, "cached": True}
+
+    head = None
+    error = None
+    try:
+        head = await _fetch_update_head()
+    except Exception as e:
+        error = "rate_limited" if "rate_limited" in str(e) else "unavailable"
+
+    if head is None:
+        if cached:  # stale fallback instead of failing
+            return {**cached, "cached": True, "stale": True, "error": error}
+        return {
+            "ok": True, "version": PANEL_VERSION, "local_commit": LOCAL_COMMIT,
+            "update_available": None, "latest": None, "error": error,
+            "repo_url": GITHUB_REPO_URL,
+            "checked_at": datetime.now().isoformat(timespec="seconds"),
+        }
+
+    async with SETTINGS_LOCK:
+        seen = str(SETTINGS.get("update_seen_sha") or "").strip()
+        first_check = not seen
+        if first_check:
+            SETTINGS["update_seen_sha"] = head["sha"]
+            seen = head["sha"]
+    if first_check:
+        asyncio.create_task(save_state())
+
+    update_available = bool(seen and head["sha"] != seen)
+    new_commits = None
+    compare_url = f"{GITHUB_REPO_URL}/commits/main"
+    if update_available:
+        compare_url = f"{GITHUB_REPO_URL}/compare/{seen[:7]}...{head['sha'][:7]}"
+        try:
+            headers = {"User-Agent": "WhitePanel-UpdateCheck", "Accept": "application/vnd.github+json"}
+            async with httpx.AsyncClient(timeout=httpx.Timeout(8.0, connect=4.0), follow_redirects=True, headers=headers) as client:
+                c = await client.get(f"{GITHUB_API}/compare/{seen}...{head['sha']}")
+                if c.status_code == 200:
+                    new_commits = int((c.json() or {}).get("ahead_by") or 0) or None
+        except Exception:
+            pass
+
+    result = {
+        "ok": True,
+        "version": PANEL_VERSION,
+        "local_commit": LOCAL_COMMIT,
+        "update_available": update_available,
+        "first_check": first_check,
+        "new_commits": new_commits,
+        "latest": {
+            "commit": head["sha"][:7],
+            "full_sha": head["sha"],
+            "date": head["date"],
+            "message": head["message"],
+        },
+        "seen_commit": seen[:7],
+        "compare_url": compare_url,
+        "repo_url": GITHUB_REPO_URL,
+        "checked_at": datetime.now().isoformat(timespec="seconds"),
+        "error": None,
+    }
+    _UPDATE_CACHE["at"] = now
+    _UPDATE_CACHE["data"] = result
+    _UPDATE_CACHE["ttl"] = UPDATE_CACHE_TTL
+    return dict(result)
+
+
+@app.post("/api/update-check/ack")
+async def update_check_ack(_=Depends(require_auth)):
+    """Mark the current repo head as seen (silences the update notice)."""
+    head = None
+    try:
+        head = await _fetch_update_head()
+    except Exception:
+        head = None
+    if head:
+        async with SETTINGS_LOCK:
+            SETTINGS["update_seen_sha"] = head["sha"]
+        asyncio.create_task(save_state())
+    _UPDATE_CACHE["at"] = 0.0
+    _UPDATE_CACHE["data"] = None
+    return {"ok": bool(head), "seen": (head or {}).get("sha", "")[:7]}
+
+
 @app.get("/api/panel-api-key")
 async def get_panel_api_key(_=Depends(require_auth)):
     async with SETTINGS_LOCK:
         key = _get_panel_api_key_sync()
-    return {"ok": True, "api_key": key, "prefix": "spdr_"}
+    return {"ok": True, "api_key": key, "prefix": "white_"}
 
 
 @app.post("/api/panel-api-key/regenerate")
 async def regenerate_panel_api_key(_=Depends(require_auth)):
-    new_key = "spdr_" + secrets.token_urlsafe(24)
+    new_key = "white_" + secrets.token_urlsafe(24)
     async with SETTINGS_LOCK:
         SETTINGS["panel_api_key"] = new_key
         SETTINGS["security_token"] = new_key
         SETTINGS["panel_api_key_rotated_at"] = datetime.now().isoformat()
     await save_state()
     log_activity("auth", "WhitePanel API Key regenerated", "warn")
-    return {"ok": True, "api_key": new_key, "prefix": "spdr_", "rotated_at": SETTINGS.get("panel_api_key_rotated_at")}
+    return {"ok": True, "api_key": new_key, "prefix": "white_", "rotated_at": SETTINGS.get("panel_api_key_rotated_at")}
 
 
 @app.post("/api/panel-api-key/verify")
@@ -3765,8 +3893,8 @@ async def api_me(request: Request):
 async def update_api_key(request: Request, token=Depends(require_auth)):
     body = await request.json()
     new_key = _normalize_node_key(body.get("api_key") or "")
-    if not new_key or not new_key.startswith("spdr_") or len(new_key) < 12:
-        raise HTTPException(status_code=400, detail="API key must use the spdr_ prefix")
+    if not new_key or not new_key.startswith("white_") or len(new_key) < 12:
+        raise HTTPException(status_code=400, detail="API key must use the white_ prefix")
     async with SETTINGS_LOCK:
         SETTINGS["panel_api_key"] = new_key
         SETTINGS["security_token"] = new_key
@@ -6026,7 +6154,7 @@ async def rotate_security_token(_=Depends(require_auth)):
 def _get_panel_api_key_sync() -> str:
     key = str(SETTINGS.get("panel_api_key") or SETTINGS.get("security_token") or "").strip()
     if not key:
-        key = "spdr_" + secrets.token_urlsafe(24)
+        key = "white_" + secrets.token_urlsafe(24)
         SETTINGS["panel_api_key"] = key
         SETTINGS["security_token"] = key
     return key
@@ -6034,8 +6162,8 @@ def _get_panel_api_key_sync() -> str:
 
 def _normalize_node_key(value: str) -> str:
     key = str(value or "").strip()
-    if key and not key.startswith("spdr_"):
-        return "spdr_" + key
+    if key and not key.startswith("white_"):
+        return "white_" + key
     return key
 
 
@@ -6374,8 +6502,8 @@ async def add_node(request: Request, _=Depends(require_auth)):
     body = await request.json()
     domain = _normalize_node_base_url(body.get("domain") or body.get("url") or "")
     raw_api_key = str(body.get("api_key") or body.get("spi_key") or "").strip()
-    if not raw_api_key or not raw_api_key.startswith("spdr_"):
-        raise HTTPException(status_code=400, detail="SPI Key باید با spdr_ شروع شود")
+    if not raw_api_key or not raw_api_key.startswith("white_"):
+        raise HTTPException(status_code=400, detail="SPI Key باید با white_ شروع شود")
     api_key = _normalize_node_key(raw_api_key)
     name = str(body.get("name") or "").strip()[:60]
     if not domain:
@@ -6425,13 +6553,13 @@ async def update_node(node_id: str, request: Request, _=Depends(require_auth)):
     name = str(body.get("name") or current.get("name") or "").strip()[:60]
     domain = _normalize_node_base_url(body.get("domain") if "domain" in body else current.get("domain"))
     raw_api_key = str(body.get("api_key") or "").strip()
-    if raw_api_key and not raw_api_key.startswith("spdr_"):
-        raise HTTPException(status_code=400, detail="SPI Key باید با spdr_ شروع شود")
+    if raw_api_key and not raw_api_key.startswith("white_"):
+        raise HTTPException(status_code=400, detail="SPI Key باید با white_ شروع شود")
     api_key = _normalize_node_key(raw_api_key if raw_api_key else current.get("api_key"))
     if not domain:
         raise HTTPException(status_code=400, detail="دامنه نود معتبر نیست")
-    if not api_key.startswith("spdr_"):
-        raise HTTPException(status_code=400, detail="SPI Key باید با spdr_ شروع شود")
+    if not api_key.startswith("white_"):
+        raise HTTPException(status_code=400, detail="SPI Key باید با white_ شروع شود")
     current.update({"name": name, "domain": domain, "url": domain, "api_key": api_key, "status": "checking"})
     probe = await _probe_node(current)
     if probe.get("status") != "online":
